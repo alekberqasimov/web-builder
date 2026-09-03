@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <title>Web Builder — visual site creator</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">W</span><span>Web Builder</span><small>local studio</small></div>
+      <div class="top-actions">
+        <button class="icon-button" id="undoBtn" title="Отменить" disabled>↶</button>
+        <button class="icon-button" id="redoBtn" title="Повторить" disabled>↷</button>
+        <span class="divider"></span>
+        <button class="button ghost" id="newBtn">Новый</button>
+        <button class="button ghost" id="previewBtn">Предпросмотр</button>
+        <button class="button primary" id="downloadBtn">Скачать сайт</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="sidebar left-sidebar">
+        <div class="sidebar-head">
+          <div><span class="eyebrow">Библиотека</span><h2>Блоки</h2></div>
+          <button class="icon-button mobile-close" data-close-panel="left">×</button>
+        </div>
+        <label class="search"><span>⌕</span><input id="blockSearch" type="search" placeholder="Найти блок"></label>
+        <div class="category-tabs" id="categoryTabs">
+          <button class="active" data-category="all">Все</button>
+          <button data-category="main">Основные</button>
+          <button data-category="content">Контент</button>
+        </div>
+        <div class="block-list" id="blockList"></div>
+        <div class="sidebar-note">Перетащи блок на холст или нажми на него.</div>
+      </aside>
+
+      <section class="stage">
+        <div class="stage-toolbar">
+          <button class="mobile-panel-button" data-open-panel="left">＋ Блоки</button>
+          <div class="device-switcher" role="group" aria-label="Размер экрана">
+            <button class="active" data-device="desktop" title="Компьютер">▰</button>
+            <button data-device="tablet" title="Планшет">▯</button>
+            <button data-device="mobile" title="Телефон">▯</button>
+          </div>
+          <div class="document-status"><span class="status-dot"></span><span id="saveStatus">Сохранено локально</span></div>
+          <button class="mobile-panel-button" data-open-panel="right">Настройки ⚙</button>
+        </div>
+        <div class="canvas-wrap">
+          <div class="canvas-frame desktop" id="canvasFrame">
+            <div id="canvas" class="canvas" aria-label="Холст сайта"></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="sidebar right-sidebar">
+        <div class="sidebar-head">
+          <div><span class="eyebrow">Инспектор</span><h2>Настройки</h2></div>
+          <button class="icon-button mobile-close" data-close-panel="right">×</button>
+        </div>
+        <div id="emptyInspector" class="empty-inspector">
+          <div class="empty-icon">⌁</div>
+          <p>Выбери блок на холсте, чтобы изменить его оформление.</p>
+        </div>
+        <form id="inspector" class="inspector hidden" onsubmit="return false">
+          <label>Тип блока<input id="sectionType" disabled></label>
+          <label>Фон<div class="color-row"><input id="backgroundColor" type="color"><input id="backgroundText" type="text" maxlength="20"></div></label>
+          <label>Цвет текста<div class="color-row"><input id="textColor" type="color"><input id="textColorText" type="text" maxlength="20"></div></label>
+          <label>Внутренний отступ <output id="paddingValue">64 px</output><input id="paddingRange" type="range" min="16" max="140" step="4"></label>
+          <label>Ширина контента<select id="contentWidth"><option value="880">Узкая</option><option value="1120">Стандартная</option><option value="1320">Широкая</option></select></label>
+          <label>Выравнивание<select id="textAlign"><option value="left">Слева</option><option value="center">По центру</option><option value="right">Справа</option></select></label>
+          <div class="inspector-actions">
+            <button id="duplicateBtn" class="button ghost" type="button">Копировать</button>
+            <button id="deleteBtn" class="button danger" type="button">Удалить</button>
+          </div>
+        </form>
+        <div class="project-tools">
+          <h3>Проект</h3>
+          <button class="button ghost wide" id="exportProjectBtn">Сохранить проект</button>
+          <label class="button ghost wide file-button">Открыть проект<input id="importProjectInput" type="file" accept="application/json,.json"></label>
+        </div>
+      </aside>
+    </main>
+  </div>
+  <div class="drop-indicator" id="dropIndicator"></div>
+  <div class="toast" id="toast" role="status"></div>
+</body>
+</html>
