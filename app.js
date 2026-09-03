@@ -192,13 +192,23 @@ function updatePreviewFrame(pageId){
 }
 function togglePanel(side){
   const sidebar=$(`.${side}-sidebar`),other=$(`.${side==='left'?'right':'left'}-sidebar`);
-  if(matchMedia('(max-width:1180px)').matches){other.classList.remove('open');sidebar.classList.toggle('open')}else{document.body.classList.toggle(`${side}-collapsed`)}
+  if(matchMedia('(max-width:1180px)').matches){
+    if(document.body.classList.contains(`${side}-pinned`)){document.body.classList.remove(`${side}-pinned`);sidebar.classList.remove('open')}
+    else{other.classList.remove('open');sidebar.classList.toggle('open')}
+  }else{document.body.classList.toggle(`${side}-collapsed`)}
   syncPanelToggles();
 }
+function pinPanel(side){
+  if(!matchMedia('(max-width:1180px)').matches)return;
+  const sidebar=$(`.${side}-sidebar`),className=`${side}-pinned`,willPin=!document.body.classList.contains(className);
+  document.body.classList.toggle(className,willPin);sidebar.classList.toggle('open',!willPin);syncPanelToggles();
+}
+function closePanel(side){document.body.classList.remove(`${side}-pinned`);$(`.${side}-sidebar`).classList.remove('open');syncPanelToggles()}
 function syncPanelToggles(){
   const drawer=matchMedia('(max-width:1180px)').matches;
-  $('#leftToggleBtn').classList.toggle('active',drawer?$('.left-sidebar').classList.contains('open'):!document.body.classList.contains('left-collapsed'));
-  $('#rightToggleBtn').classList.toggle('active',drawer?$('.right-sidebar').classList.contains('open'):!document.body.classList.contains('right-collapsed'));
+  $('#leftToggleBtn').classList.toggle('active',drawer?$('.left-sidebar').classList.contains('open')||document.body.classList.contains('left-pinned'):!document.body.classList.contains('left-collapsed'));
+  $('#rightToggleBtn').classList.toggle('active',drawer?$('.right-sidebar').classList.contains('open')||document.body.classList.contains('right-pinned'):!document.body.classList.contains('right-collapsed'));
+  $$('[data-pin-panel]').forEach(button=>button.classList.toggle('pinned',document.body.classList.contains(`${button.dataset.pinPanel}-pinned`)));
 }
 async function downloadSite(){
   if(!state.project.pages.some(page=>page.sections.length))return notify(tr('empty'));if(!window.JSZip){downloadBlob(new Blob([exportedDocument(currentPage())],{type:'text/html'}),pageFile(currentPage()));return}
@@ -226,7 +236,7 @@ function bindUi(){
   $('#paddingRange').oninput=e=>{$('#paddingValue').value=`${e.target.value} px`;updateStyle('padding',Number(e.target.value))};$('#imageTarget').onchange=e=>{state.selectedImage=Number(e.target.value);updateInspector()};const handleImageInput=e=>{const file=e.target.files?.[0];if(file)uploadImage(file);e.target.value=''};$('#imageInput').oninput=handleImageInput;$('#imageInput').onchange=handleImageInput;$('#imageAlt').oninput=e=>mutateImageLive(image=>image.alt=e.target.value);$('#imageFit').onchange=e=>mutateImage(image=>image.style.objectFit=e.target.value);$('#removeImageBtn').onclick=resetImage;
   const seoMap={seoTitle:'title',seoDescription:'description',seoKeywords:'keywords',ogTitle:'ogTitle',ogDescription:'ogDescription',ogImage:'ogImage'};Object.entries(seoMap).forEach(([id,key])=>$('#'+id).oninput=e=>{currentPage().seo[key]=e.target.value;updateSeoCounts();commit()});$('#seoNoindex').onchange=e=>{currentPage().seo.noindex=e.target.checked;commit()};$('#siteUrl').oninput=e=>{state.project.siteUrl=e.target.value;commit()};$('#siteName').oninput=e=>{state.project.name=e.target.value;commit()};
   $('#importProjectInput').onchange=async e=>{try{const project=JSON.parse(await e.target.files[0].text());if(project.version!==2||!Array.isArray(project.pages)||!project.pages.length)throw Error();snapshot();state.project=project;state.project.currentPageId=project.currentPageId||project.pages[0].id;state.selected=null;commit();renderAll();notify(tr('projectOpened'))}catch{notify(tr('badProject'))}e.target.value=''};
-  $$('[data-open-panel]').forEach(button=>button.onclick=()=>togglePanel(button.dataset.openPanel));$$('[data-close-panel]').forEach(button=>button.onclick=()=>{button.closest('.sidebar').classList.remove('open');syncPanelToggles()});window.addEventListener('resize',syncPanelToggles);syncPanelToggles();
+  $$('[data-open-panel]').forEach(button=>button.onclick=()=>togglePanel(button.dataset.openPanel));$$('[data-pin-panel]').forEach(button=>button.onclick=()=>pinPanel(button.dataset.pinPanel));$$('[data-close-panel]').forEach(button=>button.onclick=()=>closePanel(button.dataset.closePanel));window.addEventListener('resize',syncPanelToggles);syncPanelToggles();
   document.onkeydown=e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();redo()}if(e.key==='Delete'&&state.selected&&!document.activeElement.matches('input,textarea,[contenteditable=true]'))deleteSection(state.selected)};
 }
 function updateSeoCounts(){$('#seoTitleCount').textContent=`${$('#seoTitle').value.length}/70`;$('#seoDescriptionCount').textContent=`${$('#seoDescription').value.length}/170`}
