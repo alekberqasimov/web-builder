@@ -23,6 +23,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Prepare Web Builder v3
+        run: |
+          sed -i 's/Web Builder v2/Web Builder v3/g' index.html
+          sed -i 's#styles.css?v=2.4#styles.css?v=3.0#' index.html
+          sed -i 's#app.js?v=2.4#app.js?v=3.0#' index.html
+          sed -i '/styles.css?v=3.0/a\  <link rel="stylesheet" href="enhancements.css?v=3.0">' index.html
+          sed -i '/app.js?v=3.0/a\  <script src="enhancements.js?v=3.0" defer></script>' index.html
+          sed -i 's/<small>v2<\/small>/<small>v3<\/small>/' index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload static site
