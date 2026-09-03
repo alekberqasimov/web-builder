@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
   <meta name="theme-color" content="#0b1020">
   <title>Web Builder v2</title>
-  <link rel="stylesheet" href="styles.css?v=2.3">
+  <link rel="stylesheet" href="styles.css?v=2.4">
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
-  <script src="app.js?v=2.3" defer></script>
+  <script src="app.js?v=2.4" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -54,6 +54,7 @@
             <label><span><span data-i18n="padding">Внутренний отступ</span> <output id="paddingValue">64 px</output></span><input id="paddingRange" type="range" min="16" max="140" step="4"></label>
             <label><span data-i18n="contentWidth">Ширина контента</span><select id="contentWidth"><option value="880" data-i18n="narrow">Узкая</option><option value="1120" data-i18n="standard">Стандартная</option><option value="1320" data-i18n="wide">Широкая</option></select></label>
             <label><span data-i18n="alignment">Выравнивание</span><select id="textAlign"><option value="left" data-i18n="left">Слева</option><option value="center" data-i18n="center">По центру</option><option value="right" data-i18n="right">Справа</option></select></label>
+            <fieldset id="repeatControls" class="image-controls hidden"><legend data-i18n="elements">Элементы</legend><label><span data-i18n="elementCount">Количество элементов</span><div class="count-row"><input id="repeatCount" type="number" min="1" max="500" step="1" inputmode="numeric"><button id="applyRepeatCount" class="button ghost" type="button" data-i18n="applyCount">Применить</button></div></label><small data-i18n="countRange">Можно ввести любое число от 1 до 500.</small></fieldset>
             <fieldset id="imageControls" class="image-controls hidden"><legend data-i18n="image">Изображение</legend><label><span data-i18n="imageInBlock">Изображение в блоке</span><select id="imageTarget"></select></label><label class="button ghost wide file-button"><span data-i18n="uploadImage">Загрузить изображение</span><input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"></label><label><span data-i18n="altText">Описание ALT</span><input id="imageAlt" type="text" placeholder="Image description"></label><label><span data-i18n="imageFit">Заполнение</span><select id="imageFit"><option value="cover">Cover</option><option value="contain">Contain</option></select></label><button id="removeImageBtn" class="button ghost wide" type="button" data-i18n="removeImage">Удалить изображение</button></fieldset>
             <div class="inspector-actions"><button id="duplicateBtn" class="button ghost" type="button" data-i18n="duplicate">Копировать</button><button id="deleteBtn" class="button danger" type="button" data-i18n="delete">Удалить</button></div>
           </form>
