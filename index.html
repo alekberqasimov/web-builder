@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
   <meta name="theme-color" content="#0b1020">
   <title>Web Builder v2</title>
-  <link rel="stylesheet" href="styles.css?v=2.2">
+  <link rel="stylesheet" href="styles.css?v=2.3">
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
-  <script src="app.js?v=2.2" defer></script>
+  <script src="app.js?v=2.3" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -25,7 +25,7 @@
     </header>
     <main class="workspace">
       <aside class="sidebar left-sidebar">
-        <div class="sidebar-head"><div><span class="eyebrow">Web Builder</span><h2 id="leftPanelTitle" data-i18n="blocks">Блоки</h2></div><button class="icon-button mobile-close" data-close-panel="left">×</button></div>
+        <div class="sidebar-head"><div><span class="eyebrow">Web Builder</span><h2 id="leftPanelTitle" data-i18n="blocks">Блоки</h2></div><div class="sidebar-head-actions"><button class="icon-button pin-button" data-pin-panel="left" title="Pin / Overlay">📌</button><button class="icon-button mobile-close" data-close-panel="left">×</button></div></div>
         <div class="major-tabs" id="majorTabs"><button class="active" data-panel="blocks" data-i18n="blocks">Блоки</button><button data-panel="pages" data-i18n="pages">Страницы</button></div>
         <section id="blocksPanel">
           <label class="search"><span>⌕</span><input id="blockSearch" type="search" data-i18n-placeholder="findBlock" placeholder="Найти блок"></label>
@@ -43,7 +43,7 @@
         <div class="canvas-wrap"><div class="canvas-frame desktop" id="canvasFrame"><div id="canvas" class="canvas" aria-label="Website canvas"></div></div></div>
       </section>
       <aside class="sidebar right-sidebar">
-        <div class="sidebar-head"><div><span class="eyebrow" data-i18n="inspector">Инспектор</span><h2 data-i18n="settings">Настройки</h2></div><button class="icon-button mobile-close" data-close-panel="right">×</button></div>
+        <div class="sidebar-head"><div><span class="eyebrow" data-i18n="inspector">Инспектор</span><h2 data-i18n="settings">Настройки</h2></div><div class="sidebar-head-actions"><button class="icon-button pin-button" data-pin-panel="right" title="Pin / Overlay">📌</button><button class="icon-button mobile-close" data-close-panel="right">×</button></div></div>
         <div class="inspector-tabs" id="inspectorTabs"><button class="active" data-inspector="block" data-i18n="block">Блок</button><button data-inspector="page" data-i18n="page">Страница</button><button data-inspector="seo">SEO</button></div>
         <section id="blockInspectorPanel">
           <div id="emptyInspector" class="empty-inspector"><div class="empty-icon">⌁</div><p data-i18n="selectBlock">Выбери блок на холсте, чтобы изменить его оформление.</p></div>
