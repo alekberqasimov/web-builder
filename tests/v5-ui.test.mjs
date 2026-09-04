@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {dropZoneFromRatio} from '../v5-navigator-dnd.mjs';
-import {buildGradient,buildShadow,buildAnimation} from '../v5-visual-editors.mjs';
+import {buildGradient,buildGradientStops,buildShadow,buildAnimation,buildBorder} from '../v5-visual-editors.mjs';
+import {guideCandidates,nearestGuide} from '../v5-smart-guides.mjs';
+import {validPresetPayload} from '../v5-my-blocks.mjs';
+import {bulkStylePatch} from '../v5-bulk-actions.mjs';
 import {defaultProject,preset,makeButton,walk} from '../v5-model.mjs';
 import {deepAuditProject} from '../v5-deep-audit.mjs';
 import {exportedDocument} from '../v5-render.mjs';
@@ -15,9 +18,14 @@ test('navigator drop zones distinguish before inside after',()=>{
 });
 
 test('visual gradient builder is deterministic',()=>{
-  assert.equal(buildGradient('linear','#111111','#ffffff',90),'linear-gradient(90deg, #111111, #ffffff)');
-  assert.equal(buildGradient('radial','#111111','#ffffff',0),'radial-gradient(circle, #111111, #ffffff)');
+  assert.equal(buildGradient('linear','#111111','#ffffff',90),'linear-gradient(90deg, #111111 0%, #ffffff 100%)');
+  assert.equal(buildGradient('radial','#111111','#ffffff',0),'radial-gradient(circle, #111111 0%, #ffffff 100%)');
   assert.equal(buildGradient('none'),'');
+  assert.equal(buildGradientStops('linear',[{color:'#111111',pos:0},{color:'#777777',pos:45},{color:'#ffffff',pos:100}],120),'linear-gradient(120deg, #111111 0%, #777777 45%, #ffffff 100%)');
+});
+
+test('visual border builder preserves four sides and radii',()=>{
+  assert.deepEqual(buildBorder([1,2,3,4],'dashed','#112233',[5,6,7,8]),{borderWidth:'1px 2px 3px 4px',borderStyle:'dashed',borderColor:'#112233',borderRadius:'5px 6px 7px 8px'});
 });
 
 test('visual shadow builder preserves all controls',()=>{
@@ -27,6 +35,24 @@ test('visual shadow builder preserves all controls',()=>{
 test('animation preset builder supports disabled and timed states',()=>{
   assert.equal(buildAnimation('none',400,0,'ease'),'');
   assert.equal(buildAnimation('fadeIn',500,120,'ease-out'),'fadeIn 500ms ease-out 120ms both');
+});
+
+test('smart guides expose canvas and node alignment targets',()=>{
+  const c=guideCandidates([{left:10,top:20,width:100,height:80}],{left:0,top:0,width:500,height:400});
+  assert.ok(c.xs.some(x=>x.label==='CENTER X'&&x.value===60));
+  assert.ok(c.xs.some(x=>x.label==='CANVAS CENTER'&&x.value===250));
+  assert.equal(nearestGuide(c.xs,62,4)?.label,'CENTER X');
+});
+
+test('bulk style helpers are deterministic',()=>{
+  assert.deepEqual(bulkStylePatch('stretch'),{alignSelf:'stretch',width:'100%'});
+  assert.deepEqual(bulkStylePatch('align-center'),{alignSelf:'center'});
+});
+
+test('saved block payload validation rejects non-block JSON',()=>{
+  const block=preset('hero');
+  assert.equal(validPresetPayload({name:'Hero',block}),true);
+  assert.equal(validPresetPayload({foo:'bar'}),false);
 });
 
 test('deep audit catches long SEO title and insecure link',()=>{
