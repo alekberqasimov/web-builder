@@ -11,14 +11,13 @@ function columnCount(value=''){return value.trim()?value.trim().split(/\s+/).len
 
 async function featuresMetrics(){
   return page.evaluate(()=>{
-    const heading=[...document.querySelectorAll('#canvas h2.v5-heading')].find(el=>el.textContent.includes('Всё необходимое'));
-    if(!heading)return null;
-    const root=heading.closest('.v5-container');
-    const grid=[...root.children].find(el=>el.classList.contains('v5-container')&&el.children.length===3);
-    if(!grid)return null;
+    const toolbar=[...document.querySelectorAll('#canvas .v5-block-name')].find(el=>el.textContent.trim()==='Features');
+    const section=toolbar?.closest('.v5-section');
+    const root=section?.querySelector('.v5-section-inner > .v5-container');
+    const grid=root?.children?.[2];
+    if(!section||!root||!grid||!grid.classList.contains('v5-container')||grid.children.length!==3)return null;
     const gr=grid.getBoundingClientRect();
     const cards=[...grid.children].map(el=>{const r=el.getBoundingClientRect();const h=el.querySelector('h3'),p=el.querySelector('.v5-text');return{width:r.width,left:r.left,right:r.right,headingClient:h?.clientWidth||0,headingScroll:h?.scrollWidth||0,textClient:p?.clientWidth||0,textScroll:p?.scrollWidth||0}});
-    const section=heading.closest('.v5-section');
     return{
       columns:getComputedStyle(grid).gridTemplateColumns,
       grid:{width:gr.width,left:gr.left,right:gr.right,scrollWidth:grid.scrollWidth,clientWidth:grid.clientWidth},
