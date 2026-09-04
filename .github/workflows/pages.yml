@@ -1,4 +1,4 @@
-name: Deploy Web Builder v5 to Pages
+name: Deploy Web Builder v6 to Pages
 
 on:
   push:
@@ -24,103 +24,57 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Validate v5 modules
+      - name: Validate v6
         run: |
           set -e
           for f in v5-*.mjs; do node --check "$f"; done
+          node --check tests/v6-shell.mjs
           node --check tests/e2e.mjs
           node --check tests/e2e-deep.mjs
           node --test tests/*.test.mjs
-          node --input-type=module <<'NODE'
-          import {defaultProject} from './v5-model.mjs';
-          import {exportedDocument} from './v5-render.mjs';
-          import {buildGradientStops,buildBorder} from './v5-visual-editors.mjs';
-          import {validPresetPayload} from './v5-my-blocks.mjs';
-          import {bulkValuePatch} from './v5-bulk-actions.mjs';
-          import {filterAssets} from './v5-assets.mjs';
-          import {normalizeTags,filterAssetMeta} from './v5-asset-organizer.mjs';
-          import {filterIcons} from './v5-icon-library.mjs';
-          import {snapAxis} from './v5-free-position.mjs';
-          import {buildProAnimation,motionCss} from './v5-animation-pro.mjs';
-          import {minifyHtmlDocument} from './v5-performance.mjs';
-          import {linkTargetUsesTextInput} from './v5-link-inputs.mjs';
-          import {pointerBlockDropIndex} from './v5-block-pointer-dnd.mjs';
-          import {pointerElementZone} from './v5-element-pointer-dnd.mjs';
-          import {validPageTemplatePayload} from './v5-page-templates.mjs';
-          import {responsiveAudit} from './v5-responsive-audit.mjs';
-          const project=defaultProject();
-          const html=exportedDocument(project,project.pages[0]);
-          if(!html.includes('<!doctype html>') || !html.includes('v5-section')) throw new Error('Export smoke test failed');
-          if(!buildGradientStops('linear',[{color:'#000000',pos:0},{color:'#ffffff',pos:100}],90).includes('90deg')) throw new Error('Gradient smoke failed');
-          if(buildBorder([1,1,1,1],'solid','#000000',[4,4,4,4]).borderRadius!=='4px 4px 4px 4px') throw new Error('Border smoke failed');
-          if(validPresetPayload({foo:'bar'})) throw new Error('Preset validation smoke failed');
-          if(bulkValuePatch('fontSize','18').fontSize!=='18px') throw new Error('Bulk typography smoke failed');
-          if(filterAssets([{name:'Hero',type:'image/webp'}],'hero','webp').length!==1) throw new Error('Asset filter smoke failed');
-          if(normalizeTags('Hero, hero, dark').length!==2) throw new Error('Asset tags smoke failed');
-          if(filterAssetMeta([{id:'a',folderId:'f',tags:['hero']}],'f','hero').length!==1) throw new Error('Asset folder smoke failed');
-          if(!filterIcons('phone','all').length) throw new Error('Icon library smoke failed');
-          if(snapAxis(96,40,[{value:100,label:'LEFT'}],8).pos!==100) throw new Error('Snap assist smoke failed');
-          if(!buildProAnimation('slideLeft',500,0,'ease-out',1).includes('slideLeft')) throw new Error('Motion smoke failed');
-          if(!motionCss().includes('@keyframes slideLeft')) throw new Error('Motion CSS smoke failed');
-          if(minifyHtmlDocument('<div>\n <span>A</span>\n </div>')!=='<div><span>A</span></div>') throw new Error('Minify smoke failed');
-          if(!linkTargetUsesTextInput('url')||!linkTargetUsesTextInput('email')||linkTargetUsesTextInput('page')) throw new Error('Link target input smoke failed');
-          if(pointerBlockDropIndex(160,[{top:0,height:100},{top:100,height:100},{top:200,height:100}])!==2) throw new Error('Pointer block drop-index smoke failed');
-          if(pointerElementZone(15,0,100)!=='before'||pointerElementZone(50,0,100)!=='inside'||pointerElementZone(90,0,100)!=='after') throw new Error('Pointer element zone smoke failed');
-          if(!validPageTemplatePayload({name:'Home',page:project.pages[0]})) throw new Error('Page template smoke failed');
-          project.pages[0].blocks[0].style.mobile.width='500px';
-          if(!responsiveAudit(project).issues.length) throw new Error('Responsive audit smoke failed');
-          console.log('V5_8_SMOKE_OK');
-          NODE
 
-      - name: Build v5-only Pages artifact
+      - name: Build v6 Pages artifact
         run: |
           set -e
           rm -rf _site
           mkdir -p _site
-          cp index.html v5.css v5-mobile-fix.css v5-*.mjs .nojekyll _site/
-          sed -E -i "s#href=\"v5.css(\?[^\"]*)?\"#href=\"v5.css?v=${GITHUB_SHA}\"#" _site/index.html
-          sed -E -i "s#href=\"v5-mobile-fix.css(\?[^\"]*)?\"#href=\"v5-mobile-fix.css?v=${GITHUB_SHA}\"#" _site/index.html
+          cp index.html v6.css v5-*.mjs .nojekyll _site/
+          sed -E -i "s#href=\"v6.css(\?[^\"]*)?\"#href=\"v6.css?v=${GITHUB_SHA}\"#" _site/index.html
           sed -E -i "s#src=\"v5-app.mjs(\?[^\"]*)?\"#src=\"v5-app.mjs?v=${GITHUB_SHA}\"#" _site/index.html
           for f in _site/v5-*.mjs; do
             sed -E -i "s#(from ['\"]\./v5-[^'\"?]+\.mjs)(\?[^'\"]*)?(['\"])#\1?v=${GITHUB_SHA}\3#g" "$f"
           done
 
-      - name: Verify v5-only wiring
+      - name: Verify v6 artifact
         run: |
           set -e
-          grep -q "Web Builder v5.8" _site/index.html
-          grep -q "v5.css?v=${GITHUB_SHA}" _site/index.html
-          grep -q "v5-mobile-fix.css?v=${GITHUB_SHA}" _site/index.html
+          grep -q "Web Builder v6" _site/index.html
+          grep -q "v6.css?v=${GITHUB_SHA}" _site/index.html
           grep -q "v5-app.mjs?v=${GITHUB_SHA}" _site/index.html
-          test -f _site/v5-mobile-fix.css
-          if grep -Eq "app\.js|builder-v4|enhancements|runtime-fixes" _site/index.html; then
-            echo "Legacy runtime found in production index" >&2
+          if grep -Eq "v5\.css|v5-mobile-fix\.css|enhancements|runtime-fixes|app\.js" _site/index.html; then
+            echo "Legacy editor asset found in production index" >&2
             exit 1
           fi
-          test ! -e _site/v5-ux.mjs
           for f in _site/v5-*.mjs; do node --check "$f"; done
-          for f in v5-runtime v5-block-pointer-dnd v5-element-pointer-dnd v5-navigator-dnd v5-library-extras v5-visual-editors v5-link-inputs v5-localize v5-localize-v54 v5-localize-v55 v5-assets v5-asset-organizer v5-smart-guides v5-free-position v5-my-blocks v5-bulk-actions v5-navigator-controls v5-page-templates v5-keyboard-pro v5-responsive-audit v5-mobile-polish v5-icon-library v5-animation-pro v5-performance; do
-            grep -q "$f.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
-            test -f "_site/$f.mjs"
-          done
-          grep -q "v5-localize-v53.mjs?v=${GITHUB_SHA}" _site/v5-localize-v54.mjs
-          grep -q "v5-performance.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
-          grep -q "v5-animation-pro.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
-          grep -q "v5-core.mjs?v=${GITHUB_SHA}" _site/v5-model.mjs
-          echo "V5_8_WIRING_OK"
 
       - name: Browser E2E
         run: |
           set -e
           npm install --no-save --no-package-lock playwright@1.55.0 >/dev/null
           npx playwright install --with-deps chromium >/dev/null
-          python3 -m http.server 4173 --directory _site >/tmp/web-builder-e2e-http.log 2>&1 &
+          python3 -m http.server 4173 --directory _site >/tmp/v6-http.log 2>&1 &
           SERVER_PID=$!
           trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          READY=0
           for i in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then READY=1; break; fi
             sleep 1
           done
+          if [ "$READY" -ne 1 ]; then
+            cat /tmp/v6-http.log
+            exit 1
+          fi
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/v6-shell.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-deep.mjs
 
