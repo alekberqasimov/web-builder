@@ -15,52 +15,51 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Validate, build and browser-test without failure notifications
+      - name: Validate exact production artifact without failure notifications
         shell: bash
         run: |
           set +e
           STATUS=0
-          echo "=== V6 PREFLIGHT R3 START ==="
+          echo "=== V6 PREFLIGHT FINAL START ==="
 
           echo "[1/5] Syntax and unit tests"
           for f in v5-*.mjs tests/v6-shell.mjs tests/e2e.mjs tests/e2e-deep.mjs; do
             node --check "$f" || STATUS=1
           done
           node --test tests/*.test.mjs
-          if [ $? -ne 0 ]; then
-            echo "V6_UNIT_FAIL"
-            STATUS=1
-          else
-            echo "V6_UNIT_PASS"
-          fi
+          if [ $? -ne 0 ]; then echo "V6_UNIT_FAIL"; STATUS=1; else echo "V6_UNIT_PASS"; fi
 
-          echo "[2/5] Build artifact"
+          echo "[2/5] Exact production build"
           rm -rf _site
           mkdir -p _site
           cp index.html v6.css v5-*.mjs .nojekyll _site/ || STATUS=1
+          sed -E -i "s#href=\"v6.css(\?[^\"]*)?\"#href=\"v6.css?v=${GITHUB_SHA}\"#" _site/index.html
+          sed -E -i "s#src=\"v5-app.mjs(\?[^\"]*)?\"#src=\"v5-app.mjs?v=${GITHUB_SHA}\"#" _site/index.html
+          for f in _site/v5-*.mjs; do
+            sed -E -i "s#(from ['\"]\./v5-[^'\"?]+\.mjs)(\?[^'\"]*)?(['\"])#\1?v=${GITHUB_SHA}\3#g" "$f"
+          done
 
-          echo "[3/5] Wiring"
+          echo "[3/5] Production wiring"
           grep -q "Web Builder v6" _site/index.html || STATUS=1
-          grep -q 'href="v6.css?v=6.0"' _site/index.html || STATUS=1
-          grep -q 'src="v5-app.mjs?v=6.0"' _site/index.html || STATUS=1
-          if grep -Eq 'v5\.css|v5-mobile-fix\.css|enhancements\.css|app\.js' _site/index.html; then
-            echo "V6_WIRING_FAIL: legacy editor stylesheet/runtime referenced"
+          grep -q "v6.css?v=${GITHUB_SHA}" _site/index.html || STATUS=1
+          grep -q "v5-app.mjs?v=${GITHUB_SHA}" _site/index.html || STATUS=1
+          if grep -Eq "v5\.css|v5-mobile-fix\.css|enhancements|runtime-fixes|app\.js" _site/index.html; then
+            echo "V6_WIRING_FAIL: legacy editor asset found"
             STATUS=1
           else
             echo "V6_WIRING_PASS"
           fi
+          for f in _site/v5-*.mjs; do node --check "$f" || STATUS=1; done
 
           echo "[4/5] Install browser"
           npm install --no-save --no-package-lock playwright@1.55.0 >/tmp/v6-npm.log 2>&1
           if [ $? -ne 0 ]; then
             echo "V6_PLAYWRIGHT_INSTALL_FAIL"
-            cat /tmp/v6-npm.log
             STATUS=1
           else
             npx playwright install --with-deps chromium >/tmp/v6-browser-install.log 2>&1
             if [ $? -ne 0 ]; then
               echo "V6_BROWSER_INSTALL_FAIL"
-              tail -n 80 /tmp/v6-browser-install.log
               STATUS=1
             else
               echo "[5/5] Browser shell + core + deep"
@@ -86,11 +85,5 @@ jobs:
             fi
           fi
 
-          if [ $STATUS -eq 0 ]; then
-            echo "V6_PREFLIGHT_PASS"
-          else
-            echo "V6_PREFLIGHT_FAIL"
-          fi
-
-          # Keep iterative preflight runs green to avoid failure-notification spam.
+          if [ $STATUS -eq 0 ]; then echo "V6_PREFLIGHT_PASS"; else echo "V6_PREFLIGHT_FAIL"; fi
           exit 0
