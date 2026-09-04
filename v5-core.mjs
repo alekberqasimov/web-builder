@@ -21,9 +21,9 @@ export const makeSpacer=(size=48)=>node('spacer',{size});
 export const makeDivider=()=>node('divider',{});
 export const makeIcon=(icon='★')=>node('icon',{icon,label:''});
 export const makeList=(items=['Item 1','Item 2'])=>node('list',{ordered:false,items});
-export const makeVideo=(url='')=>node('video',{url,autoplay:false,controls:true,poster:''});
+export const makeVideo=(url='')=>node('video',{url,poster:'',ratio:'16/9',autoplay:false,muted:false,loop:false,controls:true,playsinline:true});
 export const makeEmbed=(html='')=>node('embed',{html});
-export const makeSocial=(items=[{label:'LinkedIn',url:'#'},{label:'Instagram',url:'#'}])=>node('social',{items});
+export const makeSocial=(items=[{label:'LinkedIn',url:'#',icon:'in'},{label:'Instagram',url:'#',icon:'◎'}])=>node('social',{items,layout:'row',display:'icon-text',style:'pill'});
 export const makeLogo=(text='NOVA',src='')=>node('logo',{text,src,alt:'Logo',link:linkNone()});
 export const makeTable=()=>node('table',{rows:[['A','B'],['1','2']],header:true});
 export const makeMap=(url='')=>node('map',{url,title:'Map'});
@@ -33,3 +33,6 @@ export const makeTabs=(items=[{id:uid('tab'),label:'Tab 1',content:'Content 1'},
 export const makeHtml=(html='<div>HTML</div>')=>node('html',{html});
 export const makeNav=()=>node('nav',{logoText:'NOVA',logoImage:'',logoAlt:'Logo',logoWidth:140,logoHeight:44,mode:'auto',items:[],desktopAlign:'center',desktopGap:24,background:'#ffffff',textColor:'#111827',dropdownBackground:'#ffffff',dropdownText:'#111827',mobileIcon:'☰',mobileIconPosition:'right',mobileIconSize:24,mobilePanel:'right',mobilePanelWidth:280,mobileBackground:'#ffffff',mobileText:'#111827',sticky:false,transparent:false,cta:{enabled:true,text:'Начать',variant:'filled',position:'right',link:linkNone()}});
 export const makeGallery=(count=3)=>node('gallery',{columns:{base:3,tablet:2,mobile:1},gap:18,ratio:'4/3',masonry:false,lightbox:true,items:Array.from({length:count},(_,i)=>({id:uid('img'),src:'',alt:`Image ${i+1}`,caption:'',link:linkNone()}))});
+export const makeFormField=(type='text',name='field',label='Field',extra={})=>({id:uid('field'),type,name,label,placeholder:'',required:false,width:'100',options:[],...extra});
+export function makeForm(){return node('form',{fields:[makeFormField('text','name','Name',{placeholder:'Your name',required:true,width:'50'}),makeFormField('email','email','Email',{placeholder:'name@example.com',required:true,width:'50'}),makeFormField('tel','phone','Phone',{placeholder:'+994',width:'50'}),makeFormField('select','subject','Subject',{width:'50',options:['General question','Sales','Support']}),makeFormField('textarea','message','Message',{placeholder:'How can we help?',required:true,width:'100'})],buttonText:'Send message',buttonLoadingText:'Sending…',consentText:'I agree to the processing of my data',showConsent:false,submission:{provider:'formspree',endpoint:'',accessKey:'',method:'POST',format:'formdata',ajax:true,honeypot:true,successMode:'message',successMessage:'Thanks! Your message has been sent.',redirectUrl:'',errorMessage:'Could not send the message. Please try again.'}})}
+export function makeReviews(){return node('reviews',{items:[{id:uid('review'),name:'Aylin M.',role:'Customer',quote:'Fast, clear and very easy to use.',rating:5},{id:uid('review'),name:'Murad A.',role:'Founder',quote:'The page looks professional on every device.',rating:5},{id:uid('review'),name:'Leyla R.',role:'Marketing',quote:'We launched much faster than expected.',rating:5}],autoplay:false,interval:5000,showArrows:true,showRating:true});}
