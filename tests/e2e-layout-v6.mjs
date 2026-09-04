@@ -19,7 +19,13 @@ async function mobileAudit(width,height){
     const box=s=>{const r=document.querySelector(s)?.getBoundingClientRect();return r?{left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}:null};
     return {viewport:innerWidth,topbar:box('.topbar'),editor:box('.editor-toolbar'),workspace:box('.workspace'),stage:box('.stage'),canvas:box('#canvasFrame'),bodyScroll:document.documentElement.scrollWidth};
   });
-  for(const key of['topbar','editor','workspace','stage','canvas'])assert.ok(Math.abs(shell[key].width-width)<=1,`${width}px ${key} width ${shell[key].width}`);
+  for(const key of['topbar','editor','workspace','stage'])assert.ok(Math.abs(shell[key].width-width)<=1,`${width}px ${key} width ${shell[key].width}`);
+  if(width<=760)assert.ok(Math.abs(shell.canvas.width-width)<=1,`${width}px phone canvas width ${shell.canvas.width}`);
+  else{
+    assert.ok(shell.canvas.width>=width*.94&&shell.canvas.width<=width,`${width}px tablet canvas width ${shell.canvas.width}`);
+    const leftGap=shell.canvas.left-shell.stage.left,rightGap=shell.stage.right-shell.canvas.right;
+    assert.ok(Math.abs(leftGap-rightGap)<=2,`${width}px tablet canvas is not centered: ${leftGap}/${rightGap}`);
+  }
   assert.ok(shell.bodyScroll<=width+1,`${width}px document horizontal overflow ${shell.bodyScroll}`);
 
   await page.click('#leftToggle');
