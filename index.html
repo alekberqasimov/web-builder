@@ -20,7 +20,11 @@
       .top-actions .icon-action{flex:0 0 40px;width:40px;min-width:40px;padding:0}
       .top-actions select{flex:0 0 60px;width:60px;min-width:60px;padding:0 7px}
     }
-    @media (max-width:760px){.brand-name{display:none}}
+    @media (max-width:760px){
+      .brand-name{display:block!important;font-size:13px;max-width:92px;overflow:hidden;text-overflow:ellipsis}
+      .version{display:none!important}
+    }
+    @media (max-width:360px){.brand-name{max-width:76px;font-size:12px}}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
   <script type="module" src="v6-app.mjs"></script>
