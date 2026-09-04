@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {defaultProject,preset,addPage,moveNode,node,container,makeButton,migrateProject,auditProject,reorderBlocks,duplicateNode,pageFile} from '../v5-model.mjs';
+import {defaultProject,preset,addPage,moveNode,node,container,makeButton,makeImageTextGrid,migrateProject,auditProject,reorderBlocks,duplicateNode,pageFile} from '../v5-model.mjs';
 import {exportedDocument} from '../v5-render.mjs';
 
 test('project schema and page slug',()=>{const p=defaultProject();assert.equal(p.schemaVersion,5);const a=addPage(p,'О компании','ru');assert.equal(a.slug,'o-kompanii');const b=addPage(p,'О компании','ru');assert.equal(b.slug,'o-kompanii-2');assert.equal(pageFile(p.pages[0]),'index.html')});
@@ -13,3 +13,4 @@ test('global header propagates to every page',async()=>{const mod=await import('
 test('responsive CSS is exported from the same model',async()=>{const {collectCss}=await import('../v5-render.mjs');const p=defaultProject(),pg=p.pages[0],b=preset('layout1');b.root.style.mobile.width='50%';pg.blocks.push(b);const css=collectCss(p,pg);assert.match(css,/max-width:760px/);assert.match(css,/width:50%/)});
 test('audit catches duplicate anchor',()=>{const p=defaultProject(),pg=p.pages[0],a=preset('text'),b=preset('text');a.anchor='x';b.anchor='x';pg.blocks.push(a,b);assert.ok(auditProject(p).some(x=>/Duplicate anchor/.test(x.msg)))});
 test('moveNode prevents moving a container into its own descendant',()=>{const b=preset('layout1'),outer=b.root.children[0]||b.root,inner=container();outer.children.push(inner);assert.equal(moveNode(b,outer.id,inner.id),false)});
+test('image and text repeatable block is available and bounded',()=>{const b=preset('imageText'),grid=b.root.children.at(-1);assert.equal(b.name,'Image + Text');assert.equal(grid.props.repeatTemplate,'imageText');assert.equal(grid.children.length,6);assert.equal(makeImageTextGrid(254).children.length,254);assert.equal(makeImageTextGrid(999).children.length,500)});
