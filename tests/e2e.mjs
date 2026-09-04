@@ -12,17 +12,15 @@ async function change(locator,value){await locator.fill(value);await locator.dis
 async function waitValue(selector,value){await page.waitForFunction(({selector,value})=>document.querySelector(selector)?.value===value,{selector,value})}
 
 try{
-  // Mobile editor shell must occupy the full viewport. This protects against
-  // hidden sidebar grid columns squeezing the stage to ~50% width.
+  // V6 mobile shell: stage/canvas must occupy the viewport and panels must be overlays.
   const mobileContext=await browser.newContext({viewport:{width:360,height:800},deviceScaleFactor:1});
   const mobilePage=await mobileContext.newPage();
   await mobilePage.goto(base,{waitUntil:'domcontentloaded'});
   await mobilePage.waitForSelector('#canvas [data-block-id]',{timeout:15000});
   const mobileLayout=await mobilePage.evaluate(()=>{
-    const workspace=document.querySelector('.workspace')?.getBoundingClientRect();
-    const stage=document.querySelector('.stage')?.getBoundingClientRect();
-    const canvas=document.querySelector('#canvasFrame')?.getBoundingClientRect();
-    return {innerWidth,workspace:workspace?.width||0,stage:stage?.width||0,stageLeft:stage?.left||0,stageRight:stage?.right||0,canvas:canvas?.width||0,left:document.querySelector('#leftToggle')?.textContent?.trim(),right:document.querySelector('#rightToggle')?.textContent?.trim()};
+    const rect=s=>document.querySelector(s)?.getBoundingClientRect();
+    const workspace=rect('.workspace'),stage=rect('.stage'),canvas=rect('#canvasFrame');
+    return {innerWidth,workspace:workspace?.width||0,stage:stage?.width||0,stageLeft:stage?.left||0,stageRight:stage?.right||0,canvas:canvas?.width||0,left:document.querySelector('#leftToggle')?.textContent?.trim(),right:document.querySelector('#rightToggle')?.textContent?.trim(),leftCollapsed:document.body.classList.contains('left-collapsed'),rightCollapsed:document.body.classList.contains('right-collapsed')};
   });
   assert.ok(Math.abs(mobileLayout.workspace-mobileLayout.innerWidth)<=1,`mobile workspace width ${mobileLayout.workspace} != viewport ${mobileLayout.innerWidth}`);
   assert.ok(Math.abs(mobileLayout.stage-mobileLayout.innerWidth)<=1,`mobile stage width ${mobileLayout.stage} != viewport ${mobileLayout.innerWidth}`);
@@ -30,11 +28,23 @@ try{
   assert.ok(Math.abs(mobileLayout.canvas-mobileLayout.innerWidth)<=1,`mobile canvas width ${mobileLayout.canvas} != viewport ${mobileLayout.innerWidth}`);
   assert.equal(mobileLayout.left,'☰');
   assert.equal(mobileLayout.right,'⚙');
+  assert.equal(mobileLayout.leftCollapsed,true,'left panel must start closed on mobile');
+  assert.equal(mobileLayout.rightCollapsed,true,'right panel must start closed on mobile');
+
+  // Mobile library must open as an overlay without squeezing the stage.
+  await mobilePage.click('#leftToggle');
+  await mobilePage.waitForFunction(()=>!document.body.classList.contains('left-collapsed'));
+  const panelLayout=await mobilePage.evaluate(()=>({stage:document.querySelector('.stage').getBoundingClientRect().width,panel:document.querySelector('.left-sidebar').getBoundingClientRect().width,viewport:innerWidth,backdrop:getComputedStyle(document.querySelector('#panelBackdrop')).display}));
+  assert.ok(Math.abs(panelLayout.stage-panelLayout.viewport)<=1,'opening mobile panel squeezed stage');
+  assert.ok(panelLayout.panel>280&&panelLayout.panel<=panelLayout.viewport,'mobile library panel width is unusable');
+  assert.notEqual(panelLayout.backdrop,'none','mobile panel backdrop did not open');
+  await mobilePage.click('[data-close-panel="left"]');
+  await mobilePage.waitForFunction(()=>document.body.classList.contains('left-collapsed'));
   await mobileContext.close();
 
   await page.goto(base,{waitUntil:'domcontentloaded'});
   await page.waitForSelector('#canvas [data-block-id]',{timeout:15000});
-  assert.match(await page.locator('.version').innerText(),/^v5\./);
+  assert.match(await page.locator('.version').innerText(),/^v6\./);
 
   // Public mobile menu must actually open in Preview.
   await page.click('#previewBtn');
@@ -83,6 +93,12 @@ try{
   await page.click('[data-device="mobile"]');
   assert.equal(await page.locator('#canvas').getAttribute('data-device'),'mobile');
 
+  // Manual canvas width remains explicit and is not reduced to a preset.
+  await page.fill('#customWidth','1369');
+  await page.locator('#customWidth').dispatchEvent('change');
+  assert.equal(await page.locator('#canvasFrame').evaluate(el=>el.style.width),'1369px');
+  assert.equal(await page.locator('#canvasFrame').getAttribute('data-custom-width'),'1');
+
   // Preview uses the same saved/resolved link as Editor.
   await page.click('#previewBtn');
   await page.waitForSelector('#previewDialog[open]');
@@ -94,7 +110,7 @@ try{
   await page.click('#closePreview');
 
   assert.deepEqual(pageErrors,[],`Browser page errors:\n${pageErrors.join('\n')}`);
-  console.log('V5_E2E_OK');
+  console.log('V6_E2E_OK');
 }finally{
   await browser.close();
 }

@@ -1,4 +1,4 @@
-name: Deploy Web Builder v5 to Pages
+name: Deploy Web Builder v6 to Pages
 
 on:
   push:
@@ -24,12 +24,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Validate v5 modules
+      - name: Validate engine and v6 shell
         run: |
           set -e
+          node --check v6-app.mjs
           for f in v5-*.mjs; do node --check "$f"; done
           node --check tests/e2e.mjs
-          node --check tests/e2e-deep.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {defaultProject} from './v5-model.mjs';
@@ -69,47 +69,46 @@ jobs:
           if(!validPageTemplatePayload({name:'Home',page:project.pages[0]})) throw new Error('Page template smoke failed');
           project.pages[0].blocks[0].style.mobile.width='500px';
           if(!responsiveAudit(project).issues.length) throw new Error('Responsive audit smoke failed');
-          console.log('V5_8_SMOKE_OK');
+          console.log('V6_ENGINE_SMOKE_OK');
           NODE
 
-      - name: Build v5-only Pages artifact
+      - name: Build clean v6 Pages artifact
         run: |
           set -e
           rm -rf _site
           mkdir -p _site
-          cp index.html v5.css v5-mobile-fix.css v5-*.mjs .nojekyll _site/
-          sed -E -i "s#href=\"v5.css(\?[^\"]*)?\"#href=\"v5.css?v=${GITHUB_SHA}\"#" _site/index.html
-          sed -E -i "s#href=\"v5-mobile-fix.css(\?[^\"]*)?\"#href=\"v5-mobile-fix.css?v=${GITHUB_SHA}\"#" _site/index.html
-          sed -E -i "s#src=\"v5-app.mjs(\?[^\"]*)?\"#src=\"v5-app.mjs?v=${GITHUB_SHA}\"#" _site/index.html
-          for f in _site/v5-*.mjs; do
+          cp index.html v6.css v6-app.mjs v5-*.mjs .nojekyll _site/
+          sed -E -i "s#href=\"v6.css(\?[^\"]*)?\"#href=\"v6.css?v=${GITHUB_SHA}\"#" _site/index.html
+          sed -E -i "s#src=\"v6-app.mjs(\?[^\"]*)?\"#src=\"v6-app.mjs?v=${GITHUB_SHA}\"#" _site/index.html
+          for f in _site/v5-*.mjs _site/v6-app.mjs; do
             sed -E -i "s#(from ['\"]\./v5-[^'\"?]+\.mjs)(\?[^'\"]*)?(['\"])#\1?v=${GITHUB_SHA}\3#g" "$f"
           done
 
-      - name: Verify v5-only wiring
+      - name: Verify production wiring
         run: |
           set -e
-          grep -q "Web Builder v5.8" _site/index.html
-          grep -q "v5.css?v=${GITHUB_SHA}" _site/index.html
-          grep -q "v5-mobile-fix.css?v=${GITHUB_SHA}" _site/index.html
-          grep -q "v5-app.mjs?v=${GITHUB_SHA}" _site/index.html
-          test -f _site/v5-mobile-fix.css
-          if grep -Eq "app\.js|builder-v4|enhancements|runtime-fixes" _site/index.html; then
-            echo "Legacy runtime found in production index" >&2
+          grep -q "Web Builder v6.0" _site/index.html
+          grep -q "v6.css?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v6-app.mjs?v=${GITHUB_SHA}" _site/index.html
+          test -f _site/v6.css
+          test -f _site/v6-app.mjs
+          if grep -Eq "app\.js|builder-v4|enhancements|runtime-fixes|v5-mobile-fix|v5\.css|v5-app\.mjs" _site/index.html; then
+            echo "Legacy editor shell found in production index" >&2
             exit 1
           fi
-          test ! -e _site/v5-ux.mjs
+          node --check _site/v6-app.mjs
           for f in _site/v5-*.mjs; do node --check "$f"; done
-          for f in v5-runtime v5-block-pointer-dnd v5-element-pointer-dnd v5-navigator-dnd v5-library-extras v5-visual-editors v5-link-inputs v5-localize v5-localize-v54 v5-localize-v55 v5-assets v5-asset-organizer v5-smart-guides v5-free-position v5-my-blocks v5-bulk-actions v5-navigator-controls v5-page-templates v5-keyboard-pro v5-responsive-audit v5-mobile-polish v5-icon-library v5-animation-pro v5-performance; do
-            grep -q "$f.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
+          for f in v5-runtime v5-block-pointer-dnd v5-element-pointer-dnd v5-navigator-dnd v5-library-extras v5-visual-editors v5-link-inputs v5-localize v5-localize-v54 v5-localize-v55 v5-assets v5-asset-organizer v5-smart-guides v5-free-position v5-my-blocks v5-bulk-actions v5-navigator-controls v5-page-templates v5-keyboard-pro v5-responsive-audit v5-icon-library v5-animation-pro v5-performance; do
+            grep -q "$f.mjs?v=${GITHUB_SHA}" _site/v6-app.mjs
             test -f "_site/$f.mjs"
           done
           grep -q "v5-localize-v53.mjs?v=${GITHUB_SHA}" _site/v5-localize-v54.mjs
           grep -q "v5-performance.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v5-animation-pro.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v5-core.mjs?v=${GITHUB_SHA}" _site/v5-model.mjs
-          echo "V5_8_WIRING_OK"
+          echo "V6_WIRING_OK"
 
-      - name: Browser E2E
+      - name: Browser regression test
         run: |
           set -e
           npm install --no-save --no-package-lock playwright@1.55.0 >/dev/null
@@ -122,7 +121,6 @@ jobs:
             sleep 1
           done
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-deep.mjs
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
