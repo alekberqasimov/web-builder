@@ -28,6 +28,7 @@ jobs:
         run: |
           set -e
           for f in v5-*.mjs; do node --check "$f"; done
+          node --check tests/e2e.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {defaultProject} from './v5-model.mjs';
@@ -41,6 +42,7 @@ jobs:
           import {snapAxis} from './v5-free-position.mjs';
           import {buildProAnimation,motionCss} from './v5-animation-pro.mjs';
           import {minifyHtmlDocument} from './v5-performance.mjs';
+          import {linkTargetUsesTextInput} from './v5-link-inputs.mjs';
           import {validPageTemplatePayload} from './v5-page-templates.mjs';
           import {responsiveAudit} from './v5-responsive-audit.mjs';
           const project=defaultProject();
@@ -58,10 +60,11 @@ jobs:
           if(!buildProAnimation('slideLeft',500,0,'ease-out',1).includes('slideLeft')) throw new Error('Motion smoke failed');
           if(!motionCss().includes('@keyframes slideLeft')) throw new Error('Motion CSS smoke failed');
           if(minifyHtmlDocument('<div>\n <span>A</span>\n </div>')!=='<div><span>A</span></div>') throw new Error('Minify smoke failed');
+          if(!linkTargetUsesTextInput('url')||!linkTargetUsesTextInput('email')||linkTargetUsesTextInput('page')) throw new Error('Link target input smoke failed');
           if(!validPageTemplatePayload({name:'Home',page:project.pages[0]})) throw new Error('Page template smoke failed');
           project.pages[0].blocks[0].style.mobile.width='500px';
           if(!responsiveAudit(project).issues.length) throw new Error('Responsive audit smoke failed');
-          console.log('V5_5_SMOKE_OK');
+          console.log('V5_6_SMOKE_OK');
           NODE
 
       - name: Build v5-only Pages artifact
@@ -79,7 +82,7 @@ jobs:
       - name: Verify v5-only wiring
         run: |
           set -e
-          grep -q "Web Builder v5.5" _site/index.html
+          grep -q "Web Builder v5.6" _site/index.html
           grep -q "v5.css?v=${GITHUB_SHA}" _site/index.html
           grep -q "v5-app.mjs?v=${GITHUB_SHA}" _site/index.html
           if grep -Eq "app\.js|builder-v4|enhancements|runtime-fixes" _site/index.html; then
@@ -88,7 +91,7 @@ jobs:
           fi
           test ! -e _site/v5-ux.mjs
           for f in _site/v5-*.mjs; do node --check "$f"; done
-          for f in v5-runtime v5-navigator-dnd v5-library-extras v5-visual-editors v5-localize v5-localize-v54 v5-localize-v55 v5-assets v5-asset-organizer v5-smart-guides v5-free-position v5-my-blocks v5-bulk-actions v5-navigator-controls v5-page-templates v5-keyboard-pro v5-responsive-audit v5-mobile-polish v5-icon-library v5-animation-pro v5-performance; do
+          for f in v5-runtime v5-navigator-dnd v5-library-extras v5-visual-editors v5-link-inputs v5-localize v5-localize-v54 v5-localize-v55 v5-assets v5-asset-organizer v5-smart-guides v5-free-position v5-my-blocks v5-bulk-actions v5-navigator-controls v5-page-templates v5-keyboard-pro v5-responsive-audit v5-mobile-polish v5-icon-library v5-animation-pro v5-performance; do
             grep -q "$f.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
             test -f "_site/$f.mjs"
           done
@@ -96,7 +99,21 @@ jobs:
           grep -q "v5-performance.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v5-animation-pro.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v5-core.mjs?v=${GITHUB_SHA}" _site/v5-model.mjs
-          echo "V5_5_WIRING_OK"
+          echo "V5_6_WIRING_OK"
+
+      - name: Browser E2E
+        run: |
+          set -e
+          npm install --no-save --no-package-lock playwright@1.55.0 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          python3 -m http.server 4173 --directory _site >/tmp/web-builder-e2e-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e.mjs
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
