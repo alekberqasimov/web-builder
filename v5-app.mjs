@@ -5,6 +5,7 @@ import {renderInspector,handleMainInspectorChange,handleMainInspectorClick} from
 import {bindElementInspectorEvents} from './v5-element-actions.mjs';
 import {renderCanvas,selectFromEvent,beginInlineEdit,inlineEdit,finishInlineEdit,blockToolbarClick,bindDnD,openContextMenu,contextAction,keyboardShortcuts,openPreview,renderPreview,downloadSite,importProject} from './v5-canvas.mjs';
 import {bindPointerBlockDnD} from './v5-block-pointer-dnd.mjs';
+import {bindPointerElementDnD} from './v5-element-pointer-dnd.mjs';
 import {bindNavigatorDnD} from './v5-navigator-dnd.mjs';
 import {bindLibraryExtras,enhanceLibraries} from './v5-library-extras.mjs';
 import {bindVisualEditors,renderVisualEditors} from './v5-visual-editors.mjs';
@@ -54,7 +55,7 @@ function bind(){
   $('#rightSidebar').addEventListener('input',e=>{if(e.target.matches('[data-b="name"]'))handleMainInspectorChange(e)});
   bindElementInspectorEvents();
   $('#navigatorTree').onclick=navigatorClick;$('#navigatorTree').ondblclick=navigatorRename;
-  bindDnD();bindPointerBlockDnD();bindNavigatorDnD();bindLibraryExtras();bindVisualEditors();bindDeepAudit();bindAssetManager();bindSmartGuides();bindMyBlocksManager();bindBulkActions();bindNavigatorControls();bindPageTemplates();bindResponsiveAudit();bindProKeyboard();bindFreePosition();bindAssetOrganizer();bindIconLibrary();bindAnimationPro();bindPerformanceSettings();
+  bindDnD();bindPointerBlockDnD();bindPointerElementDnD();bindNavigatorDnD();bindLibraryExtras();bindVisualEditors();bindDeepAudit();bindAssetManager();bindSmartGuides();bindMyBlocksManager();bindBulkActions();bindNavigatorControls();bindPageTemplates();bindResponsiveAudit();bindProKeyboard();bindFreePosition();bindAssetOrganizer();bindIconLibrary();bindAnimationPro();bindPerformanceSettings();
   $$('[data-device]').forEach(b=>b.onclick=()=>{state.device=b.dataset.device;$$('[data-device]').forEach(x=>x.classList.toggle('active',x===b));$('#customWidth').value='';$('#canvasFrame').style.width='';renderAll()});
   $('#customWidth').onchange=e=>{const v=Math.max(280,Math.min(1920,Number(e.target.value)||0));if(v){$('#canvasFrame').style.width=v+'px';$$('[data-device]').forEach(x=>x.classList.remove('active'))}};
   $('#zoomSelect').onchange=e=>{const v=e.target.value;$('#canvasFrame').style.zoom=v==='fit'?'':v;};
