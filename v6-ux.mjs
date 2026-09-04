@@ -114,7 +114,6 @@ function syncNavigatorMode(){
     for(const id of ['blocksTab','elementsTab','pagesTab'])document.querySelector(`#${id}`)?.classList.remove('active');
     const title=document.querySelector('#leftTitle');
     if(title)title.textContent=t('navigator');
-    try{renderNavigator()}catch{}
   }
 }
 
