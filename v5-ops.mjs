@@ -3,55 +3,19 @@ import {preset} from './v5-presets.mjs';
 import {defaultSiteLanguages,ensureSiteLanguageConfig,defaultSiteLanguage,sitePagePath,clonePageVariant,linkedPage,normalizeLanguageCode} from './v5-languages.mjs';
 
 export function defaultPage(name='Главная',lang='ru',home=true,groupId=uid('pagegroup')){
-  return {id:uid('page'),groupId,name,slug:home?'':slugify(name)||'page',slugMode:'auto',lang:normalizeLanguageCode(lang)||'ru',home,seo:defaultSeo(name),blocks:[preset('navbar'),preset('hero'),preset('features'),preset('cta'),preset('footer')]};
+  return {id:uid('page'),groupId,name,slug:home?'':slugify(name)||'page',slugMode:'auto',lang:normalizeLanguageCode(lang)||'ru',pathPrefix:'',home,seo:defaultSeo(name),blocks:[preset('navbar'),preset('hero'),preset('features'),preset('cta'),preset('footer')]};
 }
-
-export function defaultProject(){
-  const p=defaultPage();
-  return {schemaVersion:SCHEMA_VERSION,id:uid('project'),name:'My Website',siteUrl:'',currentPageId:p.id,uiLang:'ru',siteLanguages:defaultSiteLanguages(),activeSiteLang:'ru',theme:baseTheme(),pages:[p],globals:{header:null,footer:null},presets:[],notFoundPageId:'',audit:{lastRun:null}};
-}
-
+export function defaultProject(){const p=defaultPage();return{schemaVersion:SCHEMA_VERSION,id:uid('project'),name:'My Website',siteUrl:'',currentPageId:p.id,uiLang:'ru',siteLanguages:defaultSiteLanguages(),activeSiteLang:'ru',theme:baseTheme(),pages:[p],globals:{header:null,footer:null},presets:[],notFoundPageId:'',audit:{lastRun:null}}}
 export function walk(node0,fn,parent=null){if(!node0)return;fn(node0,parent);for(const c of node0.children||[])walk(c,fn,node0)}
 export function findNode(root,id){let hit=null;walk(root,n=>{if(n.id===id)hit=n});return hit}
 export function findNodeWithParent(root,id){let hit=null;walk(root,(n,p)=>{if(n.id===id)hit={node:n,parent:p}});return hit}
 export function ensureUniqueNodeIds(project){const seen=new Set();for(const p of project.pages||[])for(const b of p.blocks||[]){if(!b.id||seen.has(b.id))b.id=uid('block');seen.add(b.id);walk(b.root,n=>{if(!n.id||seen.has(n.id))n.id=uid('el');seen.add(n.id)})}return project}
 
-export function uniqueSlug(project,value,currentId='',lang=''){
-  const base=slugify(value)||'page';let s=base,n=2;
-  const code=normalizeLanguageCode(lang);
-  while(project.pages.some(p=>p.id!==currentId&&!p.home&&(!code||normalizeLanguageCode(p.lang)===code)&&p.slug===s))s=`${base}-${n++}`;
-  return s;
-}
-
-export function addPage(project,name='New page',lang=''){
-  ensureSiteLanguageConfig(project);
-  const code=normalizeLanguageCode(lang||project.activeSiteLang||defaultSiteLanguage(project))||defaultSiteLanguage(project);
-  const p=defaultPage(name,code,false);
-  p.blocks=[preset('navbar'),preset('hero'),preset('footer')];
-  p.slug=uniqueSlug(project,p.name,p.id,code);
-  project.pages.push(p);project.currentPageId=p.id;project.activeSiteLang=code;applyGlobalsToPage(project,p);return p;
-}
-
-export function addPageTranslation(project,sourcePage,lang){
-  ensureSiteLanguageConfig(project);
-  const code=normalizeLanguageCode(lang);
-  if(!sourcePage||!code||!project.siteLanguages.some(x=>x.code===code))return null;
-  const existing=linkedPage(project,sourcePage,code);if(existing)return existing;
-  const p=clonePageVariant(sourcePage,code);
-  for(const b of p.blocks||[]){b.id=uid('block');walk(b.root,n=>n.id=uid('el'))}
-  if(!p.home)p.slug=uniqueSlug(project,p.slug||p.name,p.id,code);
-  project.pages.push(p);project.currentPageId=p.id;project.activeSiteLang=code;return p;
-}
-
-export function setHome(project,pageId){
-  ensureSiteLanguageConfig(project);
-  const target=project.pages.find(p=>p.id===pageId);if(!target)return null;
-  const lang=normalizeLanguageCode(target.lang);
-  for(const p of project.pages){if(normalizeLanguageCode(p.lang)!==lang)continue;if(p.id!==pageId&&p.home){p.home=false;p.slug=uniqueSlug(project,p.name,p.id,lang)}}
-  target.home=true;target.slug='';target.slugMode='auto';return target;
-}
-
-export function pageFile(page,project=null){return project?sitePagePath(project,page):(page.home?'index.html':`${page.slug||slugify(page.name)||'page'}.html`)}
+export function uniqueSlug(project,value,currentId='',lang=''){const base=slugify(value)||'page';let s=base,n=2;const code=normalizeLanguageCode(lang);while(project.pages.some(p=>p.id!==currentId&&!p.home&&(!code||normalizeLanguageCode(p.lang)===code)&&p.slug===s))s=`${base}-${n++}`;return s}
+export function addPage(project,name='New page',lang=''){ensureSiteLanguageConfig(project);const code=normalizeLanguageCode(lang||project.activeSiteLang||defaultSiteLanguage(project))||defaultSiteLanguage(project);const p=defaultPage(name,code,false);p.blocks=[preset('navbar'),preset('hero'),preset('footer')];p.slug=uniqueSlug(project,p.name,p.id,code);p.pathPrefix=code===defaultSiteLanguage(project)?'':code;project.pages.push(p);project.currentPageId=p.id;project.activeSiteLang=code;applyGlobalsToPage(project,p);return p}
+export function addPageTranslation(project,sourcePage,lang){ensureSiteLanguageConfig(project);const code=normalizeLanguageCode(lang);if(!sourcePage||!code||!project.siteLanguages.some(x=>x.code===code))return null;const existing=linkedPage(project,sourcePage,code);if(existing)return existing;const p=clonePageVariant(sourcePage,code);for(const b of p.blocks||[]){b.id=uid('block');walk(b.root,n=>n.id=uid('el'))}if(!p.home)p.slug=uniqueSlug(project,p.slug||p.name,p.id,code);p.pathPrefix=code===defaultSiteLanguage(project)?'':code;project.pages.push(p);project.currentPageId=p.id;project.activeSiteLang=code;return p}
+export function setHome(project,pageId){ensureSiteLanguageConfig(project);const target=project.pages.find(p=>p.id===pageId);if(!target)return null;const lang=normalizeLanguageCode(target.lang);for(const p of project.pages){if(normalizeLanguageCode(p.lang)!==lang)continue;if(p.id!==pageId&&p.home){p.home=false;p.slug=uniqueSlug(project,p.name,p.id,lang)}}target.home=true;target.slug='';target.slugMode='auto';return target}
+export function pageFile(page,project=null){if(project)return sitePagePath(project,page);const file=page.home?'index.html':`${page.slug||slugify(page.name)||'page'}.html`;return page.pathPrefix?`${page.pathPrefix}/${file}`:file}
 
 export function moveNode(block0,nodeId,targetContainerId,beforeId=''){const found=findNodeWithParent(block0.root,nodeId);if(!found||!found.parent)return false;const target=findNode(block0.root,targetContainerId);if(!target||target.type!=='container'||target.locked)return false;const src=found.node;if(src.id===target.id||findNode(src,targetContainerId))return false;if(beforeId===nodeId)return false;found.parent.children=found.parent.children.filter(x=>x.id!==nodeId);if(beforeId){const idx=target.children.findIndex(x=>x.id===beforeId);idx>=0?target.children.splice(idx,0,src):target.children.push(src)}else target.children.push(src);return true}
 export function reorderBlocks(page,blockId,index){const i=page.blocks.findIndex(b=>b.id===blockId);if(i<0)return false;const[b]=page.blocks.splice(i,1);page.blocks.splice(Math.max(0,Math.min(index,page.blocks.length)),0,b);return true}
@@ -59,45 +23,12 @@ export function duplicateNode(block0,nodeId){const found=findNodeWithParent(bloc
 export function deleteNode(block0,nodeId){const found=findNodeWithParent(block0.root,nodeId);if(!found||!found.parent)return false;found.parent.children=found.parent.children.filter(x=>x.id!==nodeId);return true}
 export function duplicateBlock(page,blockId){const i=page.blocks.findIndex(b=>b.id===blockId);if(i<0)return null;const c=clone(page.blocks[i]);c.id=uid('block');c.name=(c.name||'Block')+' Copy';walk(c.root,n=>n.id=uid('el'));page.blocks.splice(i+1,0,c);return c}
 export function deleteBlock(page,blockId){const i=page.blocks.findIndex(b=>b.id===blockId);if(i<0)return false;page.blocks.splice(i,1);return true}
-
 export function applyGlobalsToPage(project,page){for(const role of['header','footer']){const src=project.globals?.[role];if(!src)continue;const c=clone(src);c.id=uid('block');walk(c.root,n=>n.id=uid('el'));c.globalRole=role;const existing=page.blocks.findIndex(b=>b.globalRole===role||b.preset===(role==='header'?'navbar':'footer'));if(existing>=0)page.blocks.splice(existing,1,c);else role==='header'?page.blocks.unshift(c):page.blocks.push(c)}}
 export function setGlobal(project,role,block0){const c=clone(block0);c.globalRole=role;project.globals[role]=c;for(const p of project.pages)applyGlobalsToPage(project,p)}
 
-export function migrateProject(input){
-  if(!input||typeof input!=='object')return defaultProject();
-  if(input.schemaVersion===SCHEMA_VERSION&&Array.isArray(input.pages))return ensureUniqueNodeIds(ensureSiteLanguageConfig(input));
-  const p={schemaVersion:SCHEMA_VERSION,id:input.id||uid('project'),name:input.name||'My Website',siteUrl:input.siteUrl||'',currentPageId:'',uiLang:input.uiLang||'ru',siteLanguages:input.siteLanguages||[],activeSiteLang:input.activeSiteLang||'',theme:{...baseTheme(),...(input.theme||{})},pages:[],globals:{header:null,footer:null},presets:[],notFoundPageId:input.notFoundPageId||'',audit:{lastRun:null}};
-  for(const oldPage of input.pages||[]){
-    const np={id:oldPage.id||uid('page'),groupId:oldPage.groupId||uid('pagegroup'),name:oldPage.name||'Page',slug:oldPage.home?'':oldPage.slug||slugify(oldPage.name)||'page',slugMode:oldPage.slugMode||'auto',lang:oldPage.lang||'ru',home:!!oldPage.home,seo:{...defaultSeo(oldPage.name),...(oldPage.seo||{})},blocks:[]};
-    for(const s of oldPage.blocks||oldPage.sections||[]){
-      if(s.root){np.blocks.push(s);continue}
-      const nb=block(s.customName||legacyBlockName(s.type),container([makeHtml(s.html||'')]));nb.id=s.id||uid('block');nb.preset=s.type||'';nb.anchor=s.style?.anchorId||'';nb.globalRole=s.style?.globalRole||'';nb.style.base.background=s.style?.bg||'#fff';nb.style.base.color=s.style?.color||'#111827';nb.style.base.paddingTop=`${Number(s.style?.padding??64)}px`;nb.style.base.paddingBottom=`${Number(s.style?.padding??64)}px`;nb.contentWidth=`${Number(s.style?.width??1120)}px`;np.blocks.push(nb)
-    }
-    if(!np.blocks.length)np.blocks=[preset('navbar'),preset('hero'),preset('footer')];p.pages.push(np)
-  }
-  if(!p.pages.length)p.pages=[defaultPage()];
-  p.currentPageId=input.currentPageId&&p.pages.some(x=>x.id===input.currentPageId)?input.currentPageId:p.pages[0].id;
-  ensureSiteLanguageConfig(p);
-  for(const lang of p.siteLanguages){const pages=p.pages.filter(x=>x.lang===lang.code);if(pages.length&&!pages.some(x=>x.home)){pages[0].home=true;pages[0].slug=''}}
-  return ensureUniqueNodeIds(p);
-}
-
+export function migrateProject(input){if(!input||typeof input!=='object')return defaultProject();if(input.schemaVersion===SCHEMA_VERSION&&Array.isArray(input.pages))return ensureUniqueNodeIds(ensureSiteLanguageConfig(input));const p={schemaVersion:SCHEMA_VERSION,id:input.id||uid('project'),name:input.name||'My Website',siteUrl:input.siteUrl||'',currentPageId:'',uiLang:input.uiLang||'ru',siteLanguages:input.siteLanguages||[],activeSiteLang:input.activeSiteLang||'',theme:{...baseTheme(),...(input.theme||{})},pages:[],globals:{header:null,footer:null},presets:[],notFoundPageId:input.notFoundPageId||'',audit:{lastRun:null}};for(const oldPage of input.pages||[]){const np={id:oldPage.id||uid('page'),groupId:oldPage.groupId||uid('pagegroup'),name:oldPage.name||'Page',slug:oldPage.home?'':oldPage.slug||slugify(oldPage.name)||'page',slugMode:oldPage.slugMode||'auto',lang:oldPage.lang||'ru',pathPrefix:oldPage.pathPrefix||'',home:!!oldPage.home,seo:{...defaultSeo(oldPage.name),...(oldPage.seo||{})},blocks:[]};for(const s of oldPage.blocks||oldPage.sections||[]){if(s.root){np.blocks.push(s);continue}const nb=block(s.customName||legacyBlockName(s.type),container([makeHtml(s.html||'')]));nb.id=s.id||uid('block');nb.preset=s.type||'';nb.anchor=s.style?.anchorId||'';nb.globalRole=s.style?.globalRole||'';nb.style.base.background=s.style?.bg||'#fff';nb.style.base.color=s.style?.color||'#111827';nb.style.base.paddingTop=`${Number(s.style?.padding??64)}px`;nb.style.base.paddingBottom=`${Number(s.style?.padding??64)}px`;nb.contentWidth=`${Number(s.style?.width??1120)}px`;np.blocks.push(nb)}if(!np.blocks.length)np.blocks=[preset('navbar'),preset('hero'),preset('footer')];p.pages.push(np)}if(!p.pages.length)p.pages=[defaultPage()];p.currentPageId=input.currentPageId&&p.pages.some(x=>x.id===input.currentPageId)?input.currentPageId:p.pages[0].id;ensureSiteLanguageConfig(p);for(const lang of p.siteLanguages){const pages=p.pages.filter(x=>x.lang===lang.code);if(pages.length&&!pages.some(x=>x.home)){pages[0].home=true;pages[0].slug=''}}ensureSiteLanguageConfig(p);return ensureUniqueNodeIds(p)}
 function legacyBlockName(t=''){return({navbar:'Menu',hero:'Hero',features:'Features',text:'Text',split:'Text + Image',gallery:'Gallery',cards:'Cards',quote:'Quote',cta:'CTA',contact:'Contact',footer:'Footer',faq:'FAQ',stats:'Stats',pricing:'Pricing',testimonials:'Testimonials'}[t]||'Legacy block')}
 function hexRgb(v=''){const m=String(v).trim().match(/^#([0-9a-f]{6})$/i);if(!m)return null;const n=parseInt(m[1],16);return[(n>>16)&255,(n>>8)&255,n&255]}
 function luminance(rgb){if(!rgb)return null;const a=rgb.map(x=>{x/=255;return x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4)});return .2126*a[0]+.7152*a[1]+.0722*a[2]}
 function contrast(a,b){const A=luminance(hexRgb(a)),B=luminance(hexRgb(b));if(A==null||B==null)return null;return(Math.max(A,B)+.05)/(Math.min(A,B)+.05)}
-
-export function auditProject(project){
-  ensureSiteLanguageConfig(project);
-  const issues=[],cr=contrast(project.theme?.colors?.text,project.theme?.colors?.background);if(cr!=null&&cr<4.5)issues.push({level:'warn',scope:'Theme',msg:`Low text/background contrast: ${cr.toFixed(2)}:1`});
-  for(const lang of project.siteLanguages){const homes=project.pages.filter(p=>p.lang===lang.code&&p.home);if(homes.length===0)issues.push({level:'warn',scope:lang.label,msg:'No homepage for this language'});if(homes.length>1)issues.push({level:'error',scope:lang.label,msg:'Multiple homepages for one language'})}
-  const slugKeys=new Set();
-  for(const p of project.pages){
-    if(!p.home){const key=`${p.lang}:${p.slug}`;if(slugKeys.has(key))issues.push({level:'error',scope:p.name,msg:`Duplicate slug in ${p.lang}: ${p.slug}`});slugKeys.add(key)}
-    if(!p.seo?.title)issues.push({level:'warn',scope:p.name,msg:'Missing SEO title'});if(!p.seo?.description)issues.push({level:'info',scope:p.name,msg:'Missing meta description'});
-    const anchors=new Set();let h1=0,lastHeading=0;
-    for(const b of p.blocks){if(b.anchor){if(anchors.has(b.anchor))issues.push({level:'error',scope:b.name,msg:`Duplicate anchor: ${b.anchor}`});anchors.add(b.anchor)}walk(b.root,n=>{if(n.type==='heading'){const lv=Number(n.props.level)||2;if(lv===1)h1++;if(lastHeading&&lv>lastHeading+1)issues.push({level:'info',scope:b.name,msg:`Heading level jumps H${lastHeading} → H${lv}`});lastHeading=lv}if(n.type==='image'&&!String(n.props.alt||'').trim())issues.push({level:'warn',scope:b.name,msg:'Image without ALT'});if(n.type==='image'&&String(n.props.src||'').startsWith('data:')&&String(n.props.src).length>1400000)issues.push({level:'warn',scope:b.name,msg:'Large embedded image (>1 MB approx.)'});if(n.type==='button'){const l=n.props.link||{};if(l.type!=='none'&&!String(l.value||'').trim())issues.push({level:'warn',scope:b.name,msg:'Button link has no target'})}})}
-    if(h1===0)issues.push({level:'warn',scope:p.name,msg:'Page has no H1'});if(h1>1)issues.push({level:'warn',scope:p.name,msg:`Page has ${h1} H1 headings`})
-  }
-  return issues;
-}
+export function auditProject(project){ensureSiteLanguageConfig(project);const issues=[],cr=contrast(project.theme?.colors?.text,project.theme?.colors?.background);if(cr!=null&&cr<4.5)issues.push({level:'warn',scope:'Theme',msg:`Low text/background contrast: ${cr.toFixed(2)}:1`});for(const lang of project.siteLanguages){const homes=project.pages.filter(p=>p.lang===lang.code&&p.home);if(homes.length===0)issues.push({level:'warn',scope:lang.label,msg:'No homepage for this language'});if(homes.length>1)issues.push({level:'error',scope:lang.label,msg:'Multiple homepages for one language'})}const slugKeys=new Set();for(const p of project.pages){if(!p.home){const key=`${p.lang}:${p.slug}`;if(slugKeys.has(key))issues.push({level:'error',scope:p.name,msg:`Duplicate slug in ${p.lang}: ${p.slug}`});slugKeys.add(key)}if(!p.seo?.title)issues.push({level:'warn',scope:p.name,msg:'Missing SEO title'});if(!p.seo?.description)issues.push({level:'info',scope:p.name,msg:'Missing meta description'});const anchors=new Set();let h1=0,lastHeading=0;for(const b of p.blocks){if(b.anchor){if(anchors.has(b.anchor))issues.push({level:'error',scope:b.name,msg:`Duplicate anchor: ${b.anchor}`});anchors.add(b.anchor)}walk(b.root,n=>{if(n.type==='heading'){const lv=Number(n.props.level)||2;if(lv===1)h1++;if(lastHeading&&lv>lastHeading+1)issues.push({level:'info',scope:b.name,msg:`Heading level jumps H${lastHeading} → H${lv}`});lastHeading=lv}if(n.type==='image'&&!String(n.props.alt||'').trim())issues.push({level:'warn',scope:b.name,msg:'Image without ALT'});if(n.type==='image'&&String(n.props.src||'').startsWith('data:')&&String(n.props.src).length>1400000)issues.push({level:'warn',scope:b.name,msg:'Large embedded image (>1 MB approx.)'});if(n.type==='button'){const l=n.props.link||{};if(l.type!=='none'&&!String(l.value||'').trim())issues.push({level:'warn',scope:b.name,msg:'Button link has no target'})}})}if(h1===0)issues.push({level:'warn',scope:p.name,msg:'Page has no H1'});if(h1>1)issues.push({level:'warn',scope:p.name,msg:`Page has ${h1} H1 headings`})}return issues}
