@@ -29,10 +29,12 @@ jobs:
           node --check tests/e2e-theme-v6.mjs
           node --check tests/e2e-ui-kit-v6.mjs
           node --check tests/e2e-responsive-preview-v6.mjs
+          node --check tests/e2e-functional-v6.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
-          import {preset,makeImageTextGrid,defaultProject,addPageTranslation,pageFile} from './v5-model.mjs';
+          import {preset,makeImageTextGrid,defaultProject,addPageTranslation,pageFile,makeForm} from './v5-model.mjs';
           import {makeCustomSection} from './v6-custom-sections.mjs';
+          import {FUNCTIONAL_READY_TYPES,makeFunctionalPreset} from './v6-functional-blocks.mjs';
           const b=preset('imageText');
           const grid=b.root.children.at(-1);
           if(b.name!=='Image + Text') throw new Error('Image + Text block missing');
@@ -40,6 +42,7 @@ jobs:
           if(makeImageTextGrid(254).children.length!==254) throw new Error('Manual 254 item count failed');
           if(makeImageTextGrid(999).children.length!==500) throw new Error('500 item cap failed');
           if(makeCustomSection('custom-4').root.children.length!==4) throw new Error('Custom section layout failed');
+          if(FUNCTIONAL_READY_TYPES.length!==9||!makeFunctionalPreset('form')||makeForm().props.fields.length<5) throw new Error('Functional block model failed');
           const project=defaultProject(),az=addPageTranslation(project,project.pages[0],'az');
           if(pageFile(az,project)!=='az/index.html') throw new Error('Multilingual page path failed');
           console.log('V6_REPEATABLE_MODEL_OK');
@@ -50,32 +53,39 @@ jobs:
           set -e
           rm -rf _site
           mkdir -p _site
-          cp index.html v6.css v6-ux.css v6-theme.css v6-ui-kit.css v6-*.mjs v5-*.mjs .nojekyll _site/
+          cp index.html v6.css v6-ux.css v6-theme.css v6-ui-kit.css v6-functional.css v6-*.mjs v5-*.mjs .nojekyll _site/
           test -f _site/v5-repeat-controls.mjs
           test -f _site/v5-languages.mjs
           test -f _site/v6-ux.css
           test -f _site/v6-theme.css
           test -f _site/v6-ui-kit.css
+          test -f _site/v6-functional.css
           test -f _site/v6-ux.mjs
           test -f _site/v6-custom-sections.mjs
           test -f _site/v6-site-languages.mjs
           test -f _site/v6-responsive-preview.mjs
+          test -f _site/v6-functional-blocks.mjs
+          test -f _site/v6-functional-inspector.mjs
+          test -f _site/v6-functional-public.mjs
           node --check _site/v5-repeat-controls.mjs
           node --check _site/v5-languages.mjs
           node --check _site/v6-ux.mjs
           node --check _site/v6-custom-sections.mjs
           node --check _site/v6-site-languages.mjs
           node --check _site/v6-responsive-preview.mjs
+          node --check _site/v6-functional-blocks.mjs
+          node --check _site/v6-functional-inspector.mjs
+          node --check _site/v6-functional-public.mjs
           grep -q "v5-repeat-controls.mjs" _site/v5-library-extras.mjs
           grep -q "v6-custom-sections.mjs" _site/v5-library.mjs
-          grep -q 'href="v6-ux.css"' _site/index.html
-          grep -q 'href="v6-theme.css"' _site/index.html
-          grep -q 'href="v6-ui-kit.css"' _site/index.html
-          grep -q 'Web Builder v6.3' _site/index.html
+          grep -q "v6-functional-blocks.mjs" _site/v5-library.mjs
+          grep -q "v6-functional-public.mjs" _site/v5-export.mjs
+          grep -q 'Web Builder v6.4' _site/index.html
           grep -q 'id="themeToggle"' _site/index.html
           grep -q 'src="v6-ux.mjs"' _site/index.html
           grep -q 'src="v6-site-languages.mjs"' _site/index.html
           grep -q 'src="v6-responsive-preview.mjs"' _site/index.html
+          grep -q 'src="v6-functional-inspector.mjs"' _site/index.html
           if grep -q 'src="v5-repeat-controls.mjs"' _site/index.html; then
             echo 'Duplicate direct repeat-controls bootstrap found' >&2
             exit 1
@@ -105,3 +115,4 @@ jobs:
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-theme-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-ui-kit-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-responsive-preview-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-functional-v6.mjs
