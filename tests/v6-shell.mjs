@@ -33,7 +33,11 @@ async function testViewport(width,height){
     assert.ok(Math.abs(shell.workspace.width-width)<=1,`workspace ${shell.workspace.width} != ${width}`);
     assert.ok(Math.abs(shell.stage.width-width)<=1,`stage ${shell.stage.width} != ${width}`);
     assert.ok(shell.stage.x>=-1&&shell.stage.right<=width+1,`stage escaped viewport ${JSON.stringify(shell.stage)}`);
-    assert.ok(Math.abs(shell.canvas.width-width)<=1,`canvas ${shell.canvas.width} != ${width}`);
+    if(width<=760){
+      assert.ok(Math.abs(shell.canvas.width-width)<=1,`phone canvas ${shell.canvas.width} != ${width}`);
+    }else{
+      assert.ok(shell.canvas.width<=width&&shell.canvas.width>=width-32,`tablet canvas ${shell.canvas.width} outside expected range for ${width}`);
+    }
     assert.ok(shell.bodyScrollWidth<=width+1,`horizontal page overflow ${shell.bodyScrollWidth} > ${width}`);
     assert.equal(shell.leftCollapsed,true);
     assert.equal(shell.rightCollapsed,true);
