@@ -7,6 +7,7 @@ import {renderCanvas,selectFromEvent,beginInlineEdit,inlineEdit,finishInlineEdit
 import {bindNavigatorDnD} from './v5-navigator-dnd.mjs';
 import {bindLibraryExtras,enhanceLibraries} from './v5-library-extras.mjs';
 import {bindVisualEditors,renderVisualEditors} from './v5-visual-editors.mjs';
+import {enhanceLinkTargetInput} from './v5-link-inputs.mjs';
 import {localizeUi} from './v5-localize.mjs';
 import {localizeV54} from './v5-localize-v54.mjs';
 import {localizeV55} from './v5-localize-v55.mjs';
@@ -29,7 +30,7 @@ import {bindPerformanceSettings,renderPerformanceSettings} from './v5-performanc
 function applyTranslations(){document.documentElement.lang=state.project?.uiLang||'ru';const map={blocksTab:'blocks',elementsTab:'elements',pagesTab:'pages',blockTab:'block',elementTab:'element',pageTab:'page',seoTab:'seo',siteTab:'site',newBtn:'newProject',previewBtn:'preview',downloadBtn:'download'};for(const[id,k]of Object.entries(map)){const el=$('#'+id);if(el)el.textContent=tr(k)}if($('#leftTitle'))$('#leftTitle').textContent=tr(state.activeLeft);if($('#rightTitle'))$('#rightTitle').textContent=tr('settings')}
 function updateSaveStatus(){if($('#saveStatus'))$('#saveStatus').textContent=state.saving?'Saving…':tr('saved')}
 function syncResponsivePanels(){const compact=matchMedia('(max-width:1180px)').matches;if(compact){document.body.classList.add('left-collapsed','right-collapsed')}else{document.body.classList.remove('left-collapsed','right-collapsed')}}
-function enhanceUi(){enhanceLibraries();enhanceNavigatorControls();renderVisualEditors();renderFreePositionControls();renderIconLibrary();renderAnimationPro();enhanceFreeCanvas();if(state.activeRight==='element')renderBulkActions();if(state.activeRight==='site'){renderDeepAudit();renderResponsiveAudit();renderAssetManager();enhanceAssetOrganizer();renderMyBlocksManager();renderPageTemplates();renderPerformanceSettings()}localizeUi();localizeV54();localizeV55()}
+function enhanceUi(){enhanceLibraries();enhanceNavigatorControls();renderVisualEditors();enhanceLinkTargetInput();renderFreePositionControls();renderIconLibrary();renderAnimationPro();enhanceFreeCanvas();if(state.activeRight==='element')renderBulkActions();if(state.activeRight==='site'){renderDeepAudit();renderResponsiveAudit();renderAssetManager();enhanceAssetOrganizer();renderMyBlocksManager();renderPageTemplates();renderPerformanceSettings()}localizeUi();localizeV54();localizeV55()}
 function renderAll(){if(!state.project)return;applyTranslations();if($('#pageLabel'))$('#pageLabel').textContent=`${currentPage().name} · ${(currentPage().lang||'').toUpperCase()}`;if($('#breadcrumb'))$('#breadcrumb').textContent=breadcrumbText(elementLabels);renderLeft();renderCanvas();renderInspector();renderNavigator();enhanceUi();updateSaveStatus();if($('#undoBtn'))$('#undoBtn').disabled=!state.history.length;if($('#redoBtn'))$('#redoBtn').disabled=!state.future.length}
 
 function bind(){
