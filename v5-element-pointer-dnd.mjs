@@ -5,6 +5,7 @@ let bound=false,mouseDrag=null,touchDrag=null,touchTimer=null,styleReady=false,s
 const excluded=t=>!!t.closest?.('.v5-block-toolbar,.v5-inline-add,input,textarea,select,button');
 const debug=(phase,extra={})=>{window.__v5ElementDnD={...(window.__v5ElementDnD||{}),phase,time:Date.now(),...extra}};
 function ensureStyle(){if(styleReady)return;styleReady=true;const s=document.createElement('style');s.textContent=`
+#canvas .v5-container[data-node-id]{min-height:44px}
 #canvas .v5-node.pointer-element-source{opacity:.62;cursor:grabbing!important;user-select:none!important}
 #canvas .v5-node.pointer-element-source *{cursor:grabbing!important;user-select:none!important}
 #canvas .pointer-element-drop.drop-target{outline:2px solid #705cff!important;outline-offset:3px}
