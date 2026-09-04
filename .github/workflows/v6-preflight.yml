@@ -25,9 +25,10 @@ jobs:
           node --check tests/e2e-repeatable-v6.mjs
           node --check tests/e2e-ux-v6.mjs
           node --check tests/e2e-custom-v6.mjs
+          node --check tests/e2e-site-languages-v6.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
-          import {preset,makeImageTextGrid} from './v5-model.mjs';
+          import {preset,makeImageTextGrid,defaultProject,addPageTranslation,pageFile} from './v5-model.mjs';
           import {makeCustomSection} from './v6-custom-sections.mjs';
           const b=preset('imageText');
           const grid=b.root.children.at(-1);
@@ -36,6 +37,8 @@ jobs:
           if(makeImageTextGrid(254).children.length!==254) throw new Error('Manual 254 item count failed');
           if(makeImageTextGrid(999).children.length!==500) throw new Error('500 item cap failed');
           if(makeCustomSection('custom-4').root.children.length!==4) throw new Error('Custom section layout failed');
+          const project=defaultProject(),az=addPageTranslation(project,project.pages[0],'az');
+          if(pageFile(az,project)!=='az/index.html') throw new Error('Multilingual page path failed');
           console.log('V6_REPEATABLE_MODEL_OK');
           NODE
 
@@ -46,16 +49,21 @@ jobs:
           mkdir -p _site
           cp index.html v6.css v6-ux.css v6-*.mjs v5-*.mjs .nojekyll _site/
           test -f _site/v5-repeat-controls.mjs
+          test -f _site/v5-languages.mjs
           test -f _site/v6-ux.css
           test -f _site/v6-ux.mjs
           test -f _site/v6-custom-sections.mjs
+          test -f _site/v6-site-languages.mjs
           node --check _site/v5-repeat-controls.mjs
+          node --check _site/v5-languages.mjs
           node --check _site/v6-ux.mjs
           node --check _site/v6-custom-sections.mjs
+          node --check _site/v6-site-languages.mjs
           grep -q "v5-repeat-controls.mjs" _site/v5-library-extras.mjs
           grep -q "v6-custom-sections.mjs" _site/v5-library.mjs
           grep -q 'href="v6-ux.css"' _site/index.html
           grep -q 'src="v6-ux.mjs"' _site/index.html
+          grep -q 'src="v6-site-languages.mjs"' _site/index.html
           if grep -q 'src="v5-repeat-controls.mjs"' _site/index.html; then
             echo 'Duplicate direct repeat-controls bootstrap found' >&2
             exit 1
@@ -81,3 +89,4 @@ jobs:
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-repeatable-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-ux-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-custom-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-site-languages-v6.mjs
