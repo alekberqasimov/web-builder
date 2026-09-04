@@ -46,6 +46,12 @@ async function mobileAudit(){
   await page.goto(base,{waitUntil:'domcontentloaded'});
   await page.waitForSelector('#canvas [data-block-id]',{timeout:15000});
   await page.waitForSelector('#navigatorTab');
+
+  assert.equal(await page.locator('.brand-name').isVisible(),true,'Web Builder brand name must remain visible on phone');
+  assert.equal((await page.locator('.brand-name').innerText()).trim(),'Web Builder','mobile brand text changed unexpectedly');
+  assert.equal(await page.locator('#leftToggle').isVisible(),true,'left blocks control must be visible on phone');
+  assert.equal(await page.locator('#rightToggle').isVisible(),true,'right settings control must be visible on phone');
+
   await page.click('#leftToggle');
   await page.waitForFunction(()=>!document.body.classList.contains('left-collapsed'));
 
@@ -65,6 +71,7 @@ async function mobileAudit(){
   });
 
   assert.ok(metrics.side.width<=390,'mobile drawer exceeds viewport');
+  assert.ok(metrics.side.width<metrics.innerWidth*.92,'mobile drawer should leave visual context instead of becoming a full-screen wall');
   assert.ok(metrics.search.left>=metrics.side.left&&metrics.search.right<=metrics.side.right+1,'search is clipped or overflows the drawer');
   assert.ok(metrics.search.width>300,'mobile search is too narrow');
   assert.ok(metrics.cardXs.length>=2,'block cards must use an adaptive two-column layout on phone');
@@ -74,6 +81,14 @@ async function mobileAudit(){
   await page.click('#navigatorTab');
   await page.waitForSelector('#navigatorPanel:not(.hidden)');
   assert.equal(await page.locator('#navigatorTree .tree-block').count()>0,true,'mobile navigator should remain usable');
+
+  await page.click('#leftToggle');
+  await page.waitForFunction(()=>document.body.classList.contains('left-collapsed'));
+  await page.click('#rightToggle');
+  await page.waitForFunction(()=>!document.body.classList.contains('right-collapsed'));
+  const right=await page.locator('#rightSidebar').evaluate(el=>{const r=el.getBoundingClientRect();return{left:r.left,right:r.right,width:r.width,innerWidth}});
+  assert.ok(right.width<right.innerWidth*.92,'right settings drawer should also preserve page context on phone');
+  assert.ok(right.right<=right.innerWidth+1&&right.left>=0,'right settings drawer is outside the viewport');
 
   assert.deepEqual(errors,[],`Mobile UX page errors:\n${errors.join('\n')}`);
   await context.close();
