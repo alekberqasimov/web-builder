@@ -69,7 +69,7 @@ jobs:
           if(!validPageTemplatePayload({name:'Home',page:project.pages[0]})) throw new Error('Page template smoke failed');
           project.pages[0].blocks[0].style.mobile.width='500px';
           if(!responsiveAudit(project).issues.length) throw new Error('Responsive audit smoke failed');
-          console.log('V5_7_SMOKE_OK');
+          console.log('V5_8_SMOKE_OK');
           NODE
 
       - name: Build v5-only Pages artifact
@@ -77,19 +77,22 @@ jobs:
           set -e
           rm -rf _site
           mkdir -p _site
-          cp index.html v5.css v5-*.mjs .nojekyll _site/
-          sed -i "s#href=\"v5.css\"#href=\"v5.css?v=${GITHUB_SHA}\"#" _site/index.html
-          sed -i "s#src=\"v5-app.mjs\"#src=\"v5-app.mjs?v=${GITHUB_SHA}\"#" _site/index.html
+          cp index.html v5.css v5-mobile-fix.css v5-*.mjs .nojekyll _site/
+          sed -E -i "s#href=\"v5.css(\?[^\"]*)?\"#href=\"v5.css?v=${GITHUB_SHA}\"#" _site/index.html
+          sed -E -i "s#href=\"v5-mobile-fix.css(\?[^\"]*)?\"#href=\"v5-mobile-fix.css?v=${GITHUB_SHA}\"#" _site/index.html
+          sed -E -i "s#src=\"v5-app.mjs(\?[^\"]*)?\"#src=\"v5-app.mjs?v=${GITHUB_SHA}\"#" _site/index.html
           for f in _site/v5-*.mjs; do
-            sed -E -i "s#(from ['\"]\./v5-[^'\"]+\.mjs)(['\"])#\1?v=${GITHUB_SHA}\2#g" "$f"
+            sed -E -i "s#(from ['\"]\./v5-[^'\"?]+\.mjs)(\?[^'\"]*)?(['\"])#\1?v=${GITHUB_SHA}\3#g" "$f"
           done
 
       - name: Verify v5-only wiring
         run: |
           set -e
-          grep -q "Web Builder v5.7" _site/index.html
+          grep -q "Web Builder v5.8" _site/index.html
           grep -q "v5.css?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v5-mobile-fix.css?v=${GITHUB_SHA}" _site/index.html
           grep -q "v5-app.mjs?v=${GITHUB_SHA}" _site/index.html
+          test -f _site/v5-mobile-fix.css
           if grep -Eq "app\.js|builder-v4|enhancements|runtime-fixes" _site/index.html; then
             echo "Legacy runtime found in production index" >&2
             exit 1
@@ -104,7 +107,7 @@ jobs:
           grep -q "v5-performance.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v5-animation-pro.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v5-core.mjs?v=${GITHUB_SHA}" _site/v5-model.mjs
-          echo "V5_7_WIRING_OK"
+          echo "V5_8_WIRING_OK"
 
       - name: Browser E2E
         run: |
