@@ -20,7 +20,7 @@ jobs:
         run: |
           set +e
           STATUS=0
-          echo "=== V6 PREFLIGHT START ==="
+          echo "=== V6 PREFLIGHT R2 START ==="
 
           echo "[1/4] Syntax"
           for f in v5-*.mjs tests/v6-shell.mjs; do
@@ -75,6 +75,5 @@ jobs:
             echo "V6_PREFLIGHT_FAIL"
           fi
 
-          # Intentionally exit 0: this branch is a private preflight lane.
-          # We inspect the PASS/FAIL marker before promoting anything to main.
+          # Keep the workflow green so preflight iterations do not send failure mail.
           exit 0
