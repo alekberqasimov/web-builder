@@ -54,14 +54,18 @@ async function desktopSuite(){
   await page.click('#undoBtn');assert.deepEqual(await blocks.evaluateAll(xs=>xs.map(x=>x.dataset.blockId)),beforeOrder,'Undo did not restore block order');
   await page.click('#redoBtn');assert.deepEqual(await blocks.evaluateAll(xs=>xs.map(x=>x.dataset.blockId)),afterDrag,'Redo did not restore block order');
 
-  const source0=page.locator('#canvas .v5-heading[data-node-id]').first();
-  const nodeId=await source0.getAttribute('data-node-id');
-  const nodeBlockId=await source0.evaluate(el=>el.closest('[data-block-id]').dataset.blockId);
-  const target0=page.locator(`#canvas>[data-block-id]:not([data-block-id="${nodeBlockId}"]) .v5-container[data-node-id]`).first();
-  const targetId=await target0.getAttribute('data-node-id');
-  assert.ok(nodeId&&targetId,'could not resolve element DnD source/target');
+  // Deterministic cross-block element DnD: two adjacent empty layout blocks.
+  await page.click('#blocksTab');await page.selectOption('#blockCategory','layouts');
+  await page.click('[data-add-block="layout1"]');
+  const layoutA=page.locator('#canvas>[data-block-id]').last();const layoutAId=await layoutA.getAttribute('data-block-id');
+  await page.click('#elementsTab');await page.click('[data-add-element="heading"]');
+  const source0=page.locator(`#canvas>[data-block-id="${layoutAId}"] .v5-heading[data-node-id]`).last();const nodeId=await source0.getAttribute('data-node-id');
+  await page.click('#blocksTab');await page.selectOption('#blockCategory','layouts');await page.click('[data-add-block="layout1"]');
+  const layoutB=page.locator('#canvas>[data-block-id]').last();const targetId=await layoutB.locator('.v5-container[data-node-id]').first().getAttribute('data-node-id');
+  assert.ok(layoutAId&&nodeId&&targetId,'could not create deterministic element DnD source/target');
   const source=page.locator(`#canvas [data-node-id="${nodeId}"]`),target=page.locator(`#canvas [data-node-id="${targetId}"]`);
-  await realMouseDrag(page,source,target,{targetY:.5});
+  await source.evaluate(el=>el.scrollIntoView({block:'center'}));await wait(100);
+  await realMouseDrag(page,source,target,{targetY:.35});
   assert.equal(await page.locator(`#canvas [data-node-id="${targetId}"] [data-node-id="${nodeId}"]`).count(),1,'mouse element DnD did not move element');
   await page.click('#undoBtn');assert.equal(await page.locator(`#canvas [data-node-id="${targetId}"] [data-node-id="${nodeId}"]`).count(),0,'Undo did not reverse element DnD');
   await page.click('#redoBtn');assert.equal(await page.locator(`#canvas [data-node-id="${targetId}"] [data-node-id="${nodeId}"]`).count(),1,'Redo did not reapply element DnD');
