@@ -46,6 +46,20 @@ async function desktop(){
   assert.ok(Number.parseInt(metrics.brandWeight)<=800,'brand typography is too heavy');
   assert.ok(Number.parseInt(metrics.actionWeight)<=700,'toolbar typography is too heavy');
   assert.ok(metrics.canvas.frameLeft>=metrics.canvas.stageLeft-1&&metrics.canvas.frameRight<=metrics.canvas.stageRight+1,'desktop canvas is clipped behind a pinned sidebar');
+
+  // Premium library must be discoverable, visually marked and genuinely editable.
+  await page.waitForSelector('[data-add-block="premiumHeroSaas"]');
+  assert.equal(await page.locator('#blockList .library-card.is-premium').count(),12,'premium ready library should expose twelve variants');
+  assert.equal((await page.locator('[data-add-block="premiumHeroSaas"] .v6-premium-badge').textContent()).trim(),'PRO','premium library card badge is missing');
+  await page.click('[data-add-block="premiumHeroSaas"]');
+  await page.waitForSelector('#canvas .v5-section.selected h1.v5-heading');
+  const heroHeading=page.locator('#canvas .v5-section.selected h1.v5-heading');
+  await heroHeading.click({position:{x:24,y:24}});
+  await page.waitForSelector('#elementInspector .v6-premium-design-editor');
+  await page.click('#elementInspector [data-v6-max-width="720px"]');
+  await page.waitForFunction(()=>getComputedStyle(document.querySelector('#canvas .v5-section.selected h1.v5-heading')).maxWidth==='720px');
+  assert.equal(await heroHeading.evaluate(el=>getComputedStyle(el).maxWidth),'720px','Quick Design text measure did not affect the selected heading');
+
   assert.deepEqual(errors,[],`UI kit desktop page errors:\n${errors.join('\n')}`);
   await context.close();
 }
@@ -62,13 +76,16 @@ async function mobile(){
   const m=await page.evaluate(()=>{
     const s=document.querySelector('#blocksPanel .search'),i=s.querySelector('input'),r=s.getBoundingClientRect(),ir=i.getBoundingClientRect();
     const tabs=[...document.querySelectorAll('.left-tabs button')].map(el=>({text:el.textContent.trim(),client:el.clientWidth,scroll:el.scrollWidth}));
-    return{display:getComputedStyle(s).display,search:{left:r.left,right:r.right,width:r.width,height:r.height},input:{left:ir.left,right:ir.right,width:ir.width,height:ir.height},tabs,drawer:document.querySelector('#leftSidebar').getBoundingClientRect().width,viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};
+    const premium=[...document.querySelectorAll('#blockList .library-card.is-premium')].map(el=>({client:el.clientWidth,scroll:el.scrollWidth,height:el.getBoundingClientRect().height}));
+    return{display:getComputedStyle(s).display,search:{left:r.left,right:r.right,width:r.width,height:r.height},input:{left:ir.left,right:ir.right,width:ir.width,height:ir.height},tabs,premium,drawer:document.querySelector('#leftSidebar').getBoundingClientRect().width,viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};
   });
   assert.equal(m.display,'flex','mobile search must keep one-row flex layout');
   assert.ok(m.input.left>m.search.left+20&&m.input.right<=m.search.right-6,'mobile search text is clipped or outside the field');
   assert.ok(m.drawer<m.viewport*.92,'mobile drawer became a full-screen wall');
   assert.ok(m.scrollWidth<=m.viewport,'mobile builder has horizontal page overflow');
   for(const tab of m.tabs)assert.ok(tab.scroll<=tab.client+1,`mobile tab label is clipped: ${tab.text}`);
+  assert.equal(m.premium.length,12,'mobile library lost premium variants');
+  assert.ok(m.premium.every(x=>x.scroll<=x.client+1),'premium library card content creates horizontal overflow');
   assert.deepEqual(errors,[],`UI kit mobile page errors:\n${errors.join('\n')}`);
   await context.close();
 }
