@@ -15,6 +15,7 @@ function uiLang(){return state.project?.uiLang||document.documentElement.lang||'
 function t(key){const lang=uiLang().slice(0,2);return labels[lang]?.[key]||labels.en[key]||key}
 function readPinned(side){const v=localStorage.getItem(PIN_KEYS[side]);return v===null?true:v!=='0'}
 function writePinned(side,value){localStorage.setItem(PIN_KEYS[side],value?'1':'0')}
+function later(fn){setTimeout(fn,0)}
 
 function pinButton(side){
   const sidebar=document.querySelector(`#${side}Sidebar`);
@@ -62,7 +63,7 @@ function togglePin(side){
 function ensureNavigatorMode(){
   const tabs=document.querySelector('.left-tabs');
   const scroll=document.querySelector('#leftSidebar .panel-scroll');
-  const wrap=scroll?.querySelector('.navigator-wrap');
+  const wrap=scroll?.querySelector('.navigator-wrap')||document.querySelector('#navigatorPanel .navigator-wrap');
   if(!tabs||!scroll||!wrap)return;
 
   let tab=document.querySelector('#navigatorTab');
@@ -80,8 +81,8 @@ function ensureNavigatorMode(){
     panel.id='navigatorPanel';
     panel.className='hidden';
     scroll.append(panel);
-    panel.append(wrap);
   }
+  if(wrap.parentElement!==panel)panel.append(wrap);
 
   const title=wrap.querySelector('.navigator-title');
   if(title){
@@ -96,7 +97,7 @@ function ensureNavigatorMode(){
       state.activeLeft='navigator';
       try{renderNavigator()}catch{}
       if(typeof state.render==='function')state.render();
-      queueMicrotask(syncNavigatorMode);
+      later(syncNavigatorMode);
     });
   }
 }
@@ -142,18 +143,14 @@ function bindUx(){
   document.addEventListener('click',e=>{
     const pin=e.target.closest?.('[data-panel-pin]');
     if(pin){e.preventDefault();e.stopPropagation();togglePin(pin.dataset.panelPin);return}
-    if(e.target.closest?.('#blocksTab,#elementsTab,#pagesTab'))queueMicrotask(syncNavigatorMode);
+    if(e.target.closest?.('#blocksTab,#elementsTab,#pagesTab'))later(syncNavigatorMode);
   },true);
 
-  document.querySelector('#uiLanguage')?.addEventListener('change',()=>queueMicrotask(localizeUx));
+  document.querySelector('#uiLanguage')?.addEventListener('change',()=>later(localizeUx));
   compactMq.addEventListener?.('change',()=>applyPinState());
+  window.addEventListener('pageshow',()=>later(()=>{ensureNavigatorMode();applyPinState();syncNavigatorMode()}));
 
-  const left=document.querySelector('#leftSidebar');
-  if(left)new MutationObserver(()=>queueMicrotask(syncNavigatorMode)).observe(left,{childList:true,subtree:true});
-  const htmlObserver=new MutationObserver(()=>queueMicrotask(localizeUx));
-  htmlObserver.observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
-
-  queueMicrotask(localizeUx);
+  later(localizeUx);
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindUx,{once:true});
