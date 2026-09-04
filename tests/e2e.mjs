@@ -12,6 +12,26 @@ async function change(locator,value){await locator.fill(value);await locator.dis
 async function waitValue(selector,value){await page.waitForFunction(({selector,value})=>document.querySelector(selector)?.value===value,{selector,value})}
 
 try{
+  // Mobile editor shell must occupy the full viewport. This protects against
+  // hidden sidebar grid columns squeezing the stage to ~50% width.
+  const mobileContext=await browser.newContext({viewport:{width:360,height:800},deviceScaleFactor:1});
+  const mobilePage=await mobileContext.newPage();
+  await mobilePage.goto(base,{waitUntil:'domcontentloaded'});
+  await mobilePage.waitForSelector('#canvas [data-block-id]',{timeout:15000});
+  const mobileLayout=await mobilePage.evaluate(()=>{
+    const workspace=document.querySelector('.workspace')?.getBoundingClientRect();
+    const stage=document.querySelector('.stage')?.getBoundingClientRect();
+    const canvas=document.querySelector('#canvasFrame')?.getBoundingClientRect();
+    return {innerWidth,workspace:workspace?.width||0,stage:stage?.width||0,stageLeft:stage?.left||0,stageRight:stage?.right||0,canvas:canvas?.width||0,left:document.querySelector('#leftToggle')?.textContent?.trim(),right:document.querySelector('#rightToggle')?.textContent?.trim()};
+  });
+  assert.ok(Math.abs(mobileLayout.workspace-mobileLayout.innerWidth)<=1,`mobile workspace width ${mobileLayout.workspace} != viewport ${mobileLayout.innerWidth}`);
+  assert.ok(Math.abs(mobileLayout.stage-mobileLayout.innerWidth)<=1,`mobile stage width ${mobileLayout.stage} != viewport ${mobileLayout.innerWidth}`);
+  assert.ok(mobileLayout.stageLeft>=-1&&mobileLayout.stageRight<=mobileLayout.innerWidth+1,`mobile stage escaped viewport: ${JSON.stringify(mobileLayout)}`);
+  assert.ok(Math.abs(mobileLayout.canvas-mobileLayout.innerWidth)<=1,`mobile canvas width ${mobileLayout.canvas} != viewport ${mobileLayout.innerWidth}`);
+  assert.equal(mobileLayout.left,'☰');
+  assert.equal(mobileLayout.right,'⚙');
+  await mobileContext.close();
+
   await page.goto(base,{waitUntil:'domcontentloaded'});
   await page.waitForSelector('#canvas [data-block-id]',{timeout:15000});
   assert.match(await page.locator('.version').innerText(),/^v5\./);
