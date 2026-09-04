@@ -55,7 +55,7 @@ function bind(){
   $('#rightSidebar').addEventListener('input',e=>{if(e.target.matches('[data-b="name"]'))handleMainInspectorChange(e)});
   bindElementInspectorEvents();
   $('#navigatorTree').onclick=navigatorClick;$('#navigatorTree').ondblclick=navigatorRename;
-  bindDnD();bindPointerBlockDnD();bindPointerElementDnD();bindNavigatorDnD();bindLibraryExtras();bindVisualEditors();bindDeepAudit();bindAssetManager();bindSmartGuides();bindMyBlocksManager();bindBulkActions();bindNavigatorControls();bindPageTemplates();bindResponsiveAudit();bindProKeyboard();bindFreePosition();bindAssetOrganizer();bindIconLibrary();bindAnimationPro();bindPerformanceSettings();
+  bindPointerBlockDnD();bindPointerElementDnD();bindDnD();bindNavigatorDnD();bindLibraryExtras();bindVisualEditors();bindDeepAudit();bindAssetManager();bindSmartGuides();bindMyBlocksManager();bindBulkActions();bindNavigatorControls();bindPageTemplates();bindResponsiveAudit();bindProKeyboard();bindFreePosition();bindAssetOrganizer();bindIconLibrary();bindAnimationPro();bindPerformanceSettings();
   $$('[data-device]').forEach(b=>b.onclick=()=>{state.device=b.dataset.device;$$('[data-device]').forEach(x=>x.classList.toggle('active',x===b));$('#customWidth').value='';$('#canvasFrame').style.width='';renderAll()});
   $('#customWidth').onchange=e=>{const v=Math.max(280,Math.min(1920,Number(e.target.value)||0));if(v){$('#canvasFrame').style.width=v+'px';$$('[data-device]').forEach(x=>x.classList.remove('active'))}};
   $('#zoomSelect').onchange=e=>{const v=e.target.value;$('#canvasFrame').style.zoom=v==='fit'?'':v;};
