@@ -1,3 +1,5 @@
+import './v6-premium-inspector.mjs';
+
 let installed=false;
 export function installPremiumLibraryStyles(){
   if(installed||typeof document==='undefined')return;installed=true;
