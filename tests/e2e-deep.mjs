@@ -39,13 +39,17 @@ async function stablePair(source,target){
 }
 async function realMouseDrag(page,source,target,{targetY=.7}={}){
   const{sb,tb}=await stablePair(source,target);
+  const isElementSource=await source.evaluate(el=>!!el.dataset.nodeId);
   const sx=sb.x+sb.width/2,sy=sb.y+sb.height/2;
   const tx=tb.x+Math.min(Math.max(24,tb.width*.35),Math.max(24,tb.width-24));
   const ty=tb.y+Math.max(12,Math.min(tb.height-12,tb.height*targetY));
   await page.mouse.move(sx,sy);await page.mouse.down();
-  await page.mouse.move(sx+10,sy+10,{steps:4});
+  await page.mouse.move(sx+10,sy+10,{steps:4});await wait(60);
+  if(isElementSource)assert.equal(await source.evaluate(el=>el.classList.contains('pointer-element-source')),true,'element DnD gesture never activated');
   await page.mouse.move((sx+tx)/2,(sy+ty)/2,{steps:8});
-  await page.mouse.move(tx,ty,{steps:12});await wait(100);await page.mouse.up();await wait(220);
+  await page.mouse.move(tx,ty,{steps:12});await wait(100);
+  if(isElementSource)assert.ok(await page.locator('#canvas .pointer-element-drop').count()>0,'element DnD activated but produced no drop plan');
+  await page.mouse.up();await wait(220);
 }
 
 async function desktopSuite(){
