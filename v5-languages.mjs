@@ -38,17 +38,14 @@ export function ensureSiteLanguageConfig(project){
     list=(seen.length?seen:['ru','az','en']).map((code,i)=>({code,label:languageLabel(code),default:i===0}));
   }
   const used=new Set();
-  list=list.map((x,i)=>{const code=normalizeLanguageCode(x?.code);if(!code||used.has(code))return null;used.add(code);return{code,label:String(x?.label||languageLabel(code)),default:!!x?.default}}).filter(Boolean);
+  list=list.map(x=>{const code=normalizeLanguageCode(x?.code);if(!code||used.has(code))return null;used.add(code);return{code,label:String(x?.label||languageLabel(code)),default:!!x?.default}}).filter(Boolean);
   if(!list.length)list=defaultSiteLanguages();
   if(!list.some(x=>x.default))list[0].default=true;
   let foundDefault=false;
   for(const x of list){if(x.default&&!foundDefault)foundDefault=true;else if(x.default)x.default=false}
   project.siteLanguages=list;
   const fallback=defaultSiteLanguage(project);
-  for(const p of project.pages||[]){
-    p.lang=normalizeLanguageCode(p.lang||fallback)||fallback;
-    p.groupId=p.groupId||uid('pagegroup');
-  }
+  for(const p of project.pages||[]){p.lang=normalizeLanguageCode(p.lang||fallback)||fallback;p.groupId=p.groupId||uid('pagegroup')}
   const active=normalizeLanguageCode(project.activeSiteLang||'');
   project.activeSiteLang=list.some(x=>x.code===active)?active:fallback;
   return project;
@@ -91,15 +88,12 @@ export function addSiteLanguage(project,code,label=''){
   ensureSiteLanguageConfig(project);
   const c=normalizeLanguageCode(code);
   if(!c||project.siteLanguages.some(x=>x.code===c))return null;
-  const row={code:c,label:String(label||languageLabel(c)),default:false};
-  project.siteLanguages.push(row);
-  return row;
+  const row={code:c,label:String(label||languageLabel(c)),default:false};project.siteLanguages.push(row);return row;
 }
 
 export function removeSiteLanguage(project,code,{deletePages=false}={}){
   ensureSiteLanguageConfig(project);
-  const c=normalizeLanguageCode(code);
-  if(project.siteLanguages.length<=1)return false;
+  const c=normalizeLanguageCode(code);if(project.siteLanguages.length<=1)return false;
   const row=project.siteLanguages.find(x=>x.code===c);if(!row)return false;
   if((project.pages||[]).some(p=>p.lang===c)&&!deletePages)return false;
   if(deletePages)project.pages=project.pages.filter(p=>p.lang!==c);
@@ -113,24 +107,25 @@ export function removeSiteLanguage(project,code,{deletePages=false}={}){
 
 export function setDefaultSiteLanguage(project,code){
   ensureSiteLanguageConfig(project);
-  const c=normalizeLanguageCode(code);
-  if(!project.siteLanguages.some(x=>x.code===c))return false;
-  project.siteLanguages.forEach(x=>x.default=x.code===c);
-  return true;
+  const c=normalizeLanguageCode(code);if(!project.siteLanguages.some(x=>x.code===c))return false;
+  project.siteLanguages.forEach(x=>x.default=x.code===c);return true;
 }
 
 export function clonePageVariant(source,lang){
-  const page=clone(source);
-  page.id=uid('page');
-  page.lang=normalizeLanguageCode(lang);
-  page.home=!!source.home;
-  page.groupId=source.groupId||uid('pagegroup');
-  page.slug=page.home?'':slugify(source.slug||source.name)||'page';
-  return page;
+  const page=clone(source);page.id=uid('page');page.lang=normalizeLanguageCode(lang);page.home=!!source.home;page.groupId=source.groupId||uid('pagegroup');page.slug=page.home?'':slugify(source.slug||source.name)||'page';return page;
 }
 
 export function sitePagePath(project,page){
   const file=page.home?'index.html':`${page.slug||slugify(page.name)||'page'}.html`;
   const code=normalizeLanguageCode(page.lang||defaultSiteLanguage(project));
   return code===defaultSiteLanguage(project)?file:`${code}/${file}`;
+}
+
+export function relativePageHref(project,fromPage,toPage){
+  if(!toPage)return'#';
+  const from=sitePagePath(project,fromPage),to=sitePagePath(project,toPage);
+  const fromParts=from.split('/');fromParts.pop();
+  const toParts=to.split('/');
+  while(fromParts.length&&toParts.length&&fromParts[0]===toParts[0]){fromParts.shift();toParts.shift()}
+  return `${'../'.repeat(fromParts.length)}${toParts.join('/')||'index.html'}`;
 }
