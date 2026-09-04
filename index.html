@@ -4,79 +4,65 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
   <meta name="theme-color" content="#0b1020">
-  <title>Web Builder v2</title>
-  <link rel="stylesheet" href="styles.css?v=2.4">
+  <title>Web Builder v5</title>
+  <link rel="stylesheet" href="v5.css">
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
-  <script src="app.js?v=2.4" defer></script>
+  <script type="module" src="v5-app.mjs"></script>
 </head>
 <body>
-  <div class="app-shell">
-    <header class="topbar">
-      <div class="brand"><span class="brand-mark">W</span><span>Web Builder</span><small>v2</small></div>
-      <div class="top-actions">
-        <button class="icon-button panel-toggle" id="leftToggleBtn" title="Toggle blocks panel">◧</button>
-        <button class="icon-button panel-toggle" id="rightToggleBtn" title="Toggle settings panel">◨</button>
-        <select id="uiLanguage" class="compact-select" aria-label="Interface language"><option value="ru">RU</option><option value="az">AZ</option><option value="en">EN</option></select>
-        <button class="icon-button" id="undoBtn" title="Undo" disabled>↶</button><button class="icon-button" id="redoBtn" title="Redo" disabled>↷</button><span class="divider"></span>
-        <button class="button ghost desktop-action" id="newBtn" data-i18n="newProject">Новый проект</button>
-        <button class="button ghost preview-button" id="previewBtn"><span class="preview-icon">◉</span><span class="preview-label" data-i18n="preview">Предпросмотр</span></button>
-        <button class="button primary" id="downloadBtn" data-i18n="downloadSite">Скачать сайт</button>
-      </div>
-    </header>
-    <main class="workspace">
-      <aside class="sidebar left-sidebar">
-        <div class="sidebar-head"><div><span class="eyebrow">Web Builder</span><h2 id="leftPanelTitle" data-i18n="blocks">Блоки</h2></div><div class="sidebar-head-actions"><button class="icon-button pin-button" data-pin-panel="left" title="Pin / Overlay">📌</button><button class="icon-button mobile-close" data-close-panel="left">×</button></div></div>
-        <div class="major-tabs" id="majorTabs"><button class="active" data-panel="blocks" data-i18n="blocks">Блоки</button><button data-panel="pages" data-i18n="pages">Страницы</button></div>
-        <section id="blocksPanel">
-          <label class="search"><span>⌕</span><input id="blockSearch" type="search" data-i18n-placeholder="findBlock" placeholder="Найти блок"></label>
-          <div class="category-tabs" id="categoryTabs"><button class="active" data-category="all" data-i18n="all">Все</button><button data-category="main" data-i18n="main">Основные</button><button data-category="content" data-i18n="content">Контент</button></div>
-          <div class="block-list" id="blockList"></div><div class="sidebar-note" data-i18n="dragHint">Перетащи блок на холст или нажми на него.</div>
-        </section>
-        <section id="pagesPanel" class="hidden"><button class="button primary wide" id="addPageBtn" data-i18n="addPage">＋ Создать страницу</button><div class="page-list" id="pageList"></div><div class="sidebar-note" data-i18n="pagesHint">Главная отмечена звездой. Меню автоматически получает ссылки на все страницы.</div></section>
-      </aside>
-      <section class="stage">
-        <div class="stage-toolbar">
-          <button class="mobile-panel-button" data-open-panel="left" data-i18n="menu">☰ Меню</button><div class="current-page" id="currentPageLabel"></div>
-          <div class="device-switcher" role="group" aria-label="Viewport"><button class="active" data-device="desktop" title="Desktop">▰</button><button data-device="tablet" title="Tablet">▯</button><button data-device="mobile" title="Mobile">▯</button></div>
-          <div class="document-status"><span class="status-dot"></span><span id="saveStatus" data-i18n="saved">Сохранено локально</span></div><button class="mobile-panel-button" data-open-panel="right" data-i18n="settings">Настройки ⚙</button>
-        </div>
-        <div class="canvas-wrap"><div class="canvas-frame desktop" id="canvasFrame"><div id="canvas" class="canvas" aria-label="Website canvas"></div></div></div>
-      </section>
-      <aside class="sidebar right-sidebar">
-        <div class="sidebar-head"><div><span class="eyebrow" data-i18n="inspector">Инспектор</span><h2 data-i18n="settings">Настройки</h2></div><div class="sidebar-head-actions"><button class="icon-button pin-button" data-pin-panel="right" title="Pin / Overlay">📌</button><button class="icon-button mobile-close" data-close-panel="right">×</button></div></div>
-        <div class="inspector-tabs" id="inspectorTabs"><button class="active" data-inspector="block" data-i18n="block">Блок</button><button data-inspector="page" data-i18n="page">Страница</button><button data-inspector="seo">SEO</button></div>
-        <section id="blockInspectorPanel">
-          <div id="emptyInspector" class="empty-inspector"><div class="empty-icon">⌁</div><p data-i18n="selectBlock">Выбери блок на холсте, чтобы изменить его оформление.</p></div>
-          <form id="inspector" class="inspector hidden" onsubmit="return false">
-            <label><span data-i18n="blockType">Тип блока</span><input id="sectionType" disabled></label>
-            <label><span data-i18n="background">Фон</span><div class="color-row"><input id="backgroundColor" type="color"><input id="backgroundText" type="text" maxlength="32"></div></label>
-            <label><span data-i18n="textColor">Цвет текста</span><div class="color-row"><input id="textColor" type="color"><input id="textColorText" type="text" maxlength="32"></div></label>
-            <label><span><span data-i18n="padding">Внутренний отступ</span> <output id="paddingValue">64 px</output></span><input id="paddingRange" type="range" min="16" max="140" step="4"></label>
-            <label><span data-i18n="contentWidth">Ширина контента</span><select id="contentWidth"><option value="880" data-i18n="narrow">Узкая</option><option value="1120" data-i18n="standard">Стандартная</option><option value="1320" data-i18n="wide">Широкая</option></select></label>
-            <label><span data-i18n="alignment">Выравнивание</span><select id="textAlign"><option value="left" data-i18n="left">Слева</option><option value="center" data-i18n="center">По центру</option><option value="right" data-i18n="right">Справа</option></select></label>
-            <fieldset id="repeatControls" class="image-controls hidden"><legend data-i18n="elements">Элементы</legend><label><span data-i18n="elementCount">Количество элементов</span><div class="count-row"><input id="repeatCount" type="number" min="1" max="500" step="1" inputmode="numeric"><button id="applyRepeatCount" class="button ghost" type="button" data-i18n="applyCount">Применить</button></div></label><small data-i18n="countRange">Можно ввести любое число от 1 до 500.</small></fieldset>
-            <fieldset id="imageControls" class="image-controls hidden"><legend data-i18n="image">Изображение</legend><label><span data-i18n="imageInBlock">Изображение в блоке</span><select id="imageTarget"></select></label><label class="button ghost wide file-button"><span data-i18n="uploadImage">Загрузить изображение</span><input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"></label><label><span data-i18n="altText">Описание ALT</span><input id="imageAlt" type="text" placeholder="Image description"></label><label><span data-i18n="imageFit">Заполнение</span><select id="imageFit"><option value="cover">Cover</option><option value="contain">Contain</option></select></label><button id="removeImageBtn" class="button ghost wide" type="button" data-i18n="removeImage">Удалить изображение</button></fieldset>
-            <div class="inspector-actions"><button id="duplicateBtn" class="button ghost" type="button" data-i18n="duplicate">Копировать</button><button id="deleteBtn" class="button danger" type="button" data-i18n="delete">Удалить</button></div>
-          </form>
-        </section>
-        <form id="pageInspectorPanel" class="inspector hidden" onsubmit="return false"><label><span data-i18n="pageName">Название страницы</span><input id="pageName" type="text"></label><label><span data-i18n="pageSlug">Адрес страницы</span><input id="pageSlug" type="text" placeholder="about"></label><label><span data-i18n="pageLanguage">Язык страницы</span><select id="pageLanguage"><option value="ru">Русский</option><option value="az">Azərbaycan</option><option value="en">English</option></select></label><label class="check-row"><input id="pageHome" type="checkbox"><span data-i18n="setHome">Сделать главной</span></label><button id="duplicatePageBtn" class="button ghost wide" type="button" data-i18n="duplicatePage">Дублировать страницу</button><button id="deletePageBtn" class="button danger wide" type="button" data-i18n="deletePage">Удалить страницу</button></form>
-        <form id="seoInspectorPanel" class="inspector hidden" onsubmit="return false"><label>Title<input id="seoTitle" type="text" maxlength="70"><small id="seoTitleCount">0/70</small></label><label>Meta Description<textarea id="seoDescription" maxlength="170"></textarea><small id="seoDescriptionCount">0/170</small></label><label>Keywords<input id="seoKeywords" type="text" placeholder="keyword, keyword"></label><label>Open Graph Title<input id="ogTitle" type="text"></label><label>Open Graph Description<textarea id="ogDescription"></textarea></label><label>Open Graph Image URL<input id="ogImage" type="url" placeholder="https://..."></label><label class="check-row"><input id="seoNoindex" type="checkbox"><span data-i18n="hideSearch">Скрыть от поисковых систем</span></label><hr><label><span data-i18n="siteUrl">Адрес опубликованного сайта</span><input id="siteUrl" type="url" placeholder="https://example.com"></label><label><span data-i18n="siteName">Название сайта</span><input id="siteName" type="text"></label></form>
-        <div class="project-tools"><h3 data-i18n="project">Проект</h3><button class="button ghost wide" id="exportProjectBtn" data-i18n="saveProject">Сохранить проект</button><label class="button ghost wide file-button"><span data-i18n="openProject">Открыть проект</span><input id="importProjectInput" type="file" accept="application/json,.json"></label></div>
-      </aside>
-    </main>
-  </div>
-  <dialog id="pageDialog"><form method="dialog" class="dialog-card" id="pageDialogForm"><div class="dialog-head"><h3 data-i18n="newPage">Новая страница</h3><button value="cancel" class="icon-button">×</button></div><label><span data-i18n="pageName">Название страницы</span><input id="newPageName" required value="Новая страница"></label><label><span data-i18n="pageLanguage">Язык страницы</span><select id="newPageLanguage"><option value="ru">Русский</option><option value="az">Azərbaycan</option><option value="en">English</option></select></label><div class="dialog-actions"><button value="cancel" class="button ghost" data-i18n="cancel">Отмена</button><button id="confirmAddPage" value="default" class="button primary" data-i18n="create">Создать</button></div></form></dialog>
-  <dialog id="previewDialog" class="preview-dialog">
-    <div class="preview-shell">
-      <header class="preview-toolbar">
-        <div class="preview-title"><span class="status-dot"></span><strong data-i18n="preview">Предпросмотр</strong></div>
-        <select id="previewPageSelect" aria-label="Preview page"></select>
-        <div class="preview-devices"><button class="active" data-preview-device="desktop">▰</button><button data-preview-device="tablet">▯</button><button data-preview-device="mobile">▯</button></div>
-        <button class="button ghost" id="closePreviewBtn"><span data-i18n="close">Закрыть</span> ×</button>
-      </header>
-      <div class="preview-stage"><iframe id="previewFrame" title="Website preview"></iframe></div>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">W</span><span>Web Builder</span><span class="version">v5</span></div>
+    <div class="top-actions">
+      <button class="icon-btn" id="leftToggle" title="Toggle left panel">◧</button>
+      <button class="icon-btn" id="rightToggle" title="Toggle right panel">◨</button>
+      <select id="uiLanguage"><option value="ru">RU</option><option value="az">AZ</option><option value="en">EN</option></select>
+      <button class="icon-btn" id="undoBtn" title="Undo">↶</button><button class="icon-btn" id="redoBtn" title="Redo">↷</button>
+      <button id="newBtn" class="desktop-only">Новый проект</button>
+      <button id="previewBtn">Предпросмотр</button>
+      <button id="downloadBtn" class="primary">Скачать сайт</button>
     </div>
-  </dialog>
-  <div class="toast" id="toast" role="status"></div>
+  </header>
+  <main class="workspace">
+    <aside class="sidebar left-sidebar">
+      <div class="sidebar-head"><span class="eyebrow">Web Builder</span><h2 id="leftTitle">Блоки</h2></div>
+      <div class="tabs"><button id="blocksTab" class="active">Блоки</button><button id="elementsTab">Элементы</button><button id="pagesTab">Страницы</button></div>
+      <div class="panel-scroll">
+        <section id="blocksPanel">
+          <label class="search"><span>⌕</span><input id="blockSearch" placeholder="Найти блок"></label>
+          <div class="panel-tools"><select id="blockCategory"><option value="ready">Готовые</option><option value="layouts">Контейнеры</option><option value="my">Мои блоки</option></select></div>
+          <div class="library-list" id="blockList"></div>
+        </section>
+        <section id="elementsPanel" class="hidden">
+          <label class="search"><span>⌕</span><input id="elementSearch" placeholder="Найти элемент"></label>
+          <div class="library-list" id="elementList"></div>
+        </section>
+        <section id="pagesPanel" class="hidden"><div id="pageList"></div></section>
+        <div class="navigator-wrap"><div class="navigator-title"><span>Navigator</span><span>Page tree</span></div><div id="navigatorTree"></div></div>
+      </div>
+    </aside>
+    <section class="stage">
+      <div class="stage-toolbar">
+        <div class="page-label" id="pageLabel">Page</div><div class="breadcrumb" id="breadcrumb"></div>
+        <div class="device-switch"><button class="active" data-device="desktop">▰</button><button data-device="tablet">▯</button><button data-device="mobile">▯</button></div>
+        <div class="custom-width"><input id="customWidth" type="number" min="280" max="1920" placeholder="px"><small>custom px</small></div><select id="zoomSelect"><option value="fit">Fit</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option></select><button id="guidesBtn" type="button">#</button>
+        <div class="save-status" id="saveStatus">Saved locally</div>
+      </div>
+      <div class="canvas-wrap"><div class="canvas-frame desktop" id="canvasFrame"><div class="canvas" id="canvas"></div></div></div>
+    </section>
+    <aside class="sidebar right-sidebar" id="rightSidebar">
+      <div class="sidebar-head"><span class="eyebrow">Inspector</span><h2 id="rightTitle">Настройки</h2></div>
+      <div class="tabs"><button id="blockTab" class="active">Блок</button><button id="elementTab">Элемент</button><button id="pageTab">Страница</button><button id="seoTab">SEO</button><button id="siteTab">Site</button></div>
+      <div class="panel-scroll">
+        <section id="blockInspector"></section><section id="elementInspector" class="hidden"></section><section id="pageInspector" class="hidden"></section><section id="seoInspector" class="hidden"></section><section id="siteInspector" class="hidden"></section>
+      </div>
+    </aside>
+  </main>
+</div>
+<dialog id="previewDialog" class="preview-dialog">
+  <div class="preview-bar"><strong>Preview</strong><select id="previewPage"></select><select id="previewDevice"><option value="desktop">Desktop</option><option value="tablet">Tablet</option><option value="mobile">Mobile</option></select><button id="closePreview">Close ×</button></div>
+  <div class="preview-stage"><iframe id="previewFrame" title="Website preview"></iframe></div>
+</dialog>
+<div class="context-menu hidden" id="contextMenu"><button data-context="duplicate">Duplicate</button><button data-context="copy">Copy</button><button data-context="copy-style">Copy Style</button><button data-context="paste-style">Paste Style</button><button data-context="delete" class="danger">Delete</button></div><div class="toast" id="toast"></div>
 </body>
 </html>
