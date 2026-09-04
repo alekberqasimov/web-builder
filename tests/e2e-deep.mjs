@@ -16,12 +16,19 @@ async function stableBox(locator){
   }
   throw new Error('DnD element could not be resolved to stable geometry');
 }
+async function restoreHoverSource(source){
+  try{
+    const isBlockHandle=await source.evaluate(el=>el.classList.contains('v5-block-drag'));
+    if(isBlockHandle){await source.locator('xpath=ancestor::*[@data-block-id][1]').hover();await wait(60)}
+  }catch{}
+}
 async function stablePair(source,target){
-  for(let i=0;i<5;i++){
+  for(let i=0;i<6;i++){
     try{
       await source.evaluate(el=>el.scrollIntoView({block:'nearest',inline:'nearest'}));
       await target.evaluate(el=>el.scrollIntoView({block:'nearest',inline:'nearest'}));
       await source.evaluate(el=>el.scrollIntoView({block:'nearest',inline:'nearest'}));
+      await restoreHoverSource(source);
       await wait(100);
       const sb=await source.boundingBox(),tb=await target.boundingBox();
       if(sb&&tb)return{sb,tb};
@@ -50,12 +57,12 @@ async function desktopSuite(){
   const blocks=page.locator('#canvas>[data-block-id]');
   assert.ok(await blocks.count()>=4,'default project needs several blocks for DnD QA');
   const beforeOrder=await blocks.evaluateAll(xs=>xs.map(x=>x.dataset.blockId));
-  const sourceBlockId=beforeOrder[1],targetBlockId=beforeOrder[3];
+  const sourceBlockId=beforeOrder[1],targetBlockId=beforeOrder[2];
   const sourceBlock=page.locator(`#canvas>[data-block-id="${sourceBlockId}"]`);
   const targetBlock=page.locator(`#canvas>[data-block-id="${targetBlockId}"]`);
   await sourceBlock.hover();
   const handle=sourceBlock.locator('.v5-block-drag');await handle.waitFor({state:'visible'});
-  await realMouseDrag(page,handle,targetBlock,{targetY:.82});
+  await realMouseDrag(page,handle,targetBlock,{targetY:.78});
   const afterDrag=await blocks.evaluateAll(xs=>xs.map(x=>x.dataset.blockId));
   assert.notDeepEqual(afterDrag,beforeOrder,'mouse block DnD did not reorder blocks');
   await page.click('#undoBtn');assert.deepEqual(await blocks.evaluateAll(xs=>xs.map(x=>x.dataset.blockId)),beforeOrder,'Undo did not restore block order');
