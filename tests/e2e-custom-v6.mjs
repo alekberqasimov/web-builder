@@ -9,7 +9,7 @@ try{
   const errors=[];page.on('pageerror',e=>errors.push(String(e?.stack||e)));
   await page.goto(base,{waitUntil:'domcontentloaded'});
   await page.waitForSelector('#canvas [data-block-id]',{timeout:15000});
-  await page.waitForSelector('#blockCategory option[value="custom"]');
+  await page.waitForFunction(()=>document.querySelector('#blockCategory option[value="custom"]'));
   await page.selectOption('#blockCategory','custom');
   await page.waitForSelector('[data-add-block="custom-3"]');
   assert.equal(await page.locator('#blockList [data-add-block^="custom-"]').count(),7,'custom section catalog should expose 7 layouts');
