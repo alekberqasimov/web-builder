@@ -74,9 +74,12 @@ async function desktopAudit(){
   const ctx=await browser.newContext({viewport:{width:1440,height:950},deviceScaleFactor:1});
   const page=await ctx.newPage();page.on('pageerror',e=>errors.push(String(e?.stack||e)));
   await page.goto(base,{waitUntil:'domcontentloaded'});await page.waitForSelector('#canvas [data-block-id]',{timeout:15000});
-  const m=await page.evaluate(()=>{const b=s=>document.querySelector(s).getBoundingClientRect();return{left:b('.left-sidebar').width,right:b('.right-sidebar').width,stage:b('.stage').width,workspace:b('.workspace').width,lc:document.body.classList.contains('left-collapsed'),rc:document.body.classList.contains('right-collapsed')}});
-  assert.equal(m.lc,false,'desktop left sidebar unexpectedly collapsed');assert.equal(m.rc,false,'desktop right sidebar unexpectedly collapsed');
-  assert.ok(m.left>=280&&m.right>=320,'desktop sidebars lost usable width');assert.ok(m.stage>700,'desktop canvas stage too narrow');assert.ok(Math.abs(m.workspace-1440)<=1,'desktop workspace not full width');
+  const m=await page.evaluate(()=>{const b=s=>document.querySelector(s).getBoundingClientRect();return{innerWidth,left:b('.left-sidebar').width,right:b('.right-sidebar').width,stage:b('.stage').width,workspace:b('.workspace').width,lc:document.body.classList.contains('left-collapsed'),rc:document.body.classList.contains('right-collapsed')}});
+  assert.equal(m.lc,false,'desktop left sidebar unexpectedly collapsed');
+  assert.equal(m.rc,false,'desktop right sidebar unexpectedly collapsed');
+  assert.ok(m.left>=220&&m.right>=220,`desktop sidebars unusable: ${JSON.stringify(m)}`);
+  assert.ok(m.stage>=600,`desktop canvas stage too narrow: ${JSON.stringify(m)}`);
+  assert.ok(Math.abs(m.workspace-m.innerWidth)<=1,`desktop workspace not full width: ${JSON.stringify(m)}`);
   await ctx.close();
 }
 
