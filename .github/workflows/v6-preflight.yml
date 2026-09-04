@@ -24,6 +24,7 @@ jobs:
           node --check tests/e2e-layout-v6.mjs
           node --check tests/e2e-deep.mjs
           node --check tests/e2e-repeatable-v6.mjs
+          node --check tests/layout-diagnostic-v6.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {preset,makeImageTextGrid} from './v5-model.mjs';
@@ -65,6 +66,7 @@ jobs:
           done
           test "$READY" -eq 1
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/layout-diagnostic-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-layout-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-deep.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-repeatable-v6.mjs
