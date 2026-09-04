@@ -29,6 +29,7 @@ jobs:
           set -e
           for f in v5-*.mjs; do node --check "$f"; done
           node --check tests/e2e.mjs
+          node --check tests/e2e-deep.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {defaultProject} from './v5-model.mjs';
@@ -64,7 +65,7 @@ jobs:
           if(!validPageTemplatePayload({name:'Home',page:project.pages[0]})) throw new Error('Page template smoke failed');
           project.pages[0].blocks[0].style.mobile.width='500px';
           if(!responsiveAudit(project).issues.length) throw new Error('Responsive audit smoke failed');
-          console.log('V5_6_SMOKE_OK');
+          console.log('V5_7_SMOKE_OK');
           NODE
 
       - name: Build v5-only Pages artifact
@@ -82,7 +83,7 @@ jobs:
       - name: Verify v5-only wiring
         run: |
           set -e
-          grep -q "Web Builder v5.6" _site/index.html
+          grep -q "Web Builder v5.7" _site/index.html
           grep -q "v5.css?v=${GITHUB_SHA}" _site/index.html
           grep -q "v5-app.mjs?v=${GITHUB_SHA}" _site/index.html
           if grep -Eq "app\.js|builder-v4|enhancements|runtime-fixes" _site/index.html; then
@@ -99,7 +100,7 @@ jobs:
           grep -q "v5-performance.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v5-animation-pro.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v5-core.mjs?v=${GITHUB_SHA}" _site/v5-model.mjs
-          echo "V5_6_WIRING_OK"
+          echo "V5_7_WIRING_OK"
 
       - name: Browser E2E
         run: |
@@ -114,6 +115,7 @@ jobs:
             sleep 1
           done
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-deep.mjs
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
