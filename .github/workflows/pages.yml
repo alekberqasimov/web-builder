@@ -30,6 +30,8 @@ jobs:
           node --check v6-app.mjs
           for f in v5-*.mjs; do node --check "$f"; done
           node --check tests/e2e.mjs
+          node --check tests/e2e-layout-v6.mjs
+          node --check tests/e2e-deep.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {defaultProject} from './v5-model.mjs';
@@ -108,7 +110,7 @@ jobs:
           grep -q "v5-core.mjs?v=${GITHUB_SHA}" _site/v5-model.mjs
           echo "V6_WIRING_OK"
 
-      - name: Browser regression test
+      - name: Browser regression and visual geometry audit
         run: |
           set -e
           npm install --no-save --no-package-lock playwright@1.55.0 >/dev/null
@@ -121,6 +123,11 @@ jobs:
             sleep 1
           done
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-layout-v6.mjs
+          cp tests/e2e-deep.mjs tests/.e2e-deep-v6.tmp.mjs
+          sed -i "s/classList.remove('left-collapsed','right-collapsed')/classList.add('left-collapsed','right-collapsed')/" tests/.e2e-deep-v6.tmp.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/.e2e-deep-v6.tmp.mjs
+          rm -f tests/.e2e-deep-v6.tmp.mjs
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
