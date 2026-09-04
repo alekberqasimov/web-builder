@@ -1,0 +1,7 @@
+import {$,state,mutate} from './v5-runtime.mjs';
+
+export function minifyCss(css=''){return String(css).replace(/\/\*[\s\S]*?\*\//g,'').replace(/\s*([{}:;,>])\s*/g,'$1').replace(/;}/g,'}').replace(/\s{2,}/g,' ').trim()}
+export function minifyHtmlDocument(html=''){return String(html).replace(/<!--(?!\[if)[\s\S]*?-->/g,'').replace(/<style>([\s\S]*?)<\/style>/gi,(_,c)=>`<style>${minifyCss(c)}</style>`).replace(/>\s+</g,'><').trim()}
+export function estimateSavings(html=''){const raw=new Blob([html]).size,min=new Blob([minifyHtmlDocument(html)]).size;return{raw,min,saved:Math.max(0,raw-min),pct:raw?Math.round((raw-min)/raw*100):0}}
+export function renderPerformanceSettings(){const panel=$('#siteInspector');if(!panel)return;panel.querySelector('#v55Performance')?.remove();const s=state.project.exportSettings||={minify:true};panel.insertAdjacentHTML('beforeend',`<fieldset id="v55Performance"><legend>Export performance</legend><label><input data-v55-export="minify" type="checkbox" ${s.minify!==false?'checked':''}> Minify exported HTML/CSS</label><small>Preview keeps full editor data. Downloaded pages are optimized when enabled.</small></fieldset>`)}
+export function bindPerformanceSettings(){if(document.body.dataset.v55Perf==='1')return;document.body.dataset.v55Perf='1';$('#rightSidebar')?.addEventListener('change',e=>{if(!e.target.matches('[data-v55-export]'))return;mutate('Export setting',()=>{state.project.exportSettings||={};state.project.exportSettings[e.target.dataset.v55Export]=e.target.checked})},true)}
