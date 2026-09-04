@@ -34,9 +34,10 @@ jobs:
           node --check tests/e2e-repeatable-v6.mjs
           node --check tests/e2e-ux-v6.mjs
           node --check tests/e2e-custom-v6.mjs
+          node --check tests/e2e-site-languages-v6.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
-          import {defaultProject} from './v5-model.mjs';
+          import {defaultProject,addPageTranslation,addSiteLanguage,pageFile} from './v5-model.mjs';
           import {exportedDocument} from './v5-render.mjs';
           import {buildGradientStops,buildBorder} from './v5-visual-editors.mjs';
           import {validPresetPayload} from './v5-my-blocks.mjs';
@@ -75,6 +76,9 @@ jobs:
           project.pages[0].blocks[0].style.mobile.width='500px';
           if(!responsiveAudit(project).issues.length) throw new Error('Responsive audit smoke failed');
           if(makeCustomSection('custom-grid').root.children.length!==6) throw new Error('Custom section smoke failed');
+          const az=addPageTranslation(project,project.pages[0],'az');
+          if(pageFile(az,project)!=='az/index.html') throw new Error('Multilingual path smoke failed');
+          if(!addSiteLanguage(project,'de','Deutsch')||project.siteLanguages.length!==4) throw new Error('Additional site language smoke failed');
           console.log('V6_ENGINE_SMOKE_OK');
           NODE
 
@@ -88,6 +92,7 @@ jobs:
           sed -E -i "s#href=\"v6-ux.css(\?[^\"]*)?\"#href=\"v6-ux.css?v=${GITHUB_SHA}\"#" _site/index.html
           sed -E -i "s#src=\"v6-app.mjs(\?[^\"]*)?\"#src=\"v6-app.mjs?v=${GITHUB_SHA}\"#" _site/index.html
           sed -E -i "s#src=\"v6-ux.mjs(\?[^\"]*)?\"#src=\"v6-ux.mjs?v=${GITHUB_SHA}\"#" _site/index.html
+          sed -E -i "s#src=\"v6-site-languages.mjs(\?[^\"]*)?\"#src=\"v6-site-languages.mjs?v=${GITHUB_SHA}\"#" _site/index.html
           for f in _site/v5-*.mjs _site/v6-*.mjs; do
             sed -E -i "s#(from ['\"]\./(v5|v6)-[^'\"?]+\.mjs)(\?[^'\"]*)?(['\"])#\1?v=${GITHUB_SHA}\4#g" "$f"
           done
@@ -100,11 +105,14 @@ jobs:
           grep -q "v6-ux.css?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-app.mjs?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-ux.mjs?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v6-site-languages.mjs?v=${GITHUB_SHA}" _site/index.html
           test -f _site/v6.css
           test -f _site/v6-ux.css
           test -f _site/v6-app.mjs
           test -f _site/v6-ux.mjs
           test -f _site/v6-custom-sections.mjs
+          test -f _site/v6-site-languages.mjs
+          test -f _site/v5-languages.mjs
           if grep -Eq "app\.js|builder-v4|enhancements|runtime-fixes|v5-mobile-fix|v5\.css|v5-app\.mjs" _site/index.html; then
             echo "Legacy editor shell found in production index" >&2
             exit 1
@@ -116,6 +124,9 @@ jobs:
           done
           grep -q "v5-runtime.mjs?v=${GITHUB_SHA}" _site/v6-ux.mjs
           grep -q "v5-library.mjs?v=${GITHUB_SHA}" _site/v6-ux.mjs
+          grep -q "v5-runtime.mjs?v=${GITHUB_SHA}" _site/v6-site-languages.mjs
+          grep -q "v5-model.mjs?v=${GITHUB_SHA}" _site/v6-site-languages.mjs
+          grep -q "v5-languages.mjs?v=${GITHUB_SHA}" _site/v5-model.mjs
           grep -q "v5-repeat-controls.mjs?v=${GITHUB_SHA}" _site/v5-library-extras.mjs
           grep -q "v6-custom-sections.mjs?v=${GITHUB_SHA}" _site/v5-library.mjs
           grep -q "v6-custom-sections.mjs?v=${GITHUB_SHA}" _site/v5-library-extras.mjs
@@ -149,6 +160,7 @@ jobs:
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-repeatable-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-ux-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-custom-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-site-languages-v6.mjs
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
