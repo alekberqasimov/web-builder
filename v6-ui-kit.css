@@ -1,0 +1,253 @@
+/* Web Builder V6.2 UI kit
+   Editor chrome only. Do not style #canvas site content here. */
+:root{
+  --kit-font:Inter,"Segoe UI Variable","SF Pro Text","SF Pro Display",ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --kit-radius-sm:8px;
+  --kit-radius-md:10px;
+  --kit-radius-lg:14px;
+  --kit-control-h:40px;
+  --kit-ease:cubic-bezier(.2,.8,.2,1);
+  --left-w:336px;
+  --right-w:372px;
+}
+
+html,body,.app,.topbar,.editor-toolbar,.sidebar,.preview-dialog,.context-menu,.toast{
+  font-family:var(--kit-font);
+}
+body{font-size:13px;font-weight:400;letter-spacing:0}
+
+/* Typography hierarchy: clear, calm, not artificially bold. */
+.brand-name{font-size:16px!important;font-weight:760!important;letter-spacing:-.025em!important}
+.version{font-size:10px!important;font-weight:560!important;letter-spacing:.01em}
+.eyebrow{font-size:9px!important;font-weight:720!important;letter-spacing:.10em!important}
+.sidebar-head h2{font-size:18px!important;font-weight:730!important;letter-spacing:-.018em!important}
+.has-label::after{font-size:11px!important;font-weight:660!important;letter-spacing:-.005em}
+.tabs button{font-size:10.5px!important;font-weight:650!important;letter-spacing:-.005em}
+.library-card strong{font-size:11.5px!important;font-weight:680!important;letter-spacing:-.01em}
+.library-card small{font-size:9.5px!important;font-weight:480!important;line-height:1.35!important}
+.navigator-title{font-size:9px!important;font-weight:680!important;letter-spacing:.07em!important}
+.tree-row{font-size:11px!important;font-weight:520!important}
+.page-label{font-size:11px!important;font-weight:680!important}
+.breadcrumb,.save-status{font-size:10.5px!important;font-weight:500!important}
+.panel-scroll label,#rightSidebar label{font-size:10.5px!important;font-weight:590!important;line-height:1.35}
+.panel-scroll legend,#rightSidebar legend{font-size:9.5px!important;font-weight:700!important;letter-spacing:.025em}
+.panel-scroll input,.panel-scroll select,.panel-scroll textarea,#rightSidebar input,#rightSidebar select,#rightSidebar textarea{font-size:12px!important;font-weight:500!important}
+.toolbar-grid button,.panel-scroll button,.file-button{font-size:10.5px!important;font-weight:620!important}
+
+/* Top chrome. */
+.topbar{padding-inline:12px!important;gap:10px!important}
+.brand{gap:9px!important}
+.brand-mark{width:36px!important;height:36px!important;border-radius:11px!important;font-size:18px!important;font-weight:800!important}
+.top-actions{gap:6px!important}
+.top-actions select,.icon-action{height:38px!important;border-radius:10px!important}
+.icon-action{min-width:38px!important;padding-inline:10px!important;font-weight:650!important}
+.editor-toolbar{gap:7px!important;padding:6px 9px!important}
+.panel-toggle{height:38px!important;border-radius:10px!important;font-weight:650!important}
+.toolbar-icon,#zoomSelect,.custom-width input{height:36px!important;border-radius:9px!important}
+.device-switch{padding:3px!important;border-radius:11px!important}
+.device-switch button{height:30px!important;min-width:42px!important;border-radius:8px!important}
+
+/* Sidebar geometry and section rhythm. */
+.sidebar-head{min-height:68px!important;padding:12px 12px 10px!important}
+.sidebar-head-actions{gap:5px!important}
+.panel-pin,.sidebar-close{width:32px!important;height:32px!important;flex-basis:32px!important;border-radius:9px!important}
+.panel-scroll{padding:0 11px 20px!important}
+
+/* Full labels without ellipsis. Four left tabs and five right tabs fit on desktop. */
+.left-tabs{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-auto-flow:row!important;
+  gap:4px!important;
+  margin:8px 10px 10px!important;
+  padding:4px!important;
+}
+.right-tabs{
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  grid-auto-flow:row!important;
+  gap:4px!important;
+  margin:8px 10px 10px!important;
+  padding:4px!important;
+}
+.left-tabs button,.right-tabs button{
+  min-width:0!important;
+  min-height:34px!important;
+  padding:6px 3px!important;
+  white-space:nowrap!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  border-radius:8px!important;
+}
+
+/* Critical search fix: base .panel-scroll label used grid and overrode .search flex layout. */
+.panel-scroll label.search{
+  display:flex!important;
+  grid-template-columns:none!important;
+  align-items:center!important;
+  gap:8px!important;
+  width:100%!important;
+  height:42px!important;
+  margin:0 0 9px!important;
+  padding:0 10px!important;
+  border-radius:11px!important;
+}
+.panel-scroll label.search>span{
+  width:26px!important;height:26px!important;flex:0 0 26px!important;
+  display:grid!important;place-items:center!important;
+  border-radius:8px!important;
+  font-size:14px!important;
+}
+.panel-scroll label.search input{
+  display:block!important;
+  width:100%!important;min-width:0!important;
+  height:38px!important;line-height:1.2!important;
+  margin:0!important;padding:0!important;
+  border:0!important;background:transparent!important;box-shadow:none!important;
+}
+.panel-tools{gap:6px!important;margin-bottom:9px!important}
+.panel-tools select{height:40px!important;border-radius:11px!important;padding:0 34px 0 10px!important}
+
+/* Site-language control becomes part of the same kit instead of an embedded dark card. */
+.site-language-bar{
+  margin:0 0 10px!important;
+  padding:9px!important;
+  border-radius:12px!important;
+  box-shadow:none!important;
+}
+.site-language-bar .sl-head{margin-bottom:6px!important}
+.site-language-bar .sl-head strong{font-size:9px!important;font-weight:700!important;letter-spacing:.07em!important}
+.site-language-bar .sl-head small{font-size:9px!important;font-weight:680!important}
+.site-language-bar select{height:40px!important;border-radius:10px!important;font-size:12px!important;font-weight:600!important}
+
+/* Library cards: compact premium tiles, stronger hierarchy, less visual noise. */
+.library-list{gap:8px!important}
+.library-card{
+  border-radius:12px!important;
+  transition:transform .14s var(--kit-ease),border-color .14s var(--kit-ease),box-shadow .14s var(--kit-ease),background .14s var(--kit-ease)!important;
+}
+.library-card[data-add-block]{min-height:108px!important;padding:8px!important;gap:6px!important}
+.library-card[data-add-block]::before{height:40px!important;flex-basis:40px!important;border-radius:8px!important}
+.library-card[data-add-block]>span:first-child{left:12px!important;top:36px!important;width:24px!important;height:24px!important;border-radius:7px!important;font-size:13px!important}
+.library-card[data-add-block] strong{margin-top:5px!important;line-height:1.25!important}
+.library-card:hover{transform:translateY(-1px)!important}
+.v5-lib-filter{gap:5px!important;margin-bottom:9px!important}
+.v5-lib-filter button{min-height:31px!important;padding:5px 8px!important;border-radius:8px!important;font-size:9.5px!important;font-weight:620!important}
+
+/* Navigator / page list. */
+#navigatorPanel .navigator-wrap{padding-top:2px!important}
+.navigator-title{padding:2px 2px 8px!important;margin-bottom:6px!important}
+.tree-block{border-radius:10px!important}
+.tree-row{min-height:34px!important;padding:5px 7px!important}
+.tree-row button{width:26px!important;height:26px!important;border-radius:7px!important}
+.page-row{margin:6px 0!important;padding:9px!important;border-radius:10px!important;font-size:11px!important}
+
+/* Inspector UI kit. */
+#rightSidebar fieldset,.panel-scroll fieldset{
+  margin:0 0 9px!important;
+  padding:10px!important;
+  border-radius:11px!important;
+  box-shadow:none!important;
+}
+.inspector-head{margin-bottom:9px!important;padding:9px 10px!important;border-radius:10px!important}
+.inspector-head strong{font-size:12px!important;font-weight:680!important}
+.inspector-head small{font-size:9.5px!important;font-weight:500!important}
+.panel-scroll input:not([type="checkbox"]):not([type="radio"]),.panel-scroll select,.panel-scroll textarea{
+  min-height:38px!important;
+  padding:8px 9px!important;
+  border-radius:9px!important;
+}
+.check-grid label{min-height:36px!important;padding:7px 8px!important;border-radius:9px!important}
+.toolbar-grid{gap:5px!important;margin:8px 0!important}
+.toolbar-grid button,.panel-scroll button,.file-button{min-height:34px!important;padding:6px 8px!important;border-radius:8px!important}
+.segmented{gap:3px!important;padding:3px!important;border-radius:9px!important}
+.repeat-row{padding:7px!important;margin:6px 0!important;border-radius:9px!important}
+.empty-inspector{padding:18px 12px!important;border-radius:10px!important;font-size:11px!important;line-height:1.45!important}
+
+/* Canvas chrome: less heavy, more product-like. */
+.stage{grid-template-rows:36px minmax(0,1fr)!important}
+.stage-toolbar{height:36px!important;padding:0 10px!important;gap:8px!important}
+.canvas-wrap{padding:14px 14px 60px!important}
+.canvas-frame{border-radius:7px!important}
+.v5-block-toolbar{padding:3px!important;border-radius:8px!important}
+.v5-block-toolbar button{width:28px!important;height:28px!important;border-radius:6px!important}
+.v5-block-name{font-size:9.5px!important;font-weight:650!important}
+
+/* Dark kit surfaces. */
+html[data-builder-theme="dark"] .topbar{background:linear-gradient(180deg,#111827,#0e1625)!important}
+html[data-builder-theme="dark"] .editor-toolbar{background:#0d1524!important}
+html[data-builder-theme="dark"] .sidebar-head{background:#101827!important}
+html[data-builder-theme="dark"] .tabs{background:#0b1321!important;border-color:#2f3b54!important}
+html[data-builder-theme="dark"] .tabs button{color:#c8d0e2!important}
+html[data-builder-theme="dark"] .tabs button.active{background:#312768!important;color:#fff!important;box-shadow:inset 0 0 0 1px #7866ff!important}
+html[data-builder-theme="dark"] .panel-scroll label.search{background:#0b1321!important;border-color:#32405c!important}
+html[data-builder-theme="dark"] .panel-scroll label.search>span{background:#171e39!important;color:#c2b8ff!important}
+html[data-builder-theme="dark"] .panel-tools select{background:#0b1321!important;border-color:#32405c!important}
+html[data-builder-theme="dark"] .site-language-bar{background:#10192a!important;border-color:#32405c!important}
+html[data-builder-theme="dark"] .site-language-bar select{background:#0b1321!important;border-color:#3a4863!important}
+html[data-builder-theme="dark"] #rightSidebar fieldset,html[data-builder-theme="dark"] .panel-scroll fieldset{background:#101827!important;border-color:#303c55!important}
+html[data-builder-theme="dark"] .inspector-head{background:#0b1321!important;border-color:#303c55!important}
+html[data-builder-theme="dark"] .empty-inspector{background:rgba(11,19,33,.45)!important;border-color:#34415d!important}
+
+/* Light kit surfaces. */
+html[data-builder-theme="light"] .topbar{background:#fff!important}
+html[data-builder-theme="light"] .editor-toolbar{background:#f7f9fc!important}
+html[data-builder-theme="light"] .sidebar-head{background:#fff!important}
+html[data-builder-theme="light"] .tabs{background:#eef2f7!important;border-color:#d6deea!important}
+html[data-builder-theme="light"] .tabs button{color:#47556c!important}
+html[data-builder-theme="light"] .tabs button.active{background:#e8e3ff!important;color:#33266d!important;box-shadow:inset 0 0 0 1px #7e6bed!important}
+html[data-builder-theme="light"] .panel-scroll label.search{background:#fff!important;border-color:#d3dbe7!important}
+html[data-builder-theme="light"] .panel-scroll label.search>span{background:#f0edff!important;color:#5947c7!important}
+html[data-builder-theme="light"] .site-language-bar{background:#fff!important;border-color:#d7dfe9!important}
+html[data-builder-theme="light"] #rightSidebar fieldset,html[data-builder-theme="light"] .panel-scroll fieldset{background:#fff!important;border-color:#d7dfe9!important}
+html[data-builder-theme="light"] .inspector-head{background:#f8fafc!important;border-color:#d7dfe9!important}
+
+/* Desktop fit. */
+@media (min-width:1181px){
+  .left-tabs button,.right-tabs button{font-size:10px!important}
+}
+
+/* Tablet / mobile: controls stay touchable and labels remain readable. */
+@media (max-width:1180px) and (min-width:1101px){
+  :root{--left-w:292px;--right-w:332px}
+  .left-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .right-tabs{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+
+@media (max-width:1100px){
+  .sidebar{width:min(360px,88vw)!important;max-width:88vw!important}
+  .left-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .right-tabs{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .left-tabs button,.right-tabs button{min-height:36px!important;font-size:10.5px!important;padding-inline:5px!important}
+  .panel-scroll{padding-inline:9px!important}
+}
+
+@media (max-width:760px){
+  :root{--topbar-h:54px;--editorbar-h:48px}
+  .brand-name{font-size:12.5px!important;font-weight:720!important}
+  .top-actions select,.icon-action{height:34px!important}
+  .editor-toolbar{padding:5px 7px!important}
+  #leftToggle,#rightToggle{height:36px!important;width:44px!important}
+  .device-switch{height:36px!important}
+  .device-switch button{height:28px!important;min-width:37px!important;width:37px!important}
+  .sidebar{width:min(342px,88vw)!important;max-width:88vw!important}
+  .sidebar-head{min-height:58px!important;padding:9px 10px!important}
+  .sidebar-head h2{font-size:16px!important}
+  .panel-scroll label.search{height:42px!important}
+  .library-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .stage{grid-template-rows:31px minmax(0,1fr)!important}
+  .stage-toolbar{height:31px!important}
+  .canvas-wrap{padding:0 0 48px!important}
+}
+
+@media (max-width:430px){
+  .sidebar{width:88vw!important;max-width:88vw!important}
+  .library-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+  .library-card[data-add-block]{min-height:102px!important}
+  .left-tabs,.right-tabs{margin-inline:8px!important}
+  .left-tabs button,.right-tabs button{font-size:10px!important}
+}
+
+@media (max-width:350px){
+  .library-list{grid-template-columns:1fr!important}
+}
