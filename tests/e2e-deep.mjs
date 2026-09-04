@@ -124,15 +124,31 @@ async function desktopSuite(){
 }
 
 async function touchSuite(){
-  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const page=await context.newPage();watch(page);
-  await page.goto(base,{waitUntil:'domcontentloaded'});await page.waitForSelector('#canvas .v5-heading[data-node-id]',{timeout:15000});await page.evaluate(()=>document.body.classList.remove('left-collapsed','right-collapsed'));
+  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  const page=await context.newPage();watch(page);
+  await page.goto(base,{waitUntil:'domcontentloaded'});
+  await page.waitForSelector('#canvas .v5-heading[data-node-id]',{timeout:15000});
+  await page.evaluate(()=>document.body.classList.remove('left-collapsed','right-collapsed'));
   const src0=page.locator('#canvas .v5-heading[data-node-id]').first(),nodeId=await src0.getAttribute('data-node-id'),blockId=await src0.evaluate(el=>el.closest('[data-block-id]').dataset.blockId);
   const tgt0=page.locator(`#canvas>[data-block-id]:not([data-block-id="${blockId}"]) .v5-container[data-node-id]`).first(),targetId=await tgt0.getAttribute('data-node-id');
-  assert.ok(nodeId&&targetId);const source=page.locator(`#canvas [data-node-id="${nodeId}"]`),target=page.locator(`#canvas [data-node-id="${targetId}"]`);const{sb,tb,vp}=await stablePair(source,target);
-  const sx=Math.max(8,Math.min(vp.w-8,sb.x+Math.min(20,sb.width/2))),sy=Math.max(8,Math.min(vp.h-8,sb.y+Math.min(20,sb.height/2))),tx=Math.max(8,Math.min(vp.w-8,tb.x+Math.min(30,tb.width/2))),ty=Math.max(8,Math.min(vp.h-8,tb.y+Math.min(35,tb.height/2)));
-  await source.dispatchEvent('pointerdown',{pointerType:'touch',pointerId:11,isPrimary:true,clientX:sx,clientY:sy,buttons:1});await wait(430);
-  await source.dispatchEvent('pointermove',{pointerType:'touch',pointerId:11,isPrimary:true,clientX:tx,clientY:ty,buttons:1});await source.dispatchEvent('pointerup',{pointerType:'touch',pointerId:11,isPrimary:true,clientX:tx,clientY:ty,buttons:0});await wait(220);
-  assert.equal(await page.locator(`#canvas [data-node-id="${targetId}"] [data-node-id="${nodeId}"]`).count(),1,'touch long-press DnD failed');await context.close();
+  assert.ok(nodeId&&targetId,'touch DnD source/target IDs missing');
+  const source=page.locator(`#canvas [data-node-id="${nodeId}"]`),target=page.locator(`#canvas [data-node-id="${targetId}"]`);
+  const vp=await page.evaluate(()=>({w:innerWidth,h:innerHeight}));
+  const sb=await stableBox(source);
+  const sx=Math.max(8,Math.min(vp.w-8,sb.x+Math.min(20,sb.width/2))),sy=Math.max(8,Math.min(vp.h-8,sb.y+Math.min(20,sb.height/2)));
+  await source.dispatchEvent('pointerdown',{pointerType:'touch',pointerId:11,isPrimary:true,clientX:sx,clientY:sy,buttons:1});
+  await wait(430);
+  const active=await source.evaluate(el=>el.classList.contains('pointer-element-source'));
+  if(!active){const dbg=await page.evaluate(()=>window.__v5ElementDnD||null);throw new Error(`touch long-press never activated; debug=${JSON.stringify(dbg)}`)}
+  await target.evaluate(el=>el.scrollIntoView({block:'center',inline:'nearest'}));await wait(120);
+  const tb=await target.boundingBox();assert.ok(visibleBox(tb,vp),'touch target is not visible after scroll');
+  const tx=Math.max(8,Math.min(vp.w-8,tb.x+Math.min(30,tb.width/2))),ty=Math.max(8,Math.min(vp.h-8,tb.y+Math.min(30,tb.height/2)));
+  await source.dispatchEvent('pointermove',{pointerType:'touch',pointerId:11,isPrimary:true,clientX:tx,clientY:ty,buttons:1});await wait(80);
+  const planned=await page.locator('#canvas .pointer-element-drop').count()>0;
+  if(!planned){const dbg=await page.evaluate(()=>window.__v5ElementDnD||null);throw new Error(`touch DnD produced no drop plan; debug=${JSON.stringify(dbg)}`)}
+  await source.dispatchEvent('pointerup',{pointerType:'touch',pointerId:11,isPrimary:true,clientX:tx,clientY:ty,buttons:0});await wait(240);
+  assert.equal(await page.locator(`#canvas [data-node-id="${targetId}"] [data-node-id="${nodeId}"]`).count(),1,'touch long-press DnD failed');
+  await context.close();
 }
 
 try{await desktopSuite();await touchSuite();assert.deepEqual(errors,[],`Browser page errors:\n${errors.join('\n')}`);console.log('V5_DEEP_E2E_OK')}finally{await browser.close()}
