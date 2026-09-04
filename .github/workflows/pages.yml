@@ -23,14 +23,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Prepare Web Builder v4
+      - name: Prepare Web Builder v4.1
         run: |
-          sed -i 's/Web Builder v2/Web Builder v4/g' index.html
-          sed -i 's#styles.css?v=2.4#styles.css?v=4.0#' index.html
-          sed -i 's#app.js?v=2.4#app.js?v=4.0#' index.html
-          sed -i '/styles.css?v=4.0/a\  <link rel="stylesheet" href="enhancements.css?v=4.0">\n  <link rel="stylesheet" href="runtime-fixes.css?v=4.0">\n  <link rel="stylesheet" href="builder-v4.css?v=4.0">' index.html
-          sed -i '/app.js?v=4.0/a\  <script src="enhancements.js?v=4.0" defer></script>\n  <script src="runtime-fixes.js?v=4.0" defer></script>\n  <script src="builder-v4-core.js?v=4.0" defer></script>\n  <script src="builder-v4-blocks.js?v=4.0" defer></script>\n  <script src="builder-v4-export-fixes.js?v=4.0" defer></script>' index.html
-          sed -i 's/<small>v2<\/small>/<small>v4<\/small>/' index.html
+          sed -i 's/Web Builder v2/Web Builder v4.1/g' index.html
+          sed -i 's#styles.css?v=2.4#styles.css?v=4.1#' index.html
+          sed -i 's#app.js?v=2.4#app.js?v=4.1#' index.html
+          sed -i '/styles.css?v=4.1/a\  <link rel="stylesheet" href="enhancements.css?v=4.1">\n  <link rel="stylesheet" href="runtime-fixes.css?v=4.1">\n  <link rel="stylesheet" href="builder-v4.css?v=4.1">' index.html
+          sed -i '/app.js?v=4.1/a\  <script src="enhancements.js?v=4.1" defer></script>\n  <script src="runtime-fixes.js?v=4.1" defer></script>\n  <script src="builder-v4-core.js?v=4.1" defer></script>\n  <script src="builder-v4-blocks.js?v=4.1" defer></script>\n  <script src="builder-v4-export-fixes.js?v=4.1" defer></script>\n  <script src="builder-v4-history.js?v=4.1" defer></script>' index.html
+          sed -i 's/<small>v2<\/small>/<small>v4.1<\/small>/' index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload static site
