@@ -1,27 +1,51 @@
-# Web Builder v2
+# Web Builder v6
 
-A browser-based multi-page website builder. It runs entirely on static HTML, CSS and JavaScript — no account, remote database or backend is required.
+A browser-based multi-page website builder that runs entirely on static HTML, CSS and JavaScript. No account, remote database, payment system or backend is required.
+
+## Current architecture
+
+- `index.html` — V6 editor shell
+- `v6.css` — core editor layout
+- `v6-ux.css` — responsive UX/panel layer
+- `v6-app.mjs` — V6 editor entry point
+- `v6-ux.mjs` — panel pinning and dedicated Navigator UX
+- `v5-*.mjs` — current functional editor engine modules used by V6
+- `tests/` — model, browser, responsive, drag-and-drop and UX regression tests
+
+The old pre-V6 shell and patch files have been removed from the active branch. A rollback archive is kept separately in Git history/backup branches.
 
 ## Features
 
-- Desktop drag-and-drop plus touch reordering and up/down controls
-- Inline text editing
-- Section colors, spacing, width and alignment controls
-- Desktop, tablet and mobile previews
-- Undo and redo
-- Multi-page projects and automatic navigation
-- Per-page language and SEO metadata
-- Image upload, ALT text and object-fit controls
-- IndexedDB browser storage for projects and embedded images
+- Desktop drag-and-drop, touch long-press drag-and-drop and up/down fallback controls
+- Left and right panel pin/unpin on desktop; drawer behavior on tablet/mobile
+- Dedicated Navigator/Page Tree mode
+- Adaptive block and element library with search, categories, favorites and recent items
+- Inline text editing and rich element/block inspectors
+- Desktop, tablet, mobile and custom-width canvas previews
+- Responsive block styles and responsive Gallery columns
+- Configurable desktop/mobile navigation menu, icon, dropdown/panel behavior and CTA
+- Repeatable Image + Text and Gallery item counts from 1 to 500
+- Undo/redo, duplicate/delete, saved blocks and page templates
+- Multi-page projects, global header/footer, SEO metadata and responsive audit
+- IndexedDB local project storage
 - Project JSON import/export
-- Multi-page website ZIP export with `robots.txt` and `sitemap.xml`
+- Static multi-page ZIP export with `robots.txt` and `sitemap.xml`
+
+## Development workflow
+
+Production is intentionally protected from unfinished UI work:
+
+1. Build and review changes on a work branch.
+2. Run **V6 Preflight** in GitHub Actions (`workflow_dispatch`) or through the dedicated preflight branch.
+3. Only move a fully green commit to `main`.
+4. The **Deploy Web Builder v6 to Pages** workflow validates the same production wiring and browser regressions before deployment.
 
 ## Run locally
 
-Open `index.html`, or serve the folder with any static server.
+Serve the repository with any static server and open `index.html`. ES modules should be loaded over HTTP rather than `file://` for reliable browser behavior.
 
 ## Publish
 
-The repository is ready for GitHub Pages. Use **Settings → Pages → Deploy from a branch**, select `main` and `/ (root)`.
+GitHub Pages is deployed by `.github/workflows/pages.yml` from `main`. Do not use old shell files or manual patch layers in production.
 
-Projects and images are stored in the current browser through IndexedDB. Export the project JSON periodically if you want a portable backup. Exported websites use self-contained image data, so the ZIP can be uploaded to any static hosting service.
+Projects and embedded images are stored in the current browser through IndexedDB. Export project JSON periodically when a portable backup is required.
