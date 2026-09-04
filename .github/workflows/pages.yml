@@ -28,11 +28,13 @@ jobs:
         run: |
           set -e
           node --check v6-app.mjs
+          node --check v6-ux.mjs
           for f in v5-*.mjs; do node --check "$f"; done
           node --check tests/e2e.mjs
           node --check tests/e2e-layout-v6.mjs
           node --check tests/e2e-deep.mjs
           node --check tests/e2e-repeatable-v6.mjs
+          node --check tests/e2e-ux-v6.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {defaultProject} from './v5-model.mjs';
@@ -80,10 +82,12 @@ jobs:
           set -e
           rm -rf _site
           mkdir -p _site
-          cp index.html v6.css v6-app.mjs v5-*.mjs .nojekyll _site/
+          cp index.html v6.css v6-ux.css v6-app.mjs v6-ux.mjs v5-*.mjs .nojekyll _site/
           sed -E -i "s#href=\"v6.css(\?[^\"]*)?\"#href=\"v6.css?v=${GITHUB_SHA}\"#" _site/index.html
+          sed -E -i "s#href=\"v6-ux.css(\?[^\"]*)?\"#href=\"v6-ux.css?v=${GITHUB_SHA}\"#" _site/index.html
           sed -E -i "s#src=\"v6-app.mjs(\?[^\"]*)?\"#src=\"v6-app.mjs?v=${GITHUB_SHA}\"#" _site/index.html
-          for f in _site/v5-*.mjs _site/v6-app.mjs; do
+          sed -E -i "s#src=\"v6-ux.mjs(\?[^\"]*)?\"#src=\"v6-ux.mjs?v=${GITHUB_SHA}\"#" _site/index.html
+          for f in _site/v5-*.mjs _site/v6-app.mjs _site/v6-ux.mjs; do
             sed -E -i "s#(from ['\"]\./v5-[^'\"?]+\.mjs)(\?[^'\"]*)?(['\"])#\1?v=${GITHUB_SHA}\3#g" "$f"
           done
 
@@ -92,19 +96,26 @@ jobs:
           set -e
           grep -q "Web Builder v6.0" _site/index.html
           grep -q "v6.css?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v6-ux.css?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-app.mjs?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v6-ux.mjs?v=${GITHUB_SHA}" _site/index.html
           test -f _site/v6.css
+          test -f _site/v6-ux.css
           test -f _site/v6-app.mjs
+          test -f _site/v6-ux.mjs
           if grep -Eq "app\.js|builder-v4|enhancements|runtime-fixes|v5-mobile-fix|v5\.css|v5-app\.mjs" _site/index.html; then
             echo "Legacy editor shell found in production index" >&2
             exit 1
           fi
           node --check _site/v6-app.mjs
+          node --check _site/v6-ux.mjs
           for f in _site/v5-*.mjs; do node --check "$f"; done
           for f in v5-runtime v5-block-pointer-dnd v5-element-pointer-dnd v5-navigator-dnd v5-library-extras v5-visual-editors v5-link-inputs v5-localize v5-localize-v54 v5-localize-v55 v5-assets v5-asset-organizer v5-smart-guides v5-free-position v5-my-blocks v5-bulk-actions v5-navigator-controls v5-page-templates v5-keyboard-pro v5-responsive-audit v5-icon-library v5-animation-pro v5-performance; do
             grep -q "$f.mjs?v=${GITHUB_SHA}" _site/v6-app.mjs
             test -f "_site/$f.mjs"
           done
+          grep -q "v5-runtime.mjs?v=${GITHUB_SHA}" _site/v6-ux.mjs
+          grep -q "v5-library.mjs?v=${GITHUB_SHA}" _site/v6-ux.mjs
           grep -q "v5-repeat-controls.mjs?v=${GITHUB_SHA}" _site/v5-library-extras.mjs
           test -f _site/v5-repeat-controls.mjs
           grep -q "v5-localize-v53.mjs?v=${GITHUB_SHA}" _site/v5-localize-v54.mjs
@@ -121,10 +132,12 @@ jobs:
           python3 -m http.server 4173 --directory _site >/tmp/web-builder-e2e-http.log 2>&1 &
           SERVER_PID=$!
           trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          READY=0
           for i in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then READY=1; break; fi
             sleep 1
           done
+          test "$READY" -eq 1
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-layout-v6.mjs
           cp tests/e2e-deep.mjs tests/.e2e-deep-v6.tmp.mjs
@@ -132,6 +145,7 @@ jobs:
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/.e2e-deep-v6.tmp.mjs
           rm -f tests/.e2e-deep-v6.tmp.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-repeatable-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-ux-v6.mjs
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
