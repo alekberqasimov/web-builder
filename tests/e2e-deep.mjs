@@ -22,27 +22,32 @@ async function restoreHoverSource(source){
     if(isBlockHandle){await source.locator('xpath=ancestor::*[@data-block-id][1]').hover();await wait(60)}
   }catch{}
 }
+function visibleBox(box,vp){return !!box&&box.x+box.width>8&&box.x<vp.w-8&&box.y+box.height>8&&box.y<vp.h-8}
 async function stablePair(source,target){
-  for(let i=0;i<6;i++){
+  const vp=await source.evaluate(()=>({w:innerWidth,h:innerHeight}));
+  for(let i=0;i<8;i++){
     try{
-      await source.evaluate(el=>el.scrollIntoView({block:'nearest',inline:'nearest'}));
-      await target.evaluate(el=>el.scrollIntoView({block:'nearest',inline:'nearest'}));
+      await target.evaluate(el=>el.scrollIntoView({block:'center',inline:'nearest'}));
       await source.evaluate(el=>el.scrollIntoView({block:'nearest',inline:'nearest'}));
       await restoreHoverSource(source);
       await wait(100);
       const sb=await source.boundingBox(),tb=await target.boundingBox();
-      if(sb&&tb)return{sb,tb};
+      if(visibleBox(sb,vp)&&visibleBox(tb,vp))return{sb,tb,vp};
+      await target.evaluate(el=>el.scrollIntoView({block:'center',inline:'nearest'}));
     }catch{}
     await wait(100);
   }
-  throw new Error('DnD source/target could not share stable geometry');
+  throw new Error('DnD source/target could not share visible viewport geometry');
 }
 async function realMouseDrag(page,source,target,{targetY=.7}={}){
-  const{sb,tb}=await stablePair(source,target);
+  const{sb,tb,vp}=await stablePair(source,target);
   const isElementSource=await source.evaluate(el=>!!el.dataset.nodeId);
-  const sx=sb.x+sb.width/2,sy=sb.y+sb.height/2;
-  const tx=tb.x+Math.min(Math.max(24,tb.width*.35),Math.max(24,tb.width-24));
-  const ty=tb.y+Math.max(12,Math.min(tb.height-12,tb.height*targetY));
+  const sx=Math.max(8,Math.min(vp.w-8,sb.x+sb.width/2)),sy=Math.max(8,Math.min(vp.h-8,sb.y+sb.height/2));
+  const tx=Math.max(8,Math.min(vp.w-8,tb.x+Math.min(Math.max(24,tb.width*.35),Math.max(24,tb.width-24))));
+  const rawTy=tb.y+Math.max(12,Math.min(Math.max(12,tb.height-12),tb.height*targetY));
+  const visibleTop=Math.max(8,tb.y+6),visibleBottom=Math.min(vp.h-8,tb.y+tb.height-6);
+  const ty=Math.max(visibleTop,Math.min(visibleBottom,rawTy));
+  assert.ok(ty>=8&&ty<=vp.h-8&&ty>=tb.y&&ty<=tb.y+tb.height,`target drag point is outside visible target: y=${ty}`);
   await page.mouse.move(sx,sy);await page.mouse.down();
   await page.mouse.move(sx+10,sy+10,{steps:4});await wait(60);
   if(isElementSource){const active=await source.evaluate(el=>el.classList.contains('pointer-element-source'));if(!active){const dbg=await page.evaluate(()=>window.__v5ElementDnD||null);throw new Error(`element DnD gesture never activated; debug=${JSON.stringify(dbg)}`)}}
@@ -123,8 +128,8 @@ async function touchSuite(){
   await page.goto(base,{waitUntil:'domcontentloaded'});await page.waitForSelector('#canvas .v5-heading[data-node-id]',{timeout:15000});await page.evaluate(()=>document.body.classList.remove('left-collapsed','right-collapsed'));
   const src0=page.locator('#canvas .v5-heading[data-node-id]').first(),nodeId=await src0.getAttribute('data-node-id'),blockId=await src0.evaluate(el=>el.closest('[data-block-id]').dataset.blockId);
   const tgt0=page.locator(`#canvas>[data-block-id]:not([data-block-id="${blockId}"]) .v5-container[data-node-id]`).first(),targetId=await tgt0.getAttribute('data-node-id');
-  assert.ok(nodeId&&targetId);const source=page.locator(`#canvas [data-node-id="${nodeId}"]`),target=page.locator(`#canvas [data-node-id="${targetId}"]`);const{sb,tb}=await stablePair(source,target);
-  const sx=sb.x+Math.min(20,sb.width/2),sy=sb.y+Math.min(20,sb.height/2),tx=tb.x+Math.min(30,tb.width/2),ty=tb.y+Math.min(35,tb.height/2);
+  assert.ok(nodeId&&targetId);const source=page.locator(`#canvas [data-node-id="${nodeId}"]`),target=page.locator(`#canvas [data-node-id="${targetId}"]`);const{sb,tb,vp}=await stablePair(source,target);
+  const sx=Math.max(8,Math.min(vp.w-8,sb.x+Math.min(20,sb.width/2))),sy=Math.max(8,Math.min(vp.h-8,sb.y+Math.min(20,sb.height/2))),tx=Math.max(8,Math.min(vp.w-8,tb.x+Math.min(30,tb.width/2))),ty=Math.max(8,Math.min(vp.h-8,tb.y+Math.min(35,tb.height/2)));
   await source.dispatchEvent('pointerdown',{pointerType:'touch',pointerId:11,isPrimary:true,clientX:sx,clientY:sy,buttons:1});await wait(430);
   await source.dispatchEvent('pointermove',{pointerType:'touch',pointerId:11,isPrimary:true,clientX:tx,clientY:ty,buttons:1});await source.dispatchEvent('pointerup',{pointerType:'touch',pointerId:11,isPrimary:true,clientX:tx,clientY:ty,buttons:0});await wait(220);
   assert.equal(await page.locator(`#canvas [data-node-id="${targetId}"] [data-node-id="${nodeId}"]`).count(),1,'touch long-press DnD failed');await context.close();
