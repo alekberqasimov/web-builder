@@ -1,12 +1,58 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-builder-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0b1020">
   <title>Web Builder v6.0</title>
+  <script>
+    (function(){
+      var KEY='wb:v6:theme';
+      var root=document.documentElement;
+      var labels={
+        ru:{dark:'Тёмная тема',light:'Светлая тема',toDark:'Включить тёмную тему',toLight:'Включить светлую тему'},
+        az:{dark:'Tünd mövzu',light:'Açıq mövzu',toDark:'Tünd mövzunu aktiv et',toLight:'Açıq mövzunu aktiv et'},
+        en:{dark:'Dark theme',light:'Light theme',toDark:'Switch to dark theme',toLight:'Switch to light theme'}
+      };
+      function stored(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+      function save(v){try{localStorage.setItem(KEY,v)}catch(e){}}
+      function preferred(){var v=stored();if(v==='light'||v==='dark')return v;return window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}
+      function language(){var el=document.getElementById('uiLanguage');return (el&&el.value)||root.lang||'ru'}
+      function syncControl(theme){
+        var btn=document.getElementById('themeToggle');if(!btn)return;
+        var lang=String(language()).slice(0,2),copy=labels[lang]||labels.en;
+        btn.dataset.theme=theme;
+        btn.textContent=theme==='light'?'☀':'☾';
+        btn.title=theme==='light'?copy.toDark:copy.toLight;
+        btn.setAttribute('aria-label',btn.title);
+        btn.setAttribute('aria-pressed',String(theme==='dark'));
+        btn.dataset.label=theme==='light'?copy.light:copy.dark;
+      }
+      function apply(theme,persist){
+        theme=theme==='light'?'light':'dark';
+        root.dataset.builderTheme=theme;
+        root.style.colorScheme=theme;
+        var meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=theme==='light'?'#f5f7fb':'#0b1020';
+        if(persist)save(theme);
+        syncControl(theme);
+        return theme;
+      }
+      window.wbBuilderTheme={
+        apply:function(theme){return apply(theme,true)},
+        toggle:function(){return apply(root.dataset.builderTheme==='light'?'dark':'light',true)},
+        current:function(){return root.dataset.builderTheme||preferred()}
+      };
+      apply(preferred(),false);
+      document.addEventListener('DOMContentLoaded',function(){
+        apply(root.dataset.builderTheme||preferred(),false);
+        var btn=document.getElementById('themeToggle');if(btn)btn.addEventListener('click',function(){window.wbBuilderTheme.toggle()});
+        var ui=document.getElementById('uiLanguage');if(ui)ui.addEventListener('change',function(){syncControl(root.dataset.builderTheme||'dark')});
+      },{once:true});
+    })();
+  </script>
   <link rel="stylesheet" href="v6.css">
   <link rel="stylesheet" href="v6-ux.css">
+  <link rel="stylesheet" href="v6-theme.css">
   <style id="v6-critical-responsive">
     .workspace{transition:none}
     @media (max-width:1100px){
@@ -47,6 +93,7 @@
       <button class="icon-action" id="undoBtn" type="button" title="Undo" aria-label="Undo">↶</button>
       <button class="icon-action" id="redoBtn" type="button" title="Redo" aria-label="Redo">↷</button>
       <select id="uiLanguage" aria-label="Interface language"><option value="ru">RU</option><option value="az">AZ</option><option value="en">EN</option></select>
+      <button class="icon-action" id="themeToggle" type="button" data-theme="dark" title="Включить светлую тему" aria-label="Включить светлую тему" aria-pressed="true">☾</button>
       <button class="icon-action has-label desktop-only" id="newBtn" type="button" data-label="Новый проект" title="Новый проект">＋</button>
       <button class="icon-action has-label" id="previewBtn" type="button" data-label="Предпросмотр" title="Предпросмотр">◉</button>
       <button class="icon-action has-label primary" id="downloadBtn" type="button" data-label="Скачать сайт" title="Скачать сайт">⇩</button>
