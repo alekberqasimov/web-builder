@@ -4,7 +4,10 @@ import {dropZoneFromRatio} from '../v5-navigator-dnd.mjs';
 import {buildGradient,buildGradientStops,buildShadow,buildAnimation,buildBorder} from '../v5-visual-editors.mjs';
 import {guideCandidates,nearestGuide} from '../v5-smart-guides.mjs';
 import {validPresetPayload} from '../v5-my-blocks.mjs';
-import {bulkStylePatch} from '../v5-bulk-actions.mjs';
+import {bulkStylePatch,bulkValuePatch} from '../v5-bulk-actions.mjs';
+import {filterAssets,assetCategory} from '../v5-assets.mjs';
+import {validPageTemplatePayload} from '../v5-page-templates.mjs';
+import {responsiveAudit} from '../v5-responsive-audit.mjs';
 import {defaultProject,preset,makeButton,walk} from '../v5-model.mjs';
 import {deepAuditProject} from '../v5-deep-audit.mjs';
 import {exportedDocument} from '../v5-render.mjs';
@@ -44,15 +47,34 @@ test('smart guides expose canvas and node alignment targets',()=>{
   assert.equal(nearestGuide(c.xs,62,4)?.label,'CENTER X');
 });
 
-test('bulk style helpers are deterministic',()=>{
+test('bulk style helpers include spacing and typography',()=>{
   assert.deepEqual(bulkStylePatch('stretch'),{alignSelf:'stretch',width:'100%'});
   assert.deepEqual(bulkStylePatch('align-center'),{alignSelf:'center'});
+  assert.deepEqual(bulkValuePatch('fontSize','18'),{fontSize:'18px'});
+  assert.deepEqual(bulkValuePatch('padding','12px 20px'),{padding:'12px 20px'});
 });
 
-test('saved block payload validation rejects non-block JSON',()=>{
-  const block=preset('hero');
+test('asset filters categorize and search reusable images',()=>{
+  const list=[{name:'Hero',type:'image/webp'},{name:'Logo',type:'image/svg+xml'},{name:'Photo',type:'image/png'}];
+  assert.equal(assetCategory(list[0]),'webp');
+  assert.equal(filterAssets(list,'lo','all').length,1);
+  assert.equal(filterAssets(list,'','svg')[0].name,'Logo');
+});
+
+test('saved block and page template payload validation reject unrelated JSON',()=>{
+  const block=preset('hero'),project=defaultProject();
   assert.equal(validPresetPayload({name:'Hero',block}),true);
   assert.equal(validPresetPayload({foo:'bar'}),false);
+  assert.equal(validPageTemplatePayload({name:'Home',page:project.pages[0]}),true);
+  assert.equal(validPageTemplatePayload({foo:'bar'}),false);
+});
+
+test('responsive audit catches oversized mobile values',()=>{
+  const project=defaultProject(),b=preset('layout1');
+  b.style.mobile.width='520px';project.pages[0].blocks.push(b);
+  const r=responsiveAudit(project);
+  assert.ok(r.issues.some(x=>/overflow 390px viewport/.test(x.msg)));
+  assert.ok(r.score<100);
 });
 
 test('deep audit catches long SEO title and insecure link',()=>{
