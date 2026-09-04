@@ -40,7 +40,7 @@ jobs:
           if(!buildGradientStops('linear',[{color:'#000000',pos:0},{color:'#ffffff',pos:100}],90).includes('90deg')) throw new Error('Gradient smoke failed');
           if(buildBorder([1,1,1,1],'solid','#000000',[4,4,4,4]).borderRadius!=='4px 4px 4px 4px') throw new Error('Border smoke failed');
           if(validPresetPayload({foo:'bar'})) throw new Error('Preset validation smoke failed');
-          console.log('V5_EXPORT_SMOKE_OK');
+          console.log('V5_3_SMOKE_OK');
           NODE
 
       - name: Build v5-only Pages artifact
@@ -72,6 +72,7 @@ jobs:
           grep -q "v5-library-extras.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
           grep -q "v5-visual-editors.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
           grep -q "v5-localize.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
+          grep -q "v5-localize-v53.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
           grep -q "v5-assets.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
           grep -q "v5-smart-guides.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
           grep -q "v5-my-blocks.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
@@ -80,6 +81,7 @@ jobs:
           test -f _site/v5-my-blocks.mjs
           test -f _site/v5-bulk-actions.mjs
           test -f _site/v5-smart-guides.mjs
+          test -f _site/v5-localize-v53.mjs
           echo "V5_3_WIRING_OK"
 
       - name: Configure Pages
