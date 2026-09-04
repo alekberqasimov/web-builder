@@ -20,7 +20,10 @@ async function desktopSuite(){
   assert.ok(await blocks.count()>=4,'default project needs several blocks for DnD QA');
   const beforeOrder=await blocks.evaluateAll(xs=>xs.map(x=>x.dataset.blockId));
   const sourceBlock=blocks.nth(1),targetBlock=blocks.nth(3);
-  await sourceBlock.locator('.v5-block-drag').dragTo(targetBlock,{targetPosition:{x:24,y:24}});
+  await sourceBlock.hover();
+  const handle=sourceBlock.locator('.v5-block-drag');
+  await handle.waitFor({state:'visible'});
+  await handle.dragTo(targetBlock,{targetPosition:{x:24,y:24}});
   await page.waitForTimeout(150);
   const afterDrag=await blocks.evaluateAll(xs=>xs.map(x=>x.dataset.blockId));
   assert.notDeepEqual(afterDrag,beforeOrder,'mouse block DnD did not reorder blocks');
