@@ -34,13 +34,22 @@ jobs:
           import {exportedDocument} from './v5-render.mjs';
           import {buildGradientStops,buildBorder} from './v5-visual-editors.mjs';
           import {validPresetPayload} from './v5-my-blocks.mjs';
+          import {bulkValuePatch} from './v5-bulk-actions.mjs';
+          import {filterAssets} from './v5-assets.mjs';
+          import {validPageTemplatePayload} from './v5-page-templates.mjs';
+          import {responsiveAudit} from './v5-responsive-audit.mjs';
           const project=defaultProject();
           const html=exportedDocument(project,project.pages[0]);
           if(!html.includes('<!doctype html>') || !html.includes('v5-section')) throw new Error('Export smoke test failed');
           if(!buildGradientStops('linear',[{color:'#000000',pos:0},{color:'#ffffff',pos:100}],90).includes('90deg')) throw new Error('Gradient smoke failed');
           if(buildBorder([1,1,1,1],'solid','#000000',[4,4,4,4]).borderRadius!=='4px 4px 4px 4px') throw new Error('Border smoke failed');
           if(validPresetPayload({foo:'bar'})) throw new Error('Preset validation smoke failed');
-          console.log('V5_3_SMOKE_OK');
+          if(bulkValuePatch('fontSize','18').fontSize!=='18px') throw new Error('Bulk typography smoke failed');
+          if(filterAssets([{name:'Hero',type:'image/webp'}],'hero','webp').length!==1) throw new Error('Asset filter smoke failed');
+          if(!validPageTemplatePayload({name:'Home',page:project.pages[0]})) throw new Error('Page template smoke failed');
+          project.pages[0].blocks[0].style.mobile.width='500px';
+          if(!responsiveAudit(project).issues.length) throw new Error('Responsive audit smoke failed');
+          console.log('V5_4_SMOKE_OK');
           NODE
 
       - name: Build v5-only Pages artifact
@@ -58,7 +67,7 @@ jobs:
       - name: Verify v5-only wiring
         run: |
           set -e
-          grep -q "Web Builder v5.3" _site/index.html
+          grep -q "Web Builder v5.4" _site/index.html
           grep -q "v5.css?v=${GITHUB_SHA}" _site/index.html
           grep -q "v5-app.mjs?v=${GITHUB_SHA}" _site/index.html
           if grep -Eq "app\.js|builder-v4|enhancements|runtime-fixes" _site/index.html; then
@@ -67,22 +76,13 @@ jobs:
           fi
           test ! -e _site/v5-ux.mjs
           for f in _site/v5-*.mjs; do node --check "$f"; done
-          grep -q "v5-runtime.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
-          grep -q "v5-navigator-dnd.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
-          grep -q "v5-library-extras.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
-          grep -q "v5-visual-editors.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
-          grep -q "v5-localize.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
-          grep -q "v5-localize-v53.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
-          grep -q "v5-assets.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
-          grep -q "v5-smart-guides.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
-          grep -q "v5-my-blocks.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
-          grep -q "v5-bulk-actions.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
+          for f in v5-runtime v5-navigator-dnd v5-library-extras v5-visual-editors v5-localize v5-localize-v54 v5-assets v5-smart-guides v5-my-blocks v5-bulk-actions v5-navigator-controls v5-page-templates v5-keyboard-pro v5-responsive-audit v5-mobile-polish; do
+            grep -q "$f.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
+            test -f "_site/$f.mjs"
+          done
+          grep -q "v5-localize-v53.mjs?v=${GITHUB_SHA}" _site/v5-localize-v54.mjs
           grep -q "v5-core.mjs?v=${GITHUB_SHA}" _site/v5-model.mjs
-          test -f _site/v5-my-blocks.mjs
-          test -f _site/v5-bulk-actions.mjs
-          test -f _site/v5-smart-guides.mjs
-          test -f _site/v5-localize-v53.mjs
-          echo "V5_3_WIRING_OK"
+          echo "V5_4_WIRING_OK"
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
