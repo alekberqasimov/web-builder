@@ -36,13 +36,14 @@ jobs:
           node --check builder-v43-site.js
           node --check builder-v44-fixes.js
           node --check builder-v45.js
+          node --check builder-v45-dnd-fix.js
       - name: Prepare Web Builder v4.5
         run: |
           sed -i 's/Web Builder v2/Web Builder v4.5/g' index.html
           sed -i "s#styles.css?v=2.4#styles.css?v=${GITHUB_SHA}#" index.html
           sed -i "s#app.js?v=2.4#app.js?v=${GITHUB_SHA}#" index.html
           sed -i "/styles.css?v=${GITHUB_SHA}/a\\  <link rel=\"stylesheet\" href=\"enhancements.css?v=${GITHUB_SHA}\">\\n  <link rel=\"stylesheet\" href=\"runtime-fixes.css?v=${GITHUB_SHA}\">\\n  <link rel=\"stylesheet\" href=\"builder-v4.css?v=${GITHUB_SHA}\">\\n  <link rel=\"stylesheet\" href=\"builder-v42.css?v=${GITHUB_SHA}\">\\n  <link rel=\"stylesheet\" href=\"builder-v43.css?v=${GITHUB_SHA}\">\\n  <link rel=\"stylesheet\" href=\"builder-v44-fixes.css?v=${GITHUB_SHA}\">\\n  <link rel=\"stylesheet\" href=\"builder-v45.css?v=${GITHUB_SHA}\">" index.html
-          sed -i "/app.js?v=${GITHUB_SHA}/a\\  <script src=\"enhancements.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"runtime-fixes.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v4-core.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v4-blocks.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v4-export-fixes.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v4-history.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v42.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v43-site.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v44-fixes.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v45.js?v=${GITHUB_SHA}\" defer></script>" index.html
+          sed -i "/app.js?v=${GITHUB_SHA}/a\\  <script src=\"enhancements.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"runtime-fixes.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v4-core.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v4-blocks.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v4-export-fixes.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v4-history.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v42.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v43-site.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v44-fixes.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v45.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v45-dnd-fix.js?v=${GITHUB_SHA}\" defer></script>" index.html
           sed -i 's/<small>v2<\/small>/<small>v4.5<\/small>/' index.html
       - name: Verify build wiring
         run: |
@@ -54,6 +55,7 @@ jobs:
           grep -q "builder-v43-site.js?v=${GITHUB_SHA}" index.html
           grep -q "builder-v44-fixes.js?v=${GITHUB_SHA}" index.html
           grep -q "builder-v45.js?v=${GITHUB_SHA}" index.html
+          grep -q "builder-v45-dnd-fix.js?v=${GITHUB_SHA}" index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload static site
