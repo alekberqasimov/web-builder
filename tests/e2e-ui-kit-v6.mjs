@@ -34,8 +34,8 @@ async function desktop(){
     };
   });
 
-  assert.equal(metrics.version,'v6.2','production chrome should expose V6.2 UI kit version');
-  assert.equal(metrics.kitLoaded,true,'V6.2 UI kit stylesheet is not loaded');
+  assert.equal(metrics.version,'v6.3','production chrome should expose V6.3 UI kit version');
+  assert.equal(metrics.kitLoaded,true,'V6.3 UI kit stylesheet is not loaded');
   assert.ok(metrics.left.width>=320,'desktop library panel is too cramped');
   assert.ok(metrics.right.width>=350,'desktop inspector panel is too cramped');
   for(const tab of [...metrics.leftTabs,...metrics.rightTabs])assert.ok(tab.scroll<=tab.client+1,`tab label is clipped: ${tab.text}`);
