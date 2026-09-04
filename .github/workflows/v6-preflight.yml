@@ -42,9 +42,13 @@ jobs:
           rm -rf _site
           mkdir -p _site
           cp index.html v6.css v6-app.mjs v5-*.mjs .nojekyll _site/
-          grep -q 'v5-repeat-controls.mjs' _site/index.html
           test -f _site/v5-repeat-controls.mjs
           node --check _site/v5-repeat-controls.mjs
+          grep -q "v5-repeat-controls.mjs" _site/v5-library-extras.mjs
+          if grep -q 'src="v5-repeat-controls.mjs"' _site/index.html; then
+            echo 'Duplicate direct repeat-controls bootstrap found' >&2
+            exit 1
+          fi
 
       - name: Browser regression and repeatable controls
         run: |
