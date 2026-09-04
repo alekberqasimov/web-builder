@@ -19,6 +19,7 @@ try{
   // Public mobile menu must actually open in Preview.
   await page.click('#previewBtn');
   await page.waitForSelector('#previewDialog[open]');
+  await page.selectOption('#previewDevice','mobile');
   const preview=page.frameLocator('#previewFrame');
   await preview.locator('.v5-nav-toggle').first().waitFor({state:'visible'});
   await preview.locator('.v5-nav-toggle').first().click();
