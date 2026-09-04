@@ -96,7 +96,7 @@ async function desktopSuite(){
   const svg='<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="#705cff"/></svg>';
   await page.locator('#v5AssetUpload').setInputFiles({name:'qa-asset.svg',mimeType:'image/svg+xml',buffer:Buffer.from(svg)});
   const asset=page.locator('.v5-asset').filter({has:page.locator('input[value="qa-asset"]')}).first();await asset.waitFor({state:'visible'});await asset.locator('[data-asset-use]').click();
-  const used=page.locator('#canvas img.v5-img[src^="data:image/svg+xml"]');await used.waitFor({state:'visible'});assert.equal(await used.getAttribute('alt'),'qa-asset','Asset use did not populate ALT');
+  const used=page.locator('#canvas img.v5-img.v5-selected-node[src^="data:image/svg+xml"]');await used.waitFor({state:'visible'});assert.equal(await used.getAttribute('alt'),'qa-asset','Asset use did not populate ALT');
 
   const hero=page.locator('#navigatorTree [data-tree-block]').filter({hasText:'Hero'}).first();await hero.locator('[data-tree-select-block]').click();
   page.once('dialog',d=>d.accept('QA Saved Block'));await page.click('#blockInspector [data-block-cmd="preset"]');await page.click('#siteTab');
