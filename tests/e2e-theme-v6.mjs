@@ -20,7 +20,7 @@ function parseColor(value){
 
 try{
   const context=await browser.newContext({viewport:{width:1440,height:950}});
-  await context.addInitScript(()=>localStorage.setItem('wb:v6:theme','dark'));
+  await context.addInitScript(()=>{if(!localStorage.getItem('wb:v6:theme'))localStorage.setItem('wb:v6:theme','dark')});
   const page=await context.newPage();
   const errors=[];page.on('pageerror',e=>errors.push(String(e?.stack||e)));
   await page.goto(base,{waitUntil:'domcontentloaded'});
