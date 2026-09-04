@@ -1,4 +1,5 @@
 import {block,container,makeHeading,makeText,makeButton,makeVideo,makeEmbed,makeSocial,makeMap,makeAccordion,makeTabs,makeForm,makeReviews} from './v5-core.mjs';
+import {applyFloatingStyleModel} from './v6-functional-premium.mjs';
 
 export const FUNCTIONAL_READY_TYPES=['form','videoSection','embedSection','socialSection','mapSection','reviewsSlider','tabsSection','accordionSection','floatingContact'];
 export const FUNCTIONAL_ICONS={form:'✉',videoSection:'▶',embedSection:'<>',socialSection:'◎',mapSection:'⌖',reviewsSlider:'★',tabsSection:'⊞',accordionSection:'?',floatingContact:'↗'};
@@ -26,7 +27,7 @@ export function makeFunctionalPreset(type){
     const b=section('Embed',container([kicker('EMBED'),makeHeading('Встроенный контент',2),muted('Вставляйте Calendly, Typeform, Spotify, карты, видео и любой разрешённый iframe/embed code.'),embed],{gap:18}),'#f8f9fc');return finish(type,b);
   }
   if(type==='socialSection'){
-    const social=makeSocial([{label:'Instagram',url:'https://instagram.com',icon:'◎'},{label:'YouTube',url:'https://youtube.com',icon:'▶'},{label:'LinkedIn',url:'https://linkedin.com',icon:'in'},{label:'Telegram',url:'https://t.me',icon:'✈'}]);
+    const social=makeSocial([{label:'Instagram',url:'https://instagram.com',icon:'IG'},{label:'YouTube',url:'https://youtube.com',icon:'YT'},{label:'LinkedIn',url:'https://linkedin.com',icon:'in'},{label:'Telegram',url:'https://t.me/username',icon:'TG'}]);
     style(social,{padding:'8px 0'});
     const b=section('Social Links',container([kicker('SOCIAL'),makeHeading('Мы в социальных сетях',2),muted('Добавьте нужные платформы, ссылки и выберите компактный или текстовый вид.'),social],{gap:18}),'#ffffff');return finish(type,b);
   }
@@ -40,7 +41,7 @@ export function makeFunctionalPreset(type){
     const b=section('Reviews Slider',container([kicker('REVIEWS'),makeHeading('Отзывы клиентов',2),muted('Адаптивный слайдер отзывов со звёздами, ролями, стрелками и autoplay.'),reviews],{gap:18}),'#ffffff');return finish(type,b);
   }
   if(type==='tabsSection'){
-    const tabs=makeTabs([{id:'tab-services',label:'Услуги',content:'Опишите основные услуги или категории.'},{id:'tab-process',label:'Процесс',content:'Покажите этапы работы.'},{id:'tab-support',label:'Поддержка',content:'Расскажите, как клиент получает помощь.'}]);style(tabs,{padding:'20px',border:'1px solid #e5e8f0',borderRadius:'18px',background:'#ffffff'});
+    const tabs=makeTabs([{id:'tab-services',label:'Услуги',content:'Опишите основные услуги или категории.'},{id:'tab-process',label:'Процесс',content:'Покажите этапы работы.'},{id:'tab-support',label:'Поддержка',content:'Расскажите, как клиент получает помощь.'}]);style(tabs,{padding:'20px',border:'1px solid #e5e8f0',borderRadius:'18px',background:'#ffffff',boxShadow:'0 18px 44px rgba(15,23,42,.06)'},{padding:'18px'},{padding:'14px'});
     const b=section('Tabs',container([kicker('TABS'),makeHeading('Контент по вкладкам',2),tabs],{gap:18}),'#f8f9fc');return finish(type,b);
   }
   if(type==='accordionSection'){
@@ -48,7 +49,7 @@ export function makeFunctionalPreset(type){
     const b=section('Accordion',container([kicker('FAQ'),makeHeading('Частые вопросы',2),acc],{gap:18}),'#ffffff');return finish(type,b);
   }
   if(type==='floatingContact'){
-    const social=makeSocial([{label:'WhatsApp',url:'https://wa.me/994000000000',icon:'WA'},{label:'Telegram',url:'https://t.me/username',icon:'TG'}]);social.props.display='icon';social.props.style='floating';social.props.layout='column';style(social,{position:'fixed',right:'22px',bottom:'22px',zIndex:'999',display:'flex',flexDirection:'column',gap:'10px',width:'auto'},{right:'18px',bottom:'18px'},{right:'14px',bottom:'14px'});
+    const social=makeSocial([{label:'WhatsApp',url:'https://wa.me/994000000000',icon:'WA',message:''},{label:'Telegram',url:'https://t.me/username',icon:'TG'}]);social.props.display='icon';social.props.style='floating';social.props.layout='column';social.props.floating={position:'right',size:56,offsetX:22,offsetY:22,tooltip:true,pulse:true};applyFloatingStyleModel(social);style(social,{display:'flex',flexDirection:'column',gap:'12px'},{},{'--social-size':'52px'});
     const root=container([social],{gap:0});style(root,{minHeight:'0'});const b=section('Floating WhatsApp / Telegram',root,'transparent');style(b,{padding:'0',background:'transparent',minHeight:'0'},{padding:'0'},{padding:'0'});return finish(type,b);
   }
   return null;
