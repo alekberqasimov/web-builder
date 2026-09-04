@@ -28,7 +28,7 @@ jobs:
         run: |
           set -e
           for f in v5-*.mjs; do node --check "$f"; done
-          node --test tests/v5-model.test.mjs
+          node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {defaultProject} from './v5-model.mjs';
           import {exportedDocument} from './v5-render.mjs';
@@ -60,8 +60,13 @@ jobs:
             echo "Legacy runtime found in production index" >&2
             exit 1
           fi
+          test ! -e _site/v5-ux.mjs
           for f in _site/v5-*.mjs; do node --check "$f"; done
           grep -q "v5-runtime.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
+          grep -q "v5-navigator-dnd.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
+          grep -q "v5-library-extras.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
+          grep -q "v5-visual-editors.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
+          grep -q "v5-localize.mjs?v=${GITHUB_SHA}" _site/v5-app.mjs
           grep -q "v5-core.mjs?v=${GITHUB_SHA}" _site/v5-model.mjs
           echo "V5_ONLY_WIRING_OK"
 
