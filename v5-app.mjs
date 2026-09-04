@@ -8,6 +8,7 @@ import {bindNavigatorDnD} from './v5-navigator-dnd.mjs';
 import {bindLibraryExtras,enhanceLibraries} from './v5-library-extras.mjs';
 import {bindVisualEditors,renderVisualEditors} from './v5-visual-editors.mjs';
 import {localizeUi} from './v5-localize.mjs';
+import {localizeV53} from './v5-localize-v53.mjs';
 import {bindDeepAudit,renderDeepAudit} from './v5-deep-audit.mjs';
 import {bindAssetManager,renderAssetManager} from './v5-assets.mjs';
 import {bindSmartGuides} from './v5-smart-guides.mjs';
@@ -17,7 +18,7 @@ import {bindBulkActions,renderBulkActions} from './v5-bulk-actions.mjs';
 function applyTranslations(){document.documentElement.lang=state.project?.uiLang||'ru';const map={blocksTab:'blocks',elementsTab:'elements',pagesTab:'pages',blockTab:'block',elementTab:'element',pageTab:'page',seoTab:'seo',siteTab:'site',newBtn:'newProject',previewBtn:'preview',downloadBtn:'download'};for(const[id,k]of Object.entries(map)){const el=$('#'+id);if(el)el.textContent=tr(k)}if($('#leftTitle'))$('#leftTitle').textContent=tr(state.activeLeft);if($('#rightTitle'))$('#rightTitle').textContent=tr('settings')}
 function updateSaveStatus(){if($('#saveStatus'))$('#saveStatus').textContent=state.saving?'Saving…':tr('saved')}
 function syncResponsivePanels(){const compact=matchMedia('(max-width:1180px)').matches;if(compact){document.body.classList.add('left-collapsed','right-collapsed')}else{document.body.classList.remove('left-collapsed','right-collapsed')}}
-function enhanceUi(){enhanceLibraries();renderVisualEditors();if(state.activeRight==='element')renderBulkActions();if(state.activeRight==='site'){renderDeepAudit();renderAssetManager();renderMyBlocksManager()}localizeUi()}
+function enhanceUi(){enhanceLibraries();renderVisualEditors();if(state.activeRight==='element')renderBulkActions();if(state.activeRight==='site'){renderDeepAudit();renderAssetManager();renderMyBlocksManager()}localizeUi();localizeV53()}
 function renderAll(){if(!state.project)return;applyTranslations();if($('#pageLabel'))$('#pageLabel').textContent=`${currentPage().name} · ${(currentPage().lang||'').toUpperCase()}`;if($('#breadcrumb'))$('#breadcrumb').textContent=breadcrumbText(elementLabels);renderLeft();renderCanvas();renderInspector();renderNavigator();enhanceUi();updateSaveStatus();if($('#undoBtn'))$('#undoBtn').disabled=!state.history.length;if($('#redoBtn'))$('#redoBtn').disabled=!state.future.length}
 
 function bind(){
@@ -27,7 +28,7 @@ function bind(){
   $('#previewBtn').onclick=openPreview;$('#downloadBtn').onclick=downloadSite;
   ['blocks','elements','pages'].forEach(n=>$(`#${n}Tab`).onclick=()=>{state.activeLeft=n;renderAll()});
   ['block','element','page','seo','site'].forEach(n=>$(`#${n}Tab`).onclick=()=>{state.activeRight=n;renderInspector();enhanceUi()});
-  $('#blockSearch').oninput=()=>{renderBlocksLibrary();enhanceLibraries();localizeUi()};$('#blockCategory').onchange=()=>{renderBlocksLibrary();enhanceLibraries();localizeUi()};$('#elementSearch').oninput=()=>{renderElementsLibrary();enhanceLibraries();localizeUi()};
+  $('#blockSearch').oninput=()=>{renderBlocksLibrary();enhanceLibraries();localizeUi();localizeV53()};$('#blockCategory').onchange=()=>{renderBlocksLibrary();enhanceLibraries();localizeUi();localizeV53()};$('#elementSearch').oninput=()=>{renderElementsLibrary();enhanceLibraries();localizeUi();localizeV53()};
   $('#blocksPanel').onclick=e=>{const b=e.target.closest('[data-add-block]');if(b)addBlockFromLibrary(b.dataset.addBlock)};
   $('#elementsPanel').onclick=e=>{const b=e.target.closest('[data-add-element]');if(b)addElementType(b.dataset.addElement)};
   $('#pagesPanel').onclick=e=>{const r=e.target.closest('[data-page-id]');if(r){state.project.currentPageId=r.dataset.pageId;clearSelection();state.activeRight='page';persist();renderAll()}if(e.target.id==='addPageInline')createPageFlow()};
