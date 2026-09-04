@@ -13,10 +13,11 @@ async function featuresMetrics(){
   return page.evaluate(()=>{
     const section=document.querySelector('#canvas .v5-section.selected');
     const root=section?.querySelector('.v5-section-inner > .v5-container');
-    const grid=root?.children?.[2];
-    if(!section||!root||!grid||!grid.classList.contains('v5-container')||grid.children.length!==3)return null;
+    const grid=[...(root?.children||[])].find(el=>el.classList.contains('v5-container')&&[...el.children].filter(c=>c.classList.contains('v5-container')).length===3);
+    if(!section||!root||!grid)return null;
+    const cardEls=[...grid.children].filter(el=>el.classList.contains('v5-container'));
     const gr=grid.getBoundingClientRect();
-    const cards=[...grid.children].map(el=>{const r=el.getBoundingClientRect();const h=el.querySelector('h3'),p=el.querySelector('.v5-text');return{width:r.width,left:r.left,right:r.right,headingClient:h?.clientWidth||0,headingScroll:h?.scrollWidth||0,textClient:p?.clientWidth||0,textScroll:p?.scrollWidth||0}});
+    const cards=cardEls.map(el=>{const r=el.getBoundingClientRect();const h=el.querySelector('h3'),p=el.querySelector('.v5-text');return{width:r.width,left:r.left,right:r.right,headingClient:h?.clientWidth||0,headingScroll:h?.scrollWidth||0,textClient:p?.clientWidth||0,textScroll:p?.scrollWidth||0}});
     return{
       columns:getComputedStyle(grid).gridTemplateColumns,
       grid:{width:gr.width,left:gr.left,right:gr.right,scrollWidth:grid.scrollWidth,clientWidth:grid.clientWidth},
