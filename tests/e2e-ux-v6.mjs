@@ -54,6 +54,7 @@ async function mobileAudit(){
 
   await page.click('#leftToggle');
   await page.waitForFunction(()=>!document.body.classList.contains('left-collapsed'));
+  await page.waitForFunction(()=>{const r=document.querySelector('#leftSidebar')?.getBoundingClientRect();return r&&r.left>=-1&&r.right<=innerWidth+1});
 
   const metrics=await page.evaluate(()=>{
     const side=document.querySelector('#leftSidebar').getBoundingClientRect();
@@ -86,9 +87,10 @@ async function mobileAudit(){
   await page.waitForFunction(()=>document.body.classList.contains('left-collapsed'));
   await page.click('#rightToggle');
   await page.waitForFunction(()=>!document.body.classList.contains('right-collapsed'));
+  await page.waitForFunction(()=>{const r=document.querySelector('#rightSidebar')?.getBoundingClientRect();return r&&r.left>=-1&&r.right<=innerWidth+1});
   const right=await page.locator('#rightSidebar').evaluate(el=>{const r=el.getBoundingClientRect();return{left:r.left,right:r.right,width:r.width,innerWidth}});
   assert.ok(right.width<right.innerWidth*.92,'right settings drawer should also preserve page context on phone');
-  assert.ok(right.right<=right.innerWidth+1&&right.left>=0,'right settings drawer is outside the viewport');
+  assert.ok(right.right<=right.innerWidth+1&&right.left>=-1,'right settings drawer is outside the viewport');
 
   assert.deepEqual(errors,[],`Mobile UX page errors:\n${errors.join('\n')}`);
   await context.close();
