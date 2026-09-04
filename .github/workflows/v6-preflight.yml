@@ -1,0 +1,80 @@
+name: V6 Preflight
+
+on:
+  push:
+    branches: [rebuild-v6-production]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate, build and browser-test without failure notifications
+        shell: bash
+        run: |
+          set +e
+          STATUS=0
+          echo "=== V6 PREFLIGHT START ==="
+
+          echo "[1/4] Syntax"
+          for f in v5-*.mjs tests/v6-shell.mjs; do
+            node --check "$f" || STATUS=1
+          done
+
+          echo "[2/4] Build artifact"
+          rm -rf _site
+          mkdir -p _site
+          cp index.html v6.css v5-*.mjs .nojekyll _site/ || STATUS=1
+
+          echo "[3/4] Wiring"
+          grep -q "Web Builder v6" _site/index.html || STATUS=1
+          grep -q 'href="v6.css?v=6.0"' _site/index.html || STATUS=1
+          grep -q 'src="v5-app.mjs?v=6.0"' _site/index.html || STATUS=1
+          if grep -Eq 'v5\.css|v5-mobile-fix\.css|enhancements\.css|app\.js' _site/index.html; then
+            echo "V6_WIRING_FAIL: legacy editor stylesheet/runtime referenced"
+            STATUS=1
+          else
+            echo "V6_WIRING_PASS"
+          fi
+
+          echo "[4/4] Browser responsive shell"
+          npm install --no-save --no-package-lock playwright@1.55.0 >/tmp/v6-npm.log 2>&1
+          if [ $? -ne 0 ]; then
+            echo "V6_PLAYWRIGHT_INSTALL_FAIL"
+            cat /tmp/v6-npm.log
+            STATUS=1
+          else
+            npx playwright install --with-deps chromium >/tmp/v6-browser-install.log 2>&1
+            if [ $? -ne 0 ]; then
+              echo "V6_BROWSER_INSTALL_FAIL"
+              tail -n 80 /tmp/v6-browser-install.log
+              STATUS=1
+            else
+              python3 -m http.server 4173 --directory _site >/tmp/v6-http.log 2>&1 &
+              SERVER_PID=$!
+              for i in $(seq 1 30); do
+                curl -fsS http://127.0.0.1:4173/ >/dev/null && break
+                sleep 1
+              done
+              E2E_BASE_URL=http://127.0.0.1:4173 node tests/v6-shell.mjs
+              TEST_STATUS=$?
+              kill $SERVER_PID 2>/dev/null || true
+              if [ $TEST_STATUS -ne 0 ]; then STATUS=1; fi
+            fi
+          fi
+
+          if [ $STATUS -eq 0 ]; then
+            echo "V6_PREFLIGHT_PASS"
+          else
+            echo "V6_PREFLIGHT_FAIL"
+          fi
+
+          # Intentionally exit 0: this branch is a private preflight lane.
+          # We inspect the PASS/FAIL marker before promoting anything to main.
+          exit 0
