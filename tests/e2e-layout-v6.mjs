@@ -44,16 +44,18 @@ async function mobileAudit(width,height){
   assert.ok(left.panelScrollWidth<=left.panelClientWidth+1,`${width}px left sidebar horizontal overflow`);
 
   await page.click('[data-close-panel="left"]');
-  await page.locator('#canvas>[data-block-id]').first().click();
   await page.click('#rightToggle');
   await page.waitForFunction(()=>!document.body.classList.contains('right-collapsed'));
-  await page.waitForSelector('#blockInspector:not(.hidden)');
+  await page.waitForSelector('.right-sidebar .panel-scroll>section:not(.hidden)');
   const right=await page.evaluate(()=>{
     const box=s=>{const r=document.querySelector(s)?.getBoundingClientRect();return r?{left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}:null};
     const panel=document.querySelector('.right-sidebar');
-    return {panel:box('.right-sidebar'),head:box('.right-sidebar .sidebar-head'),tabs:box('.right-sidebar .tabs'),inspector:box('#blockInspector'),panelScrollWidth:panel.scrollWidth,panelClientWidth:panel.clientWidth};
+    const visible=[...document.querySelectorAll('.right-sidebar .panel-scroll>section')].find(el=>!el.classList.contains('hidden'));
+    const r=visible?.getBoundingClientRect();
+    return {panel:box('.right-sidebar'),head:box('.right-sidebar .sidebar-head'),tabs:box('.right-sidebar .tabs'),inspector:r?{left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}:null,panelScrollWidth:panel.scrollWidth,panelClientWidth:panel.clientWidth};
   });
   assert.ok(right.panel.width>=Math.min(320,width*.85),`${width}px right panel too narrow`);
+  assert.ok(right.inspector&&right.inspector.width>0,`${width}px active inspector missing`);
   noOverlap(right.head,right.tabs,`${width}px right head/tabs`,12);
   noOverlap(right.tabs,right.inspector,`${width}px right tabs/inspector`,14);
   inside(right.tabs,right.panel,`${width}px right tabs`);inside(right.inspector,right.panel,`${width}px inspector`);
