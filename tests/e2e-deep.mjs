@@ -56,6 +56,10 @@ async function realMouseDrag(page,source,target,{targetY=.7}={}){
   if(isElementSource){const planned=await page.locator('#canvas .pointer-element-drop').count()>0;if(!planned){const dbg=await page.evaluate(()=>window.__v5ElementDnD||null);throw new Error(`element DnD activated but produced no drop plan; debug=${JSON.stringify(dbg)}`)}}
   await page.mouse.up();await wait(220);
 }
+async function openNavigator(page){
+  const tab=page.locator('#navigatorTab');
+  if(await tab.count()){await tab.click();await page.waitForSelector('#navigatorPanel:not(.hidden)')}
+}
 
 async function desktopSuite(){
   const context=await browser.newContext({viewport:{width:1440,height:1000},acceptDownloads:true});
@@ -98,6 +102,7 @@ async function desktopSuite(){
   const asset=page.locator('.v5-asset').filter({has:page.locator('input[value="qa-asset"]')}).first();await asset.waitFor({state:'visible'});await asset.locator('[data-asset-use]').click();
   const used=page.locator('#canvas img.v5-img.v5-selected-node[src^="data:image/svg+xml"]');await used.waitFor({state:'visible'});assert.equal(await used.getAttribute('alt'),'qa-asset','Asset use did not populate ALT');
 
+  await openNavigator(page);
   const hero=page.locator('#navigatorTree [data-tree-block]').filter({hasText:'Hero'}).first();await hero.locator('[data-tree-select-block]').click();
   page.once('dialog',d=>d.accept('QA Saved Block'));await page.click('#blockInspector [data-block-cmd="preset"]');await page.click('#siteTab');
   const saved=page.locator('#v5MyBlocksManager .v5-myblock-card').filter({has:page.locator('input[value="QA Saved Block"]')}).first();await saved.waitFor({state:'visible'});
@@ -107,6 +112,7 @@ async function desktopSuite(){
   const faq=page.locator('#canvas .v5-accordion[data-node-id]').last();await faq.click();await page.waitForSelector('#elementInspector:not(.hidden) [data-repeat-add="accordion"]');
   const f0=await faq.locator('details').count();await page.click('#elementInspector [data-repeat-add="accordion"]');assert.equal(await page.locator('#canvas .v5-accordion').last().locator('details').count(),f0+1,'FAQ add item failed');
 
+  await openNavigator(page);
   const menu=page.locator('#navigatorTree [data-tree-block]').filter({hasText:'Menu'}).first();await menu.locator('[data-tree-select-block]').click();await page.click('#blockInspector [data-block-cmd="header"]');
   await page.click('#pagesTab');page.once('dialog',d=>d.accept('Global Page'));await page.click('#addPageInline');await page.waitForFunction(()=>document.querySelector('#pageLabel')?.textContent.includes('Global Page'));
   assert.ok(await page.locator('#canvas .v5-nav').count()>=1,'Global Header did not propagate');
