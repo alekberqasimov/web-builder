@@ -37,17 +37,17 @@ jobs:
       - name: Prepare Web Builder v4.3
         run: |
           sed -i 's/Web Builder v2/Web Builder v4.3/g' index.html
-          sed -i 's#styles.css?v=2.4#styles.css?v=4.3#' index.html
-          sed -i 's#app.js?v=2.4#app.js?v=4.3#' index.html
-          sed -i '/styles.css?v=4.3/a\  <link rel="stylesheet" href="enhancements.css?v=4.3">\n  <link rel="stylesheet" href="runtime-fixes.css?v=4.3">\n  <link rel="stylesheet" href="builder-v4.css?v=4.3">\n  <link rel="stylesheet" href="builder-v42.css?v=4.3">\n  <link rel="stylesheet" href="builder-v43.css?v=4.3">' index.html
-          sed -i '/app.js?v=4.3/a\  <script src="enhancements.js?v=4.3" defer></script>\n  <script src="runtime-fixes.js?v=4.3" defer></script>\n  <script src="builder-v4-core.js?v=4.3" defer></script>\n  <script src="builder-v4-blocks.js?v=4.3" defer></script>\n  <script src="builder-v4-export-fixes.js?v=4.3" defer></script>\n  <script src="builder-v4-history.js?v=4.3" defer></script>\n  <script src="builder-v42.js?v=4.3" defer></script>\n  <script src="builder-v43-site.js?v=4.3" defer></script>' index.html
+          sed -i "s#styles.css?v=2.4#styles.css?v=${GITHUB_SHA}#" index.html
+          sed -i "s#app.js?v=2.4#app.js?v=${GITHUB_SHA}#" index.html
+          sed -i "/styles.css?v=${GITHUB_SHA}/a\\  <link rel=\"stylesheet\" href=\"enhancements.css?v=${GITHUB_SHA}\">\\n  <link rel=\"stylesheet\" href=\"runtime-fixes.css?v=${GITHUB_SHA}\">\\n  <link rel=\"stylesheet\" href=\"builder-v4.css?v=${GITHUB_SHA}\">\\n  <link rel=\"stylesheet\" href=\"builder-v42.css?v=${GITHUB_SHA}\">\\n  <link rel=\"stylesheet\" href=\"builder-v43.css?v=${GITHUB_SHA}\">" index.html
+          sed -i "/app.js?v=${GITHUB_SHA}/a\\  <script src=\"enhancements.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"runtime-fixes.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v4-core.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v4-blocks.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v4-export-fixes.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v4-history.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v42.js?v=${GITHUB_SHA}\" defer></script>\\n  <script src=\"builder-v43-site.js?v=${GITHUB_SHA}\" defer></script>" index.html
           sed -i 's/<small>v2<\/small>/<small>v4.3<\/small>/' index.html
       - name: Verify build wiring
         run: |
-          grep -q 'builder-v42.css?v=4.3' index.html
-          grep -q 'builder-v43.css?v=4.3' index.html
-          grep -q 'builder-v42.js?v=4.3' index.html
-          grep -q 'builder-v43-site.js?v=4.3' index.html
+          grep -q "builder-v42.css?v=${GITHUB_SHA}" index.html
+          grep -q "builder-v43.css?v=${GITHUB_SHA}" index.html
+          grep -q "builder-v42.js?v=${GITHUB_SHA}" index.html
+          grep -q "builder-v43-site.js?v=${GITHUB_SHA}" index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload static site
