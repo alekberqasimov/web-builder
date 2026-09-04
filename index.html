@@ -4,18 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
   <meta name="theme-color" content="#0b1020">
-  <title>Web Builder v5.7</title>
-  <link rel="stylesheet" href="v5.css">
+  <title>Web Builder v5.8</title>
+  <link rel="stylesheet" href="v5.css?v=5.8">
+  <link rel="stylesheet" href="v5-mobile-fix.css?v=5.8">
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
-  <script type="module" src="v5-app.mjs"></script>
+  <script type="module" src="v5-app.mjs?v=5.8"></script>
 </head>
 <body>
 <div class="app">
   <header class="topbar">
-    <div class="brand"><span class="brand-mark">W</span><span>Web Builder</span><span class="version">v5.7</span></div>
+    <div class="brand"><span class="brand-mark">W</span><span>Web Builder</span><span class="version">v5.8</span></div>
     <div class="top-actions">
-      <button class="icon-btn" id="leftToggle" title="Toggle left panel">◧</button>
-      <button class="icon-btn" id="rightToggle" title="Toggle right panel">◨</button>
+      <button class="icon-btn" id="leftToggle" title="Блоки / элементы" aria-label="Блоки / элементы">☰</button>
+      <button class="icon-btn" id="rightToggle" title="Настройки" aria-label="Настройки">⚙</button>
       <select id="uiLanguage"><option value="ru">RU</option><option value="az">AZ</option><option value="en">EN</option></select>
       <button class="icon-btn" id="undoBtn" title="Undo">↶</button><button class="icon-btn" id="redoBtn" title="Redo">↷</button>
       <button id="newBtn" class="desktop-only">Новый проект</button>
