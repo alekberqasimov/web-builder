@@ -66,7 +66,7 @@ async function desktopSuite(){
   const blocks=page.locator('#canvas>[data-block-id]');
   assert.ok(await blocks.count()>=4,'default project needs several blocks for DnD QA');
   const beforeOrder=await blocks.evaluateAll(xs=>xs.map(x=>x.dataset.blockId));
-  const sourceBlockId=beforeOrder[1],targetBlockId=beforeOrder[2];
+  const sourceBlockId=beforeOrder[0],targetBlockId=beforeOrder[1];
   const sourceBlock=page.locator(`#canvas>[data-block-id="${sourceBlockId}"]`);
   const targetBlock=page.locator(`#canvas>[data-block-id="${targetBlockId}"]`);
   await sourceBlock.hover();
