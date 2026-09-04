@@ -5,12 +5,15 @@ import {renderInspector,handleMainInspectorChange,handleMainInspectorClick} from
 import {bindElementInspectorEvents} from './v5-element-actions.mjs';
 import {renderCanvas,selectFromEvent,beginInlineEdit,inlineEdit,finishInlineEdit,blockToolbarClick,bindDnD,openContextMenu,contextAction,keyboardShortcuts,openPreview,renderPreview,downloadSite,importProject} from './v5-canvas.mjs';
 import {bindNavigatorDnD} from './v5-navigator-dnd.mjs';
-import {bindUx,enhanceUx} from './v5-ux.mjs';
+import {bindLibraryExtras,enhanceLibraries} from './v5-library-extras.mjs';
+import {bindVisualEditors,renderVisualEditors} from './v5-visual-editors.mjs';
+import {localizeUi} from './v5-localize.mjs';
 
 function applyTranslations(){document.documentElement.lang=state.project?.uiLang||'ru';const map={blocksTab:'blocks',elementsTab:'elements',pagesTab:'pages',blockTab:'block',elementTab:'element',pageTab:'page',seoTab:'seo',siteTab:'site',newBtn:'newProject',previewBtn:'preview',downloadBtn:'download'};for(const[id,k]of Object.entries(map)){const el=$('#'+id);if(el)el.textContent=tr(k)}if($('#leftTitle'))$('#leftTitle').textContent=tr(state.activeLeft);if($('#rightTitle'))$('#rightTitle').textContent=tr('settings')}
 function updateSaveStatus(){if($('#saveStatus'))$('#saveStatus').textContent=state.saving?'Saving…':tr('saved')}
 function syncResponsivePanels(){const compact=matchMedia('(max-width:1180px)').matches;if(compact){document.body.classList.add('left-collapsed','right-collapsed')}else{document.body.classList.remove('left-collapsed','right-collapsed')}}
-function renderAll(){if(!state.project)return;applyTranslations();if($('#pageLabel'))$('#pageLabel').textContent=`${currentPage().name} · ${(currentPage().lang||'').toUpperCase()}`;if($('#breadcrumb'))$('#breadcrumb').textContent=breadcrumbText(elementLabels);renderLeft();renderCanvas();renderInspector();renderNavigator();enhanceUx();updateSaveStatus();if($('#undoBtn'))$('#undoBtn').disabled=!state.history.length;if($('#redoBtn'))$('#redoBtn').disabled=!state.future.length}
+function enhanceUi(){enhanceLibraries();renderVisualEditors();localizeUi()}
+function renderAll(){if(!state.project)return;applyTranslations();if($('#pageLabel'))$('#pageLabel').textContent=`${currentPage().name} · ${(currentPage().lang||'').toUpperCase()}`;if($('#breadcrumb'))$('#breadcrumb').textContent=breadcrumbText(elementLabels);renderLeft();renderCanvas();renderInspector();renderNavigator();enhanceUi();updateSaveStatus();if($('#undoBtn'))$('#undoBtn').disabled=!state.history.length;if($('#redoBtn'))$('#redoBtn').disabled=!state.future.length}
 
 function bind(){
   $('#uiLanguage').onchange=e=>mutate('Language',()=>state.project.uiLang=e.target.value);
@@ -18,8 +21,8 @@ function bind(){
   $('#newBtn').onclick=()=>{if(confirm('Create a new project?'))mutate('New project',()=>{state.project=defaultProject();clearSelection()})};
   $('#previewBtn').onclick=openPreview;$('#downloadBtn').onclick=downloadSite;
   ['blocks','elements','pages'].forEach(n=>$(`#${n}Tab`).onclick=()=>{state.activeLeft=n;renderAll()});
-  ['block','element','page','seo','site'].forEach(n=>$(`#${n}Tab`).onclick=()=>{state.activeRight=n;renderInspector();enhanceUx()});
-  $('#blockSearch').oninput=()=>{renderBlocksLibrary();enhanceUx()};$('#blockCategory').onchange=()=>{renderBlocksLibrary();enhanceUx()};$('#elementSearch').oninput=()=>{renderElementsLibrary();enhanceUx()};
+  ['block','element','page','seo','site'].forEach(n=>$(`#${n}Tab`).onclick=()=>{state.activeRight=n;renderInspector();enhanceUi()});
+  $('#blockSearch').oninput=()=>{renderBlocksLibrary();enhanceLibraries();localizeUi()};$('#blockCategory').onchange=()=>{renderBlocksLibrary();enhanceLibraries();localizeUi()};$('#elementSearch').oninput=()=>{renderElementsLibrary();enhanceLibraries();localizeUi()};
   $('#blocksPanel').onclick=e=>{const b=e.target.closest('[data-add-block]');if(b)addBlockFromLibrary(b.dataset.addBlock)};
   $('#elementsPanel').onclick=e=>{const b=e.target.closest('[data-add-element]');if(b)addElementType(b.dataset.addElement)};
   $('#pagesPanel').onclick=e=>{const r=e.target.closest('[data-page-id]');if(r){state.project.currentPageId=r.dataset.pageId;clearSelection();state.activeRight='page';persist();renderAll()}if(e.target.id==='addPageInline')createPageFlow()};
@@ -32,7 +35,7 @@ function bind(){
   $('#rightSidebar').addEventListener('input',e=>{if(e.target.matches('[data-b="name"]'))handleMainInspectorChange(e)});
   bindElementInspectorEvents();
   $('#navigatorTree').onclick=navigatorClick;$('#navigatorTree').ondblclick=navigatorRename;
-  bindDnD();bindNavigatorDnD();bindUx();
+  bindDnD();bindNavigatorDnD();bindLibraryExtras();bindVisualEditors();
   $$('[data-device]').forEach(b=>b.onclick=()=>{state.device=b.dataset.device;$$('[data-device]').forEach(x=>x.classList.toggle('active',x===b));$('#customWidth').value='';$('#canvasFrame').style.width='';renderAll()});
   $('#customWidth').onchange=e=>{const v=Math.max(280,Math.min(1920,Number(e.target.value)||0));if(v){$('#canvasFrame').style.width=v+'px';$$('[data-device]').forEach(x=>x.classList.remove('active'))}};
   $('#zoomSelect').onchange=e=>{const v=e.target.value;$('#canvasFrame').style.zoom=v==='fit'?'':v;};
