@@ -25,17 +25,15 @@ try{
   await imageTextSection.waitFor({state:'visible'});
   assert.match((await imageTextSection.innerText()),/Изображения с текстом/);
 
-  // Select its repeatable grid (root container is first; repeat grid is second).
-  const repeatGrid=imageTextSection.locator('.v5-container').nth(1);
-  await repeatGrid.click({position:{x:8,y:8}});
-  await page.waitForSelector('#elementInspector:not(.hidden) [data-repeat-image-text-count]');
-  await change('#elementInspector [data-repeat-image-text-count]',254);
+  // Item count is a block-level setting, so the user does not need to hunt for the inner grid.
+  await page.waitForSelector('#blockInspector:not(.hidden) [data-repeat-image-text-count]');
+  await change('#blockInspector [data-repeat-image-text-count]',254);
   await page.waitForFunction(()=>{
-    const selected=document.querySelector('#canvas .v5-selected-node');
-    if(!selected)return false;
-    return [...selected.children].filter(x=>x.classList.contains('v5-container')).length===254;
+    const grids=document.querySelectorAll('#canvas .v5-section.selected .v5-container');
+    const repeatGrid=grids[1];
+    return repeatGrid&&[...repeatGrid.children].filter(x=>x.classList.contains('v5-container')).length===254;
   });
-  const repeatCount=await page.locator('#canvas .v5-selected-node').evaluate(el=>[...el.children].filter(x=>x.classList.contains('v5-container')).length);
+  const repeatCount=await page.locator('#canvas .v5-section.selected .v5-container').nth(1).evaluate(el=>[...el.children].filter(x=>x.classList.contains('v5-container')).length);
   assert.equal(repeatCount,254,'Image + Text manual item count did not create exactly 254 items');
 
   // Gallery must expose the same free 1..500 count control and render the exact count.
