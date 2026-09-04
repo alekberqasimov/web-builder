@@ -1,0 +1,58 @@
+name: V6 Preflight
+
+on:
+  push:
+    branches: [rebuild-v6-production]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate syntax and model
+        run: |
+          set -e
+          node --check v6-app.mjs
+          for f in v5-*.mjs; do node --check "$f"; done
+          node --test tests/*.test.mjs
+          node --input-type=module <<'NODE'
+          import {preset,makeImageTextGrid} from './v5-model.mjs';
+          const b=preset('imageText');
+          const grid=b.root.children.at(-1);
+          if(b.name!=='Image + Text') throw new Error('Image + Text block missing');
+          if(grid?.props?.repeatTemplate!=='imageText') throw new Error('Repeatable grid missing');
+          if(makeImageTextGrid(254).children.length!==254) throw new Error('Manual 254 item count failed');
+          if(makeImageTextGrid(999).children.length!==500) throw new Error('500 item cap failed');
+          console.log('V6_REPEATABLE_MODEL_OK');
+          NODE
+
+      - name: Build branch artifact
+        run: |
+          set -e
+          rm -rf _site
+          mkdir -p _site
+          cp index.html v6.css v6-app.mjs v5-*.mjs .nojekyll _site/
+          grep -q 'v5-repeat-controls.mjs' _site/index.html
+          test -f _site/v5-repeat-controls.mjs
+          node --check _site/v5-repeat-controls.mjs
+
+      - name: Browser regression
+        run: |
+          set -e
+          npm install --no-save --no-package-lock playwright@1.55.0 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          python3 -m http.server 4173 --directory _site >/tmp/web-builder-v6.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-layout-v6.mjs
