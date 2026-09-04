@@ -3,9 +3,14 @@ import assert from 'node:assert/strict';
 import {dropZoneFromRatio} from '../v5-navigator-dnd.mjs';
 import {buildGradient,buildGradientStops,buildShadow,buildAnimation,buildBorder} from '../v5-visual-editors.mjs';
 import {guideCandidates,nearestGuide} from '../v5-smart-guides.mjs';
+import {snapAxis} from '../v5-free-position.mjs';
 import {validPresetPayload} from '../v5-my-blocks.mjs';
 import {bulkStylePatch,bulkValuePatch} from '../v5-bulk-actions.mjs';
 import {filterAssets,assetCategory} from '../v5-assets.mjs';
+import {normalizeTags,filterAssetMeta} from '../v5-asset-organizer.mjs';
+import {filterIcons} from '../v5-icon-library.mjs';
+import {buildProAnimation,motionCss} from '../v5-animation-pro.mjs';
+import {minifyCss,minifyHtmlDocument} from '../v5-performance.mjs';
 import {validPageTemplatePayload} from '../v5-page-templates.mjs';
 import {responsiveAudit} from '../v5-responsive-audit.mjs';
 import {defaultProject,preset,makeButton,walk} from '../v5-model.mjs';
@@ -47,6 +52,12 @@ test('smart guides expose canvas and node alignment targets',()=>{
   assert.equal(nearestGuide(c.xs,62,4)?.label,'CENTER X');
 });
 
+test('free position snap aligns element edges and centers',()=>{
+  assert.equal(snapAxis(96,40,[{value:100,label:'LEFT'}],8).pos,100);
+  assert.equal(snapAxis(178,40,[{value:200,label:'CENTER'}],8).pos,180);
+  assert.equal(snapAxis(260,40,[{value:300,label:'RIGHT'}],8).pos,260);
+});
+
 test('bulk style helpers include spacing and typography',()=>{
   assert.deepEqual(bulkStylePatch('stretch'),{alignSelf:'stretch',width:'100%'});
   assert.deepEqual(bulkStylePatch('align-center'),{alignSelf:'center'});
@@ -54,11 +65,30 @@ test('bulk style helpers include spacing and typography',()=>{
   assert.deepEqual(bulkValuePatch('padding','12px 20px'),{padding:'12px 20px'});
 });
 
-test('asset filters categorize and search reusable images',()=>{
-  const list=[{name:'Hero',type:'image/webp'},{name:'Logo',type:'image/svg+xml'},{name:'Photo',type:'image/png'}];
+test('asset filters categorize search folders and tags',()=>{
+  const list=[{id:'1',name:'Hero',type:'image/webp',folderId:'f1',tags:['hero','dark']},{id:'2',name:'Logo',type:'image/svg+xml',folderId:'',tags:['brand']},{id:'3',name:'Photo',type:'image/png',folderId:'f2',tags:['team']}];
   assert.equal(assetCategory(list[0]),'webp');
   assert.equal(filterAssets(list,'lo','all').length,1);
   assert.equal(filterAssets(list,'','svg')[0].name,'Logo');
+  assert.deepEqual(normalizeTags('Hero, hero, DARK'),['hero','dark']);
+  assert.equal(filterAssetMeta(list,'f1','dark').length,1);
+  assert.equal(filterAssetMeta(list,'unfiled','brand')[0].id,'2');
+});
+
+test('icon library supports category and text search',()=>{
+  assert.ok(filterIcons('phone','all').some(x=>x[2]==='☎'));
+  assert.ok(filterIcons('','arrows').every(x=>x[0]==='arrows'));
+});
+
+test('pro animation and motion css are export-safe',()=>{
+  assert.equal(buildProAnimation('slideLeft',600,80,'ease-out',2),'slideLeft 600ms ease-out 80ms 2 both');
+  assert.match(motionCss(),/@keyframes slideLeft/);
+  assert.match(motionCss(),/@keyframes bounceIn/);
+});
+
+test('performance minifier reduces safe html and css whitespace',()=>{
+  assert.equal(minifyCss('a { color: red; }'),'a{color:red}');
+  assert.equal(minifyHtmlDocument('<div>\n <span>A</span>\n </div>'),'<div><span>A</span></div>');
 });
 
 test('saved block and page template payload validation reject unrelated JSON',()=>{
@@ -102,4 +132,5 @@ test('advanced navigation settings are rendered into export',()=>{
   assert.match(html,/data-icon-pos="center"/);
   assert.match(html,/https:\/\/example\.com\/docs/);
   assert.match(html,/Open docs/);
+  assert.match(html,/@keyframes slideLeft/);
 });
