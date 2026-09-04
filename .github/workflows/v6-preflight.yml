@@ -28,6 +28,7 @@ jobs:
           node --check tests/e2e-site-languages-v6.mjs
           node --check tests/e2e-theme-v6.mjs
           node --check tests/e2e-ui-kit-v6.mjs
+          node --check tests/e2e-responsive-preview-v6.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {preset,makeImageTextGrid,defaultProject,addPageTranslation,pageFile} from './v5-model.mjs';
@@ -58,20 +59,23 @@ jobs:
           test -f _site/v6-ux.mjs
           test -f _site/v6-custom-sections.mjs
           test -f _site/v6-site-languages.mjs
+          test -f _site/v6-responsive-preview.mjs
           node --check _site/v5-repeat-controls.mjs
           node --check _site/v5-languages.mjs
           node --check _site/v6-ux.mjs
           node --check _site/v6-custom-sections.mjs
           node --check _site/v6-site-languages.mjs
+          node --check _site/v6-responsive-preview.mjs
           grep -q "v5-repeat-controls.mjs" _site/v5-library-extras.mjs
           grep -q "v6-custom-sections.mjs" _site/v5-library.mjs
           grep -q 'href="v6-ux.css"' _site/index.html
           grep -q 'href="v6-theme.css"' _site/index.html
           grep -q 'href="v6-ui-kit.css"' _site/index.html
-          grep -q 'Web Builder v6.2' _site/index.html
+          grep -q 'Web Builder v6.3' _site/index.html
           grep -q 'id="themeToggle"' _site/index.html
           grep -q 'src="v6-ux.mjs"' _site/index.html
           grep -q 'src="v6-site-languages.mjs"' _site/index.html
+          grep -q 'src="v6-responsive-preview.mjs"' _site/index.html
           if grep -q 'src="v5-repeat-controls.mjs"' _site/index.html; then
             echo 'Duplicate direct repeat-controls bootstrap found' >&2
             exit 1
@@ -100,3 +104,4 @@ jobs:
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-site-languages-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-theme-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-ui-kit-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-responsive-preview-v6.mjs
