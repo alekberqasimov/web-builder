@@ -32,6 +32,7 @@ jobs:
           node --check tests/e2e.mjs
           node --check tests/e2e-layout-v6.mjs
           node --check tests/e2e-deep.mjs
+          node --check tests/e2e-repeatable-v6.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {defaultProject} from './v5-model.mjs';
@@ -104,6 +105,8 @@ jobs:
             grep -q "$f.mjs?v=${GITHUB_SHA}" _site/v6-app.mjs
             test -f "_site/$f.mjs"
           done
+          grep -q "v5-repeat-controls.mjs?v=${GITHUB_SHA}" _site/v5-library-extras.mjs
+          test -f _site/v5-repeat-controls.mjs
           grep -q "v5-localize-v53.mjs?v=${GITHUB_SHA}" _site/v5-localize-v54.mjs
           grep -q "v5-performance.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v5-animation-pro.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
@@ -128,6 +131,7 @@ jobs:
           sed -i "s/classList.remove('left-collapsed','right-collapsed')/classList.add('left-collapsed','right-collapsed')/" tests/.e2e-deep-v6.tmp.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/.e2e-deep-v6.tmp.mjs
           rm -f tests/.e2e-deep-v6.tmp.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-repeatable-v6.mjs
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
