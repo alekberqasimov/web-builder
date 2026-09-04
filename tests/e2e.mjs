@@ -48,9 +48,10 @@ try{
   const target=page.locator('#elementInspector input[data-link-target]');
   await change(target,'example.com/docs');
   await page.locator('#elementInspector [data-link-bool="newTab"]').check();
-  await page.waitForSelector('#canvas a.v5-btn[href="https://example.com/docs"]');
-  assert.equal(await page.locator('#canvas a.v5-btn').getAttribute('target'),'_blank');
-  assert.equal((await page.locator('#canvas a.v5-btn').innerText()).trim(),'Visit docs');
+  const docsButton=page.locator('#canvas a.v5-btn[href="https://example.com/docs"]');
+  await docsButton.waitFor({state:'visible'});
+  assert.equal(await docsButton.getAttribute('target'),'_blank');
+  assert.equal((await docsButton.innerText()).trim(),'Visit docs');
 
   // Persist -> reload -> state and resolved URL must survive.
   await page.waitForTimeout(450);
@@ -66,9 +67,10 @@ try{
   await page.click('#previewBtn');
   await page.waitForSelector('#previewDialog[open]');
   const preview2=page.frameLocator('#previewFrame');
-  await preview2.locator('a.v5-btn').first().waitFor({state:'visible'});
-  assert.equal(await preview2.locator('a.v5-btn').first().getAttribute('href'),'https://example.com/docs');
-  assert.equal(await preview2.locator('a.v5-btn').first().getAttribute('target'),'_blank');
+  const previewDocs=preview2.locator('a.v5-btn[href="https://example.com/docs"]');
+  await previewDocs.waitFor({state:'visible'});
+  assert.equal(await previewDocs.getAttribute('href'),'https://example.com/docs');
+  assert.equal(await previewDocs.getAttribute('target'),'_blank');
   await page.click('#closePreview');
 
   assert.deepEqual(pageErrors,[],`Browser page errors:\n${pageErrors.join('\n')}`);
