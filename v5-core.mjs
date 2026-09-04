@@ -15,6 +15,8 @@ export const makeHeading=(text='Heading',level=2)=>node('heading',{text,level,li
 export const makeText=(text='Text')=>node('text',{text,link:linkNone()});
 export const makeButton=(text='Button')=>node('button',{text,link:linkNone(),variant:'filled',size:'md',icon:'',iconPos:'right'});
 export const makeImage=(src='',alt='Image')=>node('image',{src,alt,fit:'cover',position:'50% 50%',caption:'',link:linkNone(),lightbox:false,lazy:true});
+export function makeImageTextItem(index=1){const c=container([makeImage('',`Image ${index}`),makeHeading(`Заголовок ${index}`,3),makeText('Краткое описание элемента.'),makeButton('Подробнее')],{gap:12});Object.assign(c.style.base,{padding:'16px',border:'1px solid #dfe3ec',borderRadius:'16px'});c.props.repeatItem='imageText';return c}
+export function makeImageTextGrid(count=6){const safe=Math.max(1,Math.min(500,Number(count)||1)),grid=container(Array.from({length:safe},(_,i)=>makeImageTextItem(i+1)),{gap:16});grid.props.repeatTemplate='imageText';grid.props.itemCount=safe;grid.style.base.display='grid';grid.style.base.gridTemplateColumns='repeat(3,minmax(0,1fr))';grid.style.tablet.gridTemplateColumns='repeat(2,minmax(0,1fr))';grid.style.mobile.gridTemplateColumns='1fr';return grid}
 export const makeSpacer=(size=48)=>node('spacer',{size});
 export const makeDivider=()=>node('divider',{});
 export const makeIcon=(icon='★')=>node('icon',{icon,label:''});
