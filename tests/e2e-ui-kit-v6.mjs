@@ -15,7 +15,7 @@ async function desktop(){
 
   const metrics=await page.evaluate(()=>{
     const rect=sel=>{const r=document.querySelector(sel).getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom}};
-    const overflow=sel=>[...document.querySelectorAll(sel)].map(el=>({text:el.textContent.trim(),client:el.clientWidth,scroll:el.scrollWidth,overflow:getComputedStyle(el).overflow,fontSize:getComputedStyle(el).fontSize,fontWeight:getComputedStyle(el).fontWeight}));
+    const overflow=sel=>[...document.querySelectorAll(sel)].map(el=>({text:el.textContent.trim(),client:el.clientWidth,scroll:el.scrollWidth,fontWeight:getComputedStyle(el).fontWeight}));
     const search=document.querySelector('#blocksPanel .search');
     const input=search.querySelector('input');
     const icon=search.querySelector('span');
@@ -27,8 +27,8 @@ async function desktop(){
       kitLoaded:[...document.styleSheets].some(s=>String(s.href||'').includes('v6-ui-kit.css')),
       left:rect('#leftSidebar'),right:rect('#rightSidebar'),
       leftTabs:overflow('.left-tabs button'),rightTabs:overflow('.right-tabs button'),
-      search:{display:getComputedStyle(search).display,rect:{x:sr.x,y:sr.y,width:sr.width,height:sr.height,right:sr.right,bottom:sr.bottom},input:{x:ir.x,y:ir.y,width:ir.width,height:ir.height,right:ir.right,bottom:ir.bottom},icon:{x:xr.x,y:xr.y,width:xr.width,height:xr.height,right:xr.right,bottom:xr.bottom},placeholder:getComputedStyle(input,'::placeholder').color},
-      brand:{size:getComputedStyle(document.querySelector('.brand-name')).fontSize,weight:getComputedStyle(document.querySelector('.brand-name')).fontWeight},
+      search:{display:getComputedStyle(search).display,rect:{x:sr.x,y:sr.y,width:sr.width,height:sr.height,right:sr.right,bottom:sr.bottom},input:{x:ir.x,y:ir.y,width:ir.width,height:ir.height,right:ir.right,bottom:ir.bottom},icon:{x:xr.x,y:xr.y,width:xr.width,height:xr.height,right:xr.right,bottom:xr.bottom}},
+      brandWeight:getComputedStyle(document.querySelector('.brand-name')).fontWeight,
       actionWeight:getComputedStyle(document.querySelector('#newBtn')).fontWeight,
       canvas:{stageLeft:stage.left,stageRight:stage.right,frameLeft:frame.left,frameRight:frame.right}
     };
@@ -43,7 +43,7 @@ async function desktop(){
   assert.ok(metrics.search.input.x>metrics.search.icon.x,'search input must stay beside the icon');
   assert.ok(metrics.search.input.y>=metrics.search.rect.y&&metrics.search.input.bottom<=metrics.search.rect.bottom+1,'search input is vertically outside its control');
   assert.ok(Math.abs((metrics.search.icon.y+metrics.search.icon.height/2)-(metrics.search.input.y+metrics.search.input.height/2))<3,'search icon and text are not vertically aligned');
-  assert.ok(Number.parseInt(metrics.brand.weight)<=800,'brand typography is too heavy');
+  assert.ok(Number.parseInt(metrics.brandWeight)<=800,'brand typography is too heavy');
   assert.ok(Number.parseInt(metrics.actionWeight)<=700,'toolbar typography is too heavy');
   assert.ok(metrics.canvas.frameLeft>=metrics.canvas.stageLeft-1&&metrics.canvas.frameRight<=metrics.canvas.stageRight+1,'desktop canvas is clipped behind a pinned sidebar');
   assert.deepEqual(errors,[],`UI kit desktop page errors:\n${errors.join('\n')}`);
