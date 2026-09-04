@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {dropZoneFromRatio} from '../v5-navigator-dnd.mjs';
 import {buildGradient,buildShadow,buildAnimation} from '../v5-visual-editors.mjs';
-import {defaultProject,preset,makeButton} from '../v5-model.mjs';
+import {defaultProject,preset,makeButton,walk} from '../v5-model.mjs';
 import {deepAuditProject} from '../v5-deep-audit.mjs';
+import {exportedDocument} from '../v5-render.mjs';
 
 test('navigator drop zones distinguish before inside after',()=>{
   assert.equal(dropZoneFromRatio(.1,true,true),'before');
@@ -38,4 +39,19 @@ test('deep audit catches long SEO title and insecure link',()=>{
   assert.ok(result.issues.some(x=>/SEO title is long/.test(x.msg)));
   assert.ok(result.issues.some(x=>/HTTPS/.test(x.msg)));
   assert.ok(result.score<100);
+});
+
+test('advanced navigation settings are rendered into export',()=>{
+  const project=defaultProject(),page=project.pages[0];
+  let nav=null;walk(page.blocks[0].root,n=>{if(n.type==='nav')nav=n});
+  assert.ok(nav);
+  Object.assign(nav.props,{logoWidth:210,logoHeight:58,desktopGap:34,mobilePanel:'left',mobilePanelWidth:360,mobileIconPosition:'center',mobileIconSize:31,background:'#112233',textColor:'#fefefe'});
+  nav.props.cta={enabled:true,text:'Open docs',variant:'outline',position:'right',link:{type:'url',value:'example.com/docs',newTab:true,nofollow:false}};
+  const html=exportedDocument(project,page);
+  assert.match(html,/--nav-logo-w:210px/);
+  assert.match(html,/--nav-mobile-w:360px/);
+  assert.match(html,/data-panel="left"/);
+  assert.match(html,/data-icon-pos="center"/);
+  assert.match(html,/https:\/\/example\.com\/docs/);
+  assert.match(html,/Open docs/);
 });
