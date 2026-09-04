@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {PREMIUM_READY_TYPES,PREMIUM_BLOCK_META,makePremiumPreset} from '../v6-premium-blocks.mjs';
-import {preset} from '../v5-model.mjs';
+import {preset,defaultProject} from '../v5-model.mjs';
+import {exportedDocument} from '../v5-export.mjs';
 
 function types(root,out=[]){if(!root)return out;out.push(root.type);for(const child of root.children||[])types(child,out);return out}
 
@@ -33,4 +34,15 @@ test('premium variants do not mutate legacy ready block presets',()=>{
   assert.ok(legacy);
   assert.notEqual(legacy.premiumVariant,true);
   assert.equal(legacy.preset,'hero');
+});
+
+test('premium blocks retain responsive styles and functional markup in static export',()=>{
+  const project=defaultProject(),page=project.pages[0];
+  page.blocks=[makePremiumPreset('premiumHeroSaas'),makePremiumPreset('premiumMediaSplit'),makePremiumPreset('premiumContactConversion')];
+  const html=exportedDocument(project,page);
+  assert.match(html,/Turn a strong idea into a premium digital experience/);
+  assert.match(html,/class="[^"]*v5-video/);
+  assert.match(html,/data-v5-form="1"/);
+  assert.match(html,/@media\(max-width:760px\)/);
+  assert.match(html,/data-v5-style=/);
 });
