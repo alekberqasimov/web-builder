@@ -35,6 +35,7 @@ jobs:
           node --check tests/e2e-ux-v6.mjs
           node --check tests/e2e-custom-v6.mjs
           node --check tests/e2e-site-languages-v6.mjs
+          node --check tests/e2e-theme-v6.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {defaultProject,addPageTranslation,addSiteLanguage,pageFile} from './v5-model.mjs';
@@ -87,9 +88,10 @@ jobs:
           set -e
           rm -rf _site
           mkdir -p _site
-          cp index.html v6.css v6-ux.css v6-*.mjs v5-*.mjs .nojekyll _site/
+          cp index.html v6.css v6-ux.css v6-theme.css v6-*.mjs v5-*.mjs .nojekyll _site/
           sed -E -i "s#href=\"v6.css(\?[^\"]*)?\"#href=\"v6.css?v=${GITHUB_SHA}\"#" _site/index.html
           sed -E -i "s#href=\"v6-ux.css(\?[^\"]*)?\"#href=\"v6-ux.css?v=${GITHUB_SHA}\"#" _site/index.html
+          sed -E -i "s#href=\"v6-theme.css(\?[^\"]*)?\"#href=\"v6-theme.css?v=${GITHUB_SHA}\"#" _site/index.html
           sed -E -i "s#src=\"v6-app.mjs(\?[^\"]*)?\"#src=\"v6-app.mjs?v=${GITHUB_SHA}\"#" _site/index.html
           sed -E -i "s#src=\"v6-ux.mjs(\?[^\"]*)?\"#src=\"v6-ux.mjs?v=${GITHUB_SHA}\"#" _site/index.html
           sed -E -i "s#src=\"v6-site-languages.mjs(\?[^\"]*)?\"#src=\"v6-site-languages.mjs?v=${GITHUB_SHA}\"#" _site/index.html
@@ -103,11 +105,14 @@ jobs:
           grep -q "Web Builder v6.0" _site/index.html
           grep -q "v6.css?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-ux.css?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v6-theme.css?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-app.mjs?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-ux.mjs?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-site-languages.mjs?v=${GITHUB_SHA}" _site/index.html
+          grep -q 'id="themeToggle"' _site/index.html
           test -f _site/v6.css
           test -f _site/v6-ux.css
+          test -f _site/v6-theme.css
           test -f _site/v6-app.mjs
           test -f _site/v6-ux.mjs
           test -f _site/v6-custom-sections.mjs
@@ -161,6 +166,7 @@ jobs:
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-ux-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-custom-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-site-languages-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-theme-v6.mjs
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
