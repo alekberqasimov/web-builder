@@ -9,6 +9,24 @@ const errors=[];
 const watch=p=>p.on('pageerror',e=>errors.push(String(e?.stack||e)));
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 
+async function realMouseDrag(page,source,target,{targetY=.7}={}){
+  await source.scrollIntoViewIfNeeded();
+  await target.scrollIntoViewIfNeeded();
+  const sb=await source.boundingBox(),tb=await target.boundingBox();
+  assert.ok(sb&&tb,'mouse DnD geometry unavailable');
+  const sx=sb.x+sb.width/2,sy=sb.y+sb.height/2;
+  const tx=tb.x+Math.min(Math.max(24,tb.width*.35),Math.max(24,tb.width-24));
+  const ty=tb.y+Math.max(12,Math.min(tb.height-12,tb.height*targetY));
+  await page.mouse.move(sx,sy);
+  await page.mouse.down();
+  await page.mouse.move(sx+10,sy+10,{steps:4});
+  await page.mouse.move((sx+tx)/2,(sy+ty)/2,{steps:8});
+  await page.mouse.move(tx,ty,{steps:12});
+  await page.waitForTimeout(80);
+  await page.mouse.up();
+  await page.waitForTimeout(180);
+}
+
 async function desktopSuite(){
   const context=await browser.newContext({viewport:{width:1440,height:1000},acceptDownloads:true});
   const page=await context.newPage();watch(page);
@@ -23,8 +41,7 @@ async function desktopSuite(){
   await sourceBlock.hover();
   const handle=sourceBlock.locator('.v5-block-drag');
   await handle.waitFor({state:'visible'});
-  await handle.dragTo(targetBlock,{targetPosition:{x:24,y:24}});
-  await page.waitForTimeout(150);
+  await realMouseDrag(page,handle,targetBlock,{targetY:.82});
   const afterDrag=await blocks.evaluateAll(xs=>xs.map(x=>x.dataset.blockId));
   assert.notDeepEqual(afterDrag,beforeOrder,'mouse block DnD did not reorder blocks');
   await page.click('#undoBtn');
@@ -39,8 +56,7 @@ async function desktopSuite(){
   const target=page.locator(`#canvas>[data-block-id]:not([data-block-id="${sourceBlockId}"]) .v5-container[data-node-id]`).first();
   const targetId=await target.getAttribute('data-node-id');
   assert.ok(sourceId&&targetId,'could not resolve element DnD source/target');
-  await source.dragTo(target,{targetPosition:{x:30,y:40}});
-  await page.waitForTimeout(150);
+  await realMouseDrag(page,source,target,{targetY:.5});
   assert.equal(await page.locator(`#canvas [data-node-id="${targetId}"] [data-node-id="${sourceId}"]`).count(),1,'mouse element DnD did not move element into target container');
   await page.click('#undoBtn');
   assert.equal(await page.locator(`#canvas [data-node-id="${targetId}"] [data-node-id="${sourceId}"]`).count(),0,'Undo did not reverse element DnD');
@@ -131,7 +147,6 @@ async function touchSuite(){
   const page=await context.newPage();watch(page);
   await page.goto(base,{waitUntil:'domcontentloaded'});
   await page.waitForSelector('#canvas .v5-heading[data-node-id]',{timeout:15000});
-  // Open editor panels on narrow viewport so canvas is interactable.
   await page.evaluate(()=>document.body.classList.remove('left-collapsed','right-collapsed'));
   const source=page.locator('#canvas .v5-heading[data-node-id]').first();
   const info=await source.evaluate(el=>({nodeId:el.dataset.nodeId,blockId:el.closest('[data-block-id]').dataset.blockId}));
