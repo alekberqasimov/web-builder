@@ -10,6 +10,7 @@ import {bindVisualEditors,renderVisualEditors} from './v5-visual-editors.mjs';
 import {localizeUi} from './v5-localize.mjs';
 import {bindDeepAudit,renderDeepAudit} from './v5-deep-audit.mjs';
 import {bindAssetManager,renderAssetManager} from './v5-assets.mjs';
+import {bindSmartGuides} from './v5-smart-guides.mjs';
 
 function applyTranslations(){document.documentElement.lang=state.project?.uiLang||'ru';const map={blocksTab:'blocks',elementsTab:'elements',pagesTab:'pages',blockTab:'block',elementTab:'element',pageTab:'page',seoTab:'seo',siteTab:'site',newBtn:'newProject',previewBtn:'preview',downloadBtn:'download'};for(const[id,k]of Object.entries(map)){const el=$('#'+id);if(el)el.textContent=tr(k)}if($('#leftTitle'))$('#leftTitle').textContent=tr(state.activeLeft);if($('#rightTitle'))$('#rightTitle').textContent=tr('settings')}
 function updateSaveStatus(){if($('#saveStatus'))$('#saveStatus').textContent=state.saving?'Saving…':tr('saved')}
@@ -37,7 +38,7 @@ function bind(){
   $('#rightSidebar').addEventListener('input',e=>{if(e.target.matches('[data-b="name"]'))handleMainInspectorChange(e)});
   bindElementInspectorEvents();
   $('#navigatorTree').onclick=navigatorClick;$('#navigatorTree').ondblclick=navigatorRename;
-  bindDnD();bindNavigatorDnD();bindLibraryExtras();bindVisualEditors();bindDeepAudit();bindAssetManager();
+  bindDnD();bindNavigatorDnD();bindLibraryExtras();bindVisualEditors();bindDeepAudit();bindAssetManager();bindSmartGuides();
   $$('[data-device]').forEach(b=>b.onclick=()=>{state.device=b.dataset.device;$$('[data-device]').forEach(x=>x.classList.toggle('active',x===b));$('#customWidth').value='';$('#canvasFrame').style.width='';renderAll()});
   $('#customWidth').onchange=e=>{const v=Math.max(280,Math.min(1920,Number(e.target.value)||0));if(v){$('#canvasFrame').style.width=v+'px';$$('[data-device]').forEach(x=>x.classList.remove('active'))}};
   $('#zoomSelect').onchange=e=>{const v=e.target.value;$('#canvasFrame').style.zoom=v==='fit'?'':v;};
