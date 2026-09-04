@@ -34,7 +34,7 @@ try{
 
   await page.goto(base,{waitUntil:'domcontentloaded'});
   await page.waitForSelector('#canvas [data-block-id]',{timeout:15000});
-  assert.match(await page.locator('.version').innerText(),/^v5\./);
+  assert.match(await page.locator('.version').innerText(),/^v6\./);
 
   // Public mobile menu must actually open in Preview.
   await page.click('#previewBtn');
@@ -94,7 +94,7 @@ try{
   await page.click('#closePreview');
 
   assert.deepEqual(pageErrors,[],`Browser page errors:\n${pageErrors.join('\n')}`);
-  console.log('V5_E2E_OK');
+  console.log('V6_E2E_OK');
 }finally{
   await browser.close();
 }
