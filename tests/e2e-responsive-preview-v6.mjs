@@ -11,8 +11,7 @@ function columnCount(value=''){return value.trim()?value.trim().split(/\s+/).len
 
 async function featuresMetrics(){
   return page.evaluate(()=>{
-    const toolbar=[...document.querySelectorAll('#canvas .v5-block-name')].find(el=>el.textContent.trim()==='Features');
-    const section=toolbar?.closest('.v5-section');
+    const section=document.querySelector('#canvas .v5-section.selected');
     const root=section?.querySelector('.v5-section-inner > .v5-container');
     const grid=root?.children?.[2];
     if(!section||!root||!grid||!grid.classList.contains('v5-container')||grid.children.length!==3)return null;
@@ -35,8 +34,13 @@ try{
   await page.waitForSelector('#canvas [data-block-id]',{timeout:15000});
   await page.waitForFunction(()=>!!document.querySelector('#editorResponsiveStyle'));
 
+  // The default document is intentionally allowed to evolve. Add the exact preset under test through the real library UI.
+  await page.click('#blocksTab');
+  await page.locator('[data-add-block="features"]').click();
+  await page.locator('#canvas .v5-section.selected').waitFor({state:'visible'});
+
   let m=await featuresMetrics();
-  assert.ok(m,'Features block was not found');
+  assert.ok(m,'Features block added from the library did not expose the expected three-card grid');
   assert.equal(m.simulatorLoaded,true,'responsive canvas simulator did not load');
   assert.equal(m.canvas.device,'desktop');
   assert.equal(columnCount(m.columns),3,'desktop Features must render in three columns');
@@ -46,13 +50,13 @@ try{
   await page.waitForFunction(()=>document.querySelector('#canvas')?.dataset.device==='tablet');
   await page.waitForTimeout(50);
   m=await featuresMetrics();
-  assert.equal(columnCount(m.columns),2,`tablet Features must render in two columns, got ${m.columns}`);
+  assert.equal(columnCount(m.columns),2,`tablet Features must render in two columns, got ${m?.columns}`);
 
   await page.click('.device-switch [data-device="mobile"]');
   await page.waitForFunction(()=>document.querySelector('#canvas')?.dataset.device==='mobile');
   await page.waitForTimeout(50);
   m=await featuresMetrics();
-  assert.equal(columnCount(m.columns),1,`mobile Features must stack to one column, got ${m.columns}`);
+  assert.equal(columnCount(m.columns),1,`mobile Features must stack to one column, got ${m?.columns}`);
   assert.ok(m.canvas.width<=391,`mobile canvas width is too wide: ${m.canvas.width}`);
   assert.ok(m.section.scrollWidth<=m.section.clientWidth+1,'Features section overflows horizontally on simulated mobile');
   assert.ok(m.grid.scrollWidth<=m.grid.clientWidth+1,'Features grid overflows horizontally on simulated mobile');
