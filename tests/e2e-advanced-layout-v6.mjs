@@ -57,12 +57,32 @@ try{
 
   for(const width of [320,360,390,430]){
     await page.setViewportSize({width,height:820});
-    await page.waitForTimeout(80);
-    if(await page.evaluate(()=>document.body.classList.contains('right-collapsed')))await page.click('#rightToggle');
+    await page.waitForTimeout(100);
+
+    const closedGeom=await page.evaluate(()=>({viewport:innerWidth,doc:document.documentElement.scrollWidth}));
+    assert.ok(closedGeom.doc<=closedGeom.viewport+1,`${width}px closed drawer created document overflow: ${JSON.stringify(closedGeom)}`);
+
+    const visible=await page.evaluate(()=>{
+      const side=document.querySelector('.right-sidebar');
+      const r=side.getBoundingClientRect();
+      const cs=getComputedStyle(side);
+      return cs.visibility!=='hidden'&&r.left<innerWidth-1&&r.right>1;
+    });
+    if(!visible)await page.click('#rightToggle');
+    await page.waitForFunction(()=>{
+      const side=document.querySelector('.right-sidebar');
+      const r=side.getBoundingClientRect();
+      const cs=getComputedStyle(side);
+      return cs.visibility!=='hidden'&&r.left>=-1&&r.right<=innerWidth+1;
+    });
     await page.waitForSelector('#v6AdvancedLayout');
-    const geom=await page.evaluate(()=>{const el=document.querySelector('#v6AdvancedLayout'),r=el.getBoundingClientRect(),side=document.querySelector('.right-sidebar');return{left:r.left,right:r.right,width:r.width,viewport:innerWidth,doc:document.documentElement.scrollWidth,sideScroll:side.scrollWidth,sideClient:side.clientWidth}});
-    assert.ok(geom.right<=geom.viewport+1&&geom.left>=-1,`${width}px advanced layout escaped viewport: ${JSON.stringify(geom)}`);
-    assert.ok(geom.doc<=geom.viewport+1,`${width}px document overflow: ${JSON.stringify(geom)}`);
+
+    const geom=await page.evaluate(()=>{
+      const el=document.querySelector('#v6AdvancedLayout'),r=el.getBoundingClientRect(),side=document.querySelector('.right-sidebar'),sr=side.getBoundingClientRect();
+      return{left:r.left,right:r.right,width:r.width,viewport:innerWidth,doc:document.documentElement.scrollWidth,sideLeft:sr.left,sideRight:sr.right,sideScroll:side.scrollWidth,sideClient:side.clientWidth};
+    });
+    assert.ok(geom.right<=geom.viewport+1&&geom.left>=-1,`${width}px open advanced layout escaped viewport: ${JSON.stringify(geom)}`);
+    assert.ok(geom.doc<=geom.viewport+1,`${width}px open drawer document overflow: ${JSON.stringify(geom)}`);
     assert.ok(geom.sideScroll<=geom.sideClient+1,`${width}px inspector overflow: ${JSON.stringify(geom)}`);
   }
 
