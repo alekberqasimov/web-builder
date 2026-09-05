@@ -123,9 +123,12 @@ async function desktopSuite(){
   page.once('dialog',d=>d.accept('Template Clone'));await tpl.locator('[data-page-template-add]').click();await page.waitForFunction(()=>document.querySelector('#pageLabel')?.textContent.includes('Template Clone'));
   assert.ok(await page.locator('#canvas .v5-nav').count()>=1,'Global Header missing on template page');assert.ok(await blocks.count()>=2,'Page template content missing');
 
+  const siteUrl=page.locator('#siteInspector input[data-site="siteUrl"]');await siteUrl.fill('https://qa.example');await siteUrl.dispatchEvent('change');await page.waitForTimeout(120);
   const [download]=await Promise.all([page.waitForEvent('download',{timeout:15000}),page.click('#downloadBtn')]);
   assert.match(download.suggestedFilename(),/\.zip$/i);const path=await download.path();assert.ok(path&&((await stat(path)).size>500),'ZIP missing or too small');
-  const listing=execFileSync('unzip',['-l',path],{encoding:'utf8'});for(const f of['index.html','project.json','robots.txt','sitemap.xml'])assert.ok(listing.includes(f),`ZIP missing ${f}`);
+  const listing=execFileSync('unzip',['-l',path],{encoding:'utf8'});for(const f of['index.html','robots.txt','sitemap.xml'])assert.ok(listing.includes(f),`ZIP missing ${f}`);assert.ok(!listing.includes('project.json'),'Production ZIP should not expose editable project.json by default');
+  const includeProject=page.locator('#v6SiteSeo input[data-v6-export-check="includeProjectJson"]');await includeProject.check();await includeProject.dispatchEvent('change');await page.waitForTimeout(120);
+  const [sourceDownload]=await Promise.all([page.waitForEvent('download',{timeout:15000}),page.click('#downloadBtn')]);const sourcePath=await sourceDownload.path();const sourceListing=execFileSync('unzip',['-l',sourcePath],{encoding:'utf8'});assert.ok(sourceListing.includes('project.json'),'ZIP should include project.json when explicitly enabled');
   await context.close();
 }
 
