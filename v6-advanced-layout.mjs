@@ -15,7 +15,7 @@ export function inheritedLayoutValue(target,key,device='desktop'){
   if(device==='desktop')return base;
   const tablet=style.tablet?.[key]??'';
   if(device==='tablet')return tablet||base;
-  return style.mobile?.[key]??tablet||base;
+  return (style.mobile?.[key]??'')||tablet||base;
 }
 export function setLayoutValue(target,key,value,device='desktop'){
   if(!target?.style)return false;
