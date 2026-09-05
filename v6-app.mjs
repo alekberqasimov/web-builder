@@ -27,6 +27,7 @@ import {bindAssetOrganizer,enhanceAssetOrganizer} from './v5-asset-organizer.mjs
 import {bindIconLibrary,renderIconLibrary} from './v5-icon-library.mjs';
 import {bindAnimationPro,renderAnimationPro} from './v5-animation-pro.mjs';
 import {bindPerformanceSettings,renderPerformanceSettings} from './v5-performance.mjs';
+import {bindDesignSystem,renderDesignSystem} from './v6-design-system.mjs';
 
 const COMPACT_QUERY='(max-width:1100px)';
 let wasCompact=matchMedia(COMPACT_QUERY).matches;
@@ -109,7 +110,7 @@ function enhanceUi(){
   enhanceFreeCanvas();
   if(state.activeRight==='element')renderBulkActions();
   if(state.activeRight==='site'){
-    renderDeepAudit();renderResponsiveAudit();renderAssetManager();enhanceAssetOrganizer();renderMyBlocksManager();renderPageTemplates();renderPerformanceSettings();
+    renderDesignSystem();renderDeepAudit();renderResponsiveAudit();renderAssetManager();enhanceAssetOrganizer();renderMyBlocksManager();renderPageTemplates();renderPerformanceSettings();
   }
   localizeUi();localizeV54();localizeV55();
 }
@@ -173,7 +174,7 @@ function bind(){
   $('#navigatorTree').onclick=navigatorClick;
   $('#navigatorTree').ondblclick=navigatorRename;
 
-  bindPointerBlockDnD();bindPointerElementDnD();bindDnD();bindNavigatorDnD();bindLibraryExtras();bindVisualEditors();bindDeepAudit();bindAssetManager();bindSmartGuides();bindMyBlocksManager();bindBulkActions();bindNavigatorControls();bindPageTemplates();bindResponsiveAudit();bindProKeyboard();bindFreePosition();bindAssetOrganizer();bindIconLibrary();bindAnimationPro();bindPerformanceSettings();
+  bindPointerBlockDnD();bindPointerElementDnD();bindDnD();bindNavigatorDnD();bindLibraryExtras();bindVisualEditors();bindDeepAudit();bindAssetManager();bindSmartGuides();bindMyBlocksManager();bindBulkActions();bindNavigatorControls();bindPageTemplates();bindResponsiveAudit();bindProKeyboard();bindFreePosition();bindAssetOrganizer();bindIconLibrary();bindAnimationPro();bindPerformanceSettings();bindDesignSystem();
 
   $$('[data-device]').forEach(b=>b.onclick=()=>{
     state.device=b.dataset.device;
