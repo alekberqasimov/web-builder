@@ -21,7 +21,7 @@ test('reuse config is non-destructive for existing projects',()=>{
 test('block component sync updates all instances while preserving concrete ids',()=>{
   const p=defaultProject(),page=p.pages[0],source=page.blocks[1];
   assert.equal(canCreateComponent(p,page,source.id,''),true,`default hero unexpectedly rejected: ${JSON.stringify({name:source.name,globalRole:source.globalRole,componentRef:source.componentRef})}`);
-  const def=createComponent(p,page,source.id,'Reusable Hero');
+  const def=createComponent(p,page,source.id,'','Reusable Hero');
   assert.ok(def);
   const copy=addComponentInstance(p,def.id,page);
   assert.ok(copy);
@@ -38,7 +38,7 @@ test('block component sync updates all instances while preserving concrete ids',
 test('detach makes a component instance local and delete keeps page content',()=>{
   const p=defaultProject(),page=p.pages[0],source=page.blocks[1];
   assert.equal(canCreateComponent(p,page,source.id,''),true);
-  const def=createComponent(p,page,source.id,'Hero Symbol');
+  const def=createComponent(p,page,source.id,'','Hero Symbol');
   assert.ok(def);
   const copy=addComponentInstance(p,def.id,page);
   assert.ok(copy);
