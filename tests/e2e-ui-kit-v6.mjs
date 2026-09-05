@@ -83,15 +83,23 @@ async function desktop(){
   assert.ok(designExport.html.includes('background:#0F766E'),'global primary did not reach exported CSS');
   assert.ok(designExport.html.includes('width:min(100%,1200px)'),'global container width did not reach exported CSS');
 
-  // Layout Engine: a selected container gets responsive flex/grid controls and auto-fit behavior.
-  await page.click('#elementTab');
-  const firstContainer=page.locator('#canvas .v5-section.selected .v5-container').first();
-  await firstContainer.click({position:{x:8,y:8}});
+  // Layout Engine: select the actual root container through Navigator, then edit it.
+  const rootContainerId=await page.evaluate(async()=>{
+    const appSrc=[...document.scripts].map(s=>s.src).find(src=>src.includes('/v6-app.mjs'))||'';
+    const q=appSrc?new URL(appSrc).search:'';
+    const runtime=await import('./v5-runtime.mjs'+q);
+    const project=runtime.state.project,pg=project.pages.find(p=>p.id===project.currentPageId)||project.pages[0];
+    return pg.blocks.find(b=>b.id===runtime.state.selectedBlockId)?.root?.id||'';
+  });
+  assert.ok(rootContainerId,'premium block root container was not found');
+  await page.click('#navigatorTab');
+  await page.waitForSelector(`#navigatorTree [data-tree-select-node="${rootContainerId}"]`);
+  await page.click(`#navigatorTree [data-tree-select-node="${rootContainerId}"]`);
   await page.waitForSelector('#elementInspector [data-v6-direction]');
   await page.selectOption('#elementInspector [data-v6-direction]','row');
-  await page.waitForFunction(()=>getComputedStyle(document.querySelector('#canvas .v5-section.selected .v5-container')).flexDirection==='row');
+  await page.waitForFunction(id=>getComputedStyle(document.querySelector(`#canvas [data-node-id="${id}"]`)).flexDirection==='row',rootContainerId);
   await page.click('#elementInspector [data-v6-grid-auto="240"]');
-  await page.waitForFunction(()=>getComputedStyle(document.querySelector('#canvas .v5-section.selected .v5-container')).gridTemplateColumns!=='none');
+  await page.waitForFunction(id=>getComputedStyle(document.querySelector(`#canvas [data-node-id="${id}"]`)).gridTemplateColumns!=='none',rootContainerId);
   const layoutState=await page.evaluate(async()=>{
     const appSrc=[...document.scripts].map(s=>s.src).find(src=>src.includes('/v6-app.mjs'))||'';
     const q=appSrc?new URL(appSrc).search:'';
