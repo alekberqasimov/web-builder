@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {defaultProject,addPageTranslation} from '../v5-model.mjs';
 import {exportedDocument} from '../v5-export.mjs';
 import {ensureSeoConfig,robotsText,sitemapXml,schemaPayload,publicPageUrl,seoAuditIssues} from '../v6-seo.mjs';
+import {defaultSiteLanguage} from '../v5-languages.mjs';
 
 function projectFixture(){
   const p=defaultProject();
@@ -10,8 +11,9 @@ function projectFixture(){
   p.siteUrl='https://example.com';
   ensureSeoConfig(p);
   const home=p.pages[0];
+  const defaultLang=defaultSiteLanguage(p);
   home.name='Home';
-  home.lang='en';
+  home.lang=defaultLang;
   home.seo.title='Acme Studio — Premium Websites';
   home.seo.description='Premium commercial websites for modern companies.';
   home.seo.ogTitle='Acme Studio';
@@ -22,7 +24,7 @@ function projectFixture(){
   p.siteSeo.defaultOgImage='https://example.com/assets/default.jpg';
   p.siteSeo.twitterSite='acmestudio';
   p.siteSeo.entity={type:'Organization',name:'Acme Studio',logo:'https://example.com/assets/logo.png',email:'hello@example.com',telephone:'+1 555 0100',sameAs:'https://www.linkedin.com/company/acme'};
-  return {p,home};
+  return {p,home,defaultLang};
 }
 
 test('production HTML exports complete discoverability head',()=>{
@@ -75,17 +77,19 @@ test('sitemap excludes noindex and designated 404 pages',()=>{
   assert.doesNotMatch(xml,/not-found/);
 });
 
-test('multilingual pages export reciprocal hreflang in HTML and sitemap',()=>{
-  const {p,home}=projectFixture();
-  const az=addPageTranslation(p,home,'az');
-  az.seo.title='Acme Studio AZ';az.seo.description='Azərbaycan versiyası';
+test('multilingual pages export reciprocal hreflang and x-default in HTML and sitemap',()=>{
+  const {p,home,defaultLang}=projectFixture();
+  const altLang=defaultLang==='az'?'en':'az';
+  const alt=addPageTranslation(p,home,altLang);
+  alt.seo.title='Acme Studio Alternate';alt.seo.description='Alternate language version';
   const html=exportedDocument(p,home);
-  assert.match(html,/hreflang="en"/);
-  assert.match(html,/hreflang="az"/);
+  assert.match(html,new RegExp(`hreflang="${defaultLang}"`));
+  assert.match(html,new RegExp(`hreflang="${altLang}"`));
   assert.match(html,/hreflang="x-default"/);
   const xml=sitemapXml(p);
   assert.match(xml,/xmlns:xhtml="http:\/\/www\.w3\.org\/1999\/xhtml"/);
-  assert.match(xml,/hreflang="az"/);
+  assert.match(xml,new RegExp(`hreflang="${altLang}"`));
+  assert.match(xml,/hreflang="x-default"/);
 });
 
 test('404 export can be forced non-indexable with no canonical, alternates or schema',()=>{
@@ -106,9 +110,9 @@ test('SEO audit flags dangerous crawl and invalid publishing configuration',()=>
   assert.ok(issues.some(x=>/Manual canonical URL/.test(x.msg)));
 });
 
-test('publicPageUrl produces stable root and page URLs',()=>{
+test('publicPageUrl produces stable root and page URLs for configured default language',()=>{
   const {p,home}=projectFixture();
   assert.equal(publicPageUrl(p,home),'https://example.com/');
   const page=structuredClone(home);page.id='about';page.home=false;page.slug='about';
-  assert.match(publicPageUrl(p,page),/^https:\/\/example\.com\/about/);
+  assert.equal(publicPageUrl(p,page),'https://example.com/about.html');
 });
