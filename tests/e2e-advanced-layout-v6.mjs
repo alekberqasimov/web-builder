@@ -13,8 +13,8 @@ try{
   await page.waitForSelector('#canvas [data-node-id]');
 
   const container=page.locator('#canvas .v5-container[data-node-id]').first();
-  await container.click({position:{x:20,y:20}});
-  await page.waitForSelector('#v6AdvancedLayout');
+  await container.evaluate(el=>el.dispatchEvent(new MouseEvent('click',{bubbles:true})));
+  await page.waitForSelector('#v6AdvancedLayout [data-al-key-button="display"][data-al-value="grid"]');
   assert.match(await page.textContent('#v6AdvancedLayout'),/Advanced Layout/);
 
   await page.click('[data-al-key-button="display"][data-al-value="grid"]');
@@ -42,8 +42,8 @@ try{
   assert.equal(await page.locator('#v6AdvancedLayout [data-al-key="gridTemplateColumns"]').inputValue(),'repeat(3, minmax(0, 1fr))','tablet edit must not rewrite desktop');
 
   const heading=page.locator('#canvas .v5-heading[data-node-id]').first();
-  await heading.click();
-  await page.waitForSelector('#v6AdvancedLayout');
+  await heading.evaluate(el=>el.dispatchEvent(new MouseEvent('click',{bubbles:true})));
+  await page.waitForSelector('#v6AdvancedLayout [data-al-key="flexGrow"]');
   const grow=page.locator('#v6AdvancedLayout [data-al-key="flexGrow"]');
   await grow.fill('1');
   await grow.dispatchEvent('change');
