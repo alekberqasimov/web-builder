@@ -28,8 +28,13 @@ jobs:
           set -e
           bash scripts/build-pages.sh "$GITHUB_SHA" _site
           test -f _site/v6-reuse.mjs
+          test -f _site/v6-reuse-core.mjs
+          test -f _site/v6-reuse-guard.mjs
           grep -q "v6-reuse.mjs?v=${GITHUB_SHA}" _site/index.html
-          grep -q "v5-model.mjs?v=${GITHUB_SHA}" _site/v6-reuse.mjs
+          grep -q "v6-reuse-core.mjs?v=${GITHUB_SHA}" _site/v6-reuse.mjs
+          grep -q "v6-reuse-guard.mjs?v=${GITHUB_SHA}" _site/v6-reuse.mjs
+          grep -q "v5-model.mjs?v=${GITHUB_SHA}" _site/v6-reuse-core.mjs
+          grep -q "v5-runtime.mjs?v=${GITHUB_SHA}" _site/v6-reuse-guard.mjs
           for f in _site/v6-*.mjs _site/v5-*.mjs; do node --check "$f"; done
 
       - name: Full browser regression
