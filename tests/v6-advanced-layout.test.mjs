@@ -5,6 +5,11 @@ import {collectCss} from '../v5-public.mjs';
 import {layoutDeviceKey,ownLayoutValue,inheritedLayoutValue,setLayoutValue,resetLayoutDevice} from '../v6-advanced-layout.mjs';
 
 function firstNode(block,type){let hit=null;walk(block.root,n=>{if(!hit&&n.type===type)hit=n});return hit}
+function escapeRe(v=''){return String(v).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
+function assertResponsiveRule(css,width,id,declaration){
+  const re=new RegExp(`@media\\(max-width:${width}px\\)\\{\\[data-v5-style="${escapeRe(id)}"\\]\\{[^}]*${escapeRe(declaration)}[^}]*\\}\\}`);
+  assert.match(css,re,`missing ${width}px rule for ${id}: ${declaration}`);
+}
 
 test('advanced layout uses existing base tablet mobile style buckets',()=>{
   const p=defaultProject(),container=firstNode(p.pages[0].blocks[1],'container');
@@ -57,10 +62,10 @@ test('grid and flex child properties export as responsive static CSS',()=>{
   assert.ok(css.includes('grid-auto-flow:row dense'));
   assert.ok(css.includes('justify-items:center'));
   assert.ok(css.includes('place-content:space-between'));
-  assert.ok(css.includes(`@media(max-width:760px){[data-v5-style="${container.id}"]{grid-template-columns:1fr}}`));
-  assert.ok(css.includes(`grid-column-end:span 2`));
-  assert.ok(css.includes(`@media(max-width:1180px){[data-v5-style="${child.id}"]{order:2}}`));
-  assert.ok(css.includes(`@media(max-width:760px){[data-v5-style="${child.id}"]{flex-grow:1}}`));
+  assertResponsiveRule(css,760,container.id,'grid-template-columns:1fr');
+  assert.ok(css.includes('grid-column-end:span 2'));
+  assertResponsiveRule(css,1180,child.id,'order:2');
+  assertResponsiveRule(css,760,child.id,'flex-grow:1');
 });
 
 test('reset only clears advanced layout keys for current device',()=>{
