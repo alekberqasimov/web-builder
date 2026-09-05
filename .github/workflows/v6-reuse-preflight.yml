@@ -1,0 +1,61 @@
+name: V6 Reuse Preflight
+
+on:
+  push:
+    branches: [feature/global-components-reusable-styles]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate syntax and model
+        run: |
+          set -e
+          bash -n scripts/build-pages.sh
+          for f in v6-*.mjs v5-*.mjs; do node --check "$f"; done
+          for f in tests/e2e*.mjs; do node --check "$f"; done
+          node --test tests/*.test.mjs
+
+      - name: Build exact production artifact
+        run: |
+          set -e
+          bash scripts/build-pages.sh "$GITHUB_SHA" _site
+          test -f _site/v6-reuse.mjs
+          grep -q "v6-reuse.mjs?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v5-model.mjs?v=${GITHUB_SHA}" _site/v6-reuse.mjs
+          for f in _site/v6-*.mjs _site/v5-*.mjs; do node --check "$f"; done
+
+      - name: Full browser regression
+        run: |
+          set -e
+          npm install --no-save --no-package-lock playwright@1.55.0 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          python3 -m http.server 4173 --directory _site >/tmp/web-builder-v6-reuse.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          READY=0
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then READY=1; break; fi
+            sleep 1
+          done
+          test "$READY" -eq 1
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-reuse-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-layout-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-deep.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-repeatable-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-ux-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-custom-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-site-languages-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-theme-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-ui-kit-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-responsive-preview-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-functional-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-seo-v6.mjs
