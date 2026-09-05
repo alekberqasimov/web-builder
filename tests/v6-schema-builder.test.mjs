@@ -57,6 +57,36 @@ test('FAQ and breadcrumb text become structured graph nodes',()=>{
   assert.deepEqual(webpage.breadcrumb,{'@id':crumbNode['@id']});
 });
 
+test('Google-oriented minimum validation covers LocalBusiness Event Video and Product presets',()=>{
+  const p=project(),page=p.pages[0];
+  const business=addVisualSchema(page,'LocalBusiness');business.id='business';setVisualSchemaField(business,'name','Acme Baku');
+  assert.equal(validateVisualSchema(business).valid,false);
+  setVisualSchemaField(business,'address','Nizami Street 1, Baku');
+  assert.equal(validateVisualSchema(business).valid,true);
+
+  const event=addVisualSchema(page,'Event');event.id='event';setVisualSchemaField(event,'name','Launch Night');
+  assert.equal(validateVisualSchema(event).valid,false);
+  setVisualSchemaField(event,'startDate','2026-10-10T19:00');setVisualSchemaField(event,'location','Baku Convention Center');setVisualSchemaField(event,'locationAddress','Tbilisi Avenue, Baku');
+  assert.equal(validateVisualSchema(event).valid,true);
+
+  const video=addVisualSchema(page,'VideoObject');video.id='video';setVisualSchemaField(video,'name','Builder Demo');
+  assert.equal(validateVisualSchema(video).valid,false);
+  setVisualSchemaField(video,'thumbnailUrl','https://acme.example/video.jpg');setVisualSchemaField(video,'uploadDate','2026-09-05');
+  assert.equal(validateVisualSchema(video).valid,true);
+
+  const product=addVisualSchema(page,'Product');product.id='product-min';setVisualSchemaField(product,'name','Builder Pro');
+  assert.equal(validateVisualSchema(product).valid,false);
+  setVisualSchemaField(product,'offers.price','49');setVisualSchemaField(product,'offers.priceCurrency','USD');
+  assert.equal(validateVisualSchema(product).valid,true);
+
+  const graph=augmentedSchemaPayload(p,page)['@graph'];
+  const businessNode=graph.find(x=>x['@id']==='https://acme.example/#schema-business');
+  const eventNode=graph.find(x=>x['@id']==='https://acme.example/#schema-event');
+  assert.equal(businessNode.address['@type'],'PostalAddress');
+  assert.equal(eventNode.location['@type'],'Place');
+  assert.equal(eventNode.location.address['@type'],'PostalAddress');
+});
+
 test('invalid visual schema is excluded from exported graph',()=>{
   const p=project(),page=p.pages[0],product=addVisualSchema(page,'Product');
   product.id='bad-product';setVisualSchemaField(product,'name','Bad');setVisualSchemaField(product,'url','javascript:alert(1)');
