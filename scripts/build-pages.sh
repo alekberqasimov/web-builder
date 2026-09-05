@@ -17,6 +17,7 @@ sed -E -i "s#src=\"v6-ux.mjs(\?[^\"]*)?\"#src=\"v6-ux.mjs?v=${REV}\"#" "$OUT/ind
 sed -E -i "s#src=\"v6-site-languages.mjs(\?[^\"]*)?\"#src=\"v6-site-languages.mjs?v=${REV}\"#" "$OUT/index.html"
 sed -E -i "s#src=\"v6-responsive-preview.mjs(\?[^\"]*)?\"#src=\"v6-responsive-preview.mjs?v=${REV}\"#" "$OUT/index.html"
 sed -E -i "s#src=\"v6-functional-inspector.mjs(\?[^\"]*)?\"#src=\"v6-functional-inspector.mjs?v=${REV}\"#" "$OUT/index.html"
+sed -E -i "s#src=\"v6-premium-inspector.mjs(\?[^\"]*)?\"#src=\"v6-premium-inspector.mjs?v=${REV}\"#" "$OUT/index.html"
 
 for f in "$OUT"/v5-*.mjs "$OUT"/v6-*.mjs; do
   # Static ES-module imports must share one version identity.
