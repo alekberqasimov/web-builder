@@ -62,13 +62,13 @@ try{
     const closedGeom=await page.evaluate(()=>({viewport:innerWidth,doc:document.documentElement.scrollWidth}));
     assert.ok(closedGeom.doc<=closedGeom.viewport+1,`${width}px closed drawer created document overflow: ${JSON.stringify(closedGeom)}`);
 
-    const visible=await page.evaluate(()=>{
+    const fullyOpen=await page.evaluate(()=>{
       const side=document.querySelector('.right-sidebar');
       const r=side.getBoundingClientRect();
       const cs=getComputedStyle(side);
-      return cs.visibility!=='hidden'&&r.left<innerWidth-1&&r.right>1;
+      return cs.visibility!=='hidden'&&r.left>=-1&&r.right<=innerWidth+1;
     });
-    if(!visible)await page.click('#rightToggle');
+    if(!fullyOpen)await page.click('#rightToggle');
     await page.waitForFunction(()=>{
       const side=document.querySelector('.right-sidebar');
       const r=side.getBoundingClientRect();
