@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {defaultProject,walk,findNode,styleBag} from '../v5-model.mjs';
 import {collectCss} from '../v5-public.mjs';
 import {ensureReuseConfig,createComponent,addComponentInstance,syncComponentInstances,detachSelectedComponent,deleteComponent,createStyleClass,applyStyleClass,detachStyleClass,classUsage,deleteStyleClass,canCreateComponent} from '../v6-reuse.mjs';
+import {enforceComponentReferenceInvariant} from '../v6-reuse-guard.mjs';
 
 function firstNode(block,type){let hit=null;walk(block.root,n=>{if(!hit&&n.type===type)hit=n});return hit}
 
@@ -59,6 +60,24 @@ test('nested component creation is rejected',()=>{
   const def=createComponent(p,page,block.id,child.id,'Heading Symbol');
   assert.ok(def);
   assert.equal(canCreateComponent(p,page,block.id,''),false);
+});
+
+test('component invariant detaches illicit nested references but preserves concrete content',()=>{
+  const p=defaultProject(),page=p.pages[0],source=page.blocks[1];
+  const def=createComponent(p,page,source.id,'','Guarded Hero');
+  assert.ok(def);
+  const nested=firstNode(source,'heading');
+  const originalText=nested.props.text;
+  nested.componentRef='cmp_illicit_nested';
+  def.template.root.children[0].componentRef='cmp_template_nested';
+  const cleared=enforceComponentReferenceInvariant(p);
+  assert.ok(cleared>=2);
+  assert.equal(source.componentRef,def.id,'component root link must stay intact');
+  assert.equal(nested.componentRef,'','nested instance link must detach');
+  assert.equal(nested.props.text,originalText,'nested concrete content must be preserved');
+  let definitionHasRef=false;
+  walk(def.template.root,n=>{if(n.componentRef)definitionHasRef=true});
+  assert.equal(definitionHasRef,false,'component definition must never contain nested references');
 });
 
 test('reusable styles export before local styles so local stays highest priority',()=>{
