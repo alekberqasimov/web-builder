@@ -60,6 +60,68 @@ async function desktop(){
   await page.waitForFunction(()=>getComputedStyle(document.querySelector('#canvas .v5-section.selected h1.v5-heading')).maxWidth==='720px');
   assert.equal(await heroHeading.evaluate(el=>getComputedStyle(el).maxWidth),'720px','Quick Design text measure did not affect the selected heading');
 
+  // Global design system must update the exported theme without rewriting local element styles.
+  await page.click('#siteTab');
+  await page.waitForSelector('#v6DesignSystem');
+  await page.selectOption('#v6DesignSystem [data-v6-ds="preset"]','commerce');
+  await page.waitForFunction(async()=>{
+    const appSrc=[...document.scripts].map(s=>s.src).find(src=>src.includes('/v6-app.mjs'))||'';
+    const q=appSrc?new URL(appSrc).search:'';
+    const runtime=await import('./v5-runtime.mjs'+q);
+    return runtime.state.project?.theme?.designPreset==='commerce';
+  });
+  const designExport=await page.evaluate(async()=>{
+    const appSrc=[...document.scripts].map(s=>s.src).find(src=>src.includes('/v6-app.mjs'))||'';
+    const q=appSrc?new URL(appSrc).search:'';
+    const runtime=await import('./v5-runtime.mjs'+q),exp=await import('./v5-export.mjs'+q);
+    const project=runtime.state.project,page=project.pages.find(p=>p.id===project.currentPageId)||project.pages[0];
+    return{preset:project.theme.designPreset,primary:project.theme.colors.primary,width:project.theme.containerWidth,html:exp.exportedDocument(project,page)};
+  });
+  assert.equal(designExport.preset,'commerce','global design preset did not persist');
+  assert.equal(designExport.primary,'#0F766E','global palette did not apply');
+  assert.equal(designExport.width,1200,'global container width did not apply');
+  assert.ok(designExport.html.includes('background:#0F766E'),'global primary did not reach exported CSS');
+  assert.ok(designExport.html.includes('width:min(100%,1200px)'),'global container width did not reach exported CSS');
+
+  // Layout Engine: select the actual root container through Navigator, then edit it.
+  const rootContainerId=await page.evaluate(async()=>{
+    const appSrc=[...document.scripts].map(s=>s.src).find(src=>src.includes('/v6-app.mjs'))||'';
+    const q=appSrc?new URL(appSrc).search:'';
+    const runtime=await import('./v5-runtime.mjs'+q);
+    const project=runtime.state.project,pg=project.pages.find(p=>p.id===project.currentPageId)||project.pages[0];
+    return pg.blocks.find(b=>b.id===runtime.state.selectedBlockId)?.root?.id||'';
+  });
+  assert.ok(rootContainerId,'premium block root container was not found');
+  await page.click('#navigatorTab');
+  await page.waitForSelector(`#navigatorTree [data-tree-select-node="${rootContainerId}"]`);
+  await page.click(`#navigatorTree [data-tree-select-node="${rootContainerId}"]`);
+  await page.waitForSelector('#elementInspector [data-v6-direction]');
+  await page.selectOption('#elementInspector [data-v6-direction]','row');
+  await page.waitForFunction(id=>getComputedStyle(document.querySelector(`#canvas [data-node-id="${id}"]`)).flexDirection==='row',rootContainerId);
+  await page.click('#elementInspector [data-v6-grid-auto="240"]');
+  await page.waitForFunction(id=>getComputedStyle(document.querySelector(`#canvas [data-node-id="${id}"]`)).gridTemplateColumns!=='none',rootContainerId);
+  const layoutState=await page.evaluate(async()=>{
+    const appSrc=[...document.scripts].map(s=>s.src).find(src=>src.includes('/v6-app.mjs'))||'';
+    const q=appSrc?new URL(appSrc).search:'';
+    const runtime=await import('./v5-runtime.mjs'+q);const n=runtime.currentNode();return{base:n.style.base,mobile:n.style.mobile};
+  });
+  assert.match(String(layoutState.base.gridTemplateColumns),/auto-fit/,'responsive auto-grid model was not written');
+  await page.click('#elementInspector [data-v6-stack-mobile]');
+  const mobileGrid=await page.evaluate(async()=>{
+    const appSrc=[...document.scripts].map(s=>s.src).find(src=>src.includes('/v6-app.mjs'))||'';
+    const q=appSrc?new URL(appSrc).search:'';const runtime=await import('./v5-runtime.mjs'+q);return runtime.currentNode().style.mobile.gridTemplateColumns;
+  });
+  assert.equal(mobileGrid,'1fr','mobile one-column stack was not written to responsive model');
+
+  // Media Studio: image composition and visual treatment must affect the actual canvas element.
+  const heroImage=page.locator('#canvas .v5-section.selected img.v5-img').first();
+  await heroImage.click({position:{x:12,y:12}});
+  await page.waitForSelector('#elementInspector [data-v6-image-filter]');
+  await page.selectOption('#elementInspector [data-v6-image-filter]','mono');
+  await page.selectOption('#elementInspector [data-v6-image-hover]','zoom');
+  await page.waitForFunction(()=>getComputedStyle(document.querySelector('#canvas .v5-section.selected img.v5-img')).filter.includes('grayscale'));
+  assert.match(await heroImage.evaluate(el=>getComputedStyle(el).filter),/grayscale/,'Media Studio filter did not affect rendered image');
+
   assert.deepEqual(errors,[],`UI kit desktop page errors:\n${errors.join('\n')}`);
   await context.close();
 }
