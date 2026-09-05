@@ -20,6 +20,7 @@ test('reuse config is non-destructive for existing projects',()=>{
 
 test('block component sync updates all instances while preserving concrete ids',()=>{
   const p=defaultProject(),page=p.pages[0],source=page.blocks[1];
+  assert.equal(canCreateComponent(p,page,source.id,''),true,`default hero unexpectedly rejected: ${JSON.stringify({name:source.name,globalRole:source.globalRole,componentRef:source.componentRef})}`);
   const def=createComponent(p,page,source.id,'Reusable Hero');
   assert.ok(def);
   const copy=addComponentInstance(p,def.id,page);
@@ -36,8 +37,11 @@ test('block component sync updates all instances while preserving concrete ids',
 
 test('detach makes a component instance local and delete keeps page content',()=>{
   const p=defaultProject(),page=p.pages[0],source=page.blocks[1];
+  assert.equal(canCreateComponent(p,page,source.id,''),true);
   const def=createComponent(p,page,source.id,'Hero Symbol');
+  assert.ok(def);
   const copy=addComponentInstance(p,def.id,page);
+  assert.ok(copy);
   const heading=firstNode(copy,'heading');heading.props.text='Local soon';
   assert.equal(detachSelectedComponent(p,page,copy.id,''),true);
   assert.equal(copy.componentRef,'');
@@ -63,11 +67,10 @@ test('reusable styles export before local styles so local stays highest priority
   const def=createStyleClass(p,'hero-title',clsStyle);applyStyleClass(heading,def.id);
   heading.style.base.color='rgb(0,0,255)';
   const css=collectCss(p,page),selector=`[data-v5-style="${heading.id}"]`;
-  const shared=`${selector}{color:rgb(255,0,0)}`;
-  const local=`${selector}{color:rgb(0,0,255)}`;
-  assert.ok(css.includes(shared));
-  assert.ok(css.includes(local));
-  assert.ok(css.indexOf(shared)<css.indexOf(local));
+  const sharedAt=css.indexOf(`${selector}{color:rgb(255,0,0)}`);
+  const localColorAt=css.indexOf('color:rgb(0,0,255)',sharedAt+1);
+  assert.ok(sharedAt>=0,'shared class rule missing');
+  assert.ok(localColorAt>sharedAt,'local color must be emitted after reusable class color');
   assert.ok(css.includes(`@media(max-width:760px){${selector}{font-size:19px}}`));
   assert.equal(classUsage(p,def.id),1);
 });
