@@ -21,6 +21,8 @@ sed -E -i "s#src=\"v6-functional-inspector.mjs(\?[^\"]*)?\"#src=\"v6-functional-
 for f in "$OUT"/v5-*.mjs "$OUT"/v6-*.mjs; do
   # Static ES-module imports must share one version identity.
   sed -E -i "s#(from ['\"]\./(v5|v6)-[^'\"?]+\.mjs)(\?[^'\"]*)?(['\"])#\1?v=${REV}\4#g" "$f"
+  # Side-effect imports are static imports too and need the same cache identity.
+  sed -E -i "s#(import ['\"]\./(v5|v6)-[^'\"?]+\.mjs)(\?[^'\"]*)?(['\"])#\1?v=${REV}\4#g" "$f"
   # Dynamic imports need the same cache key, otherwise browsers can load a stale
   # module or instantiate stateful modules a second time under a different URL.
   sed -E -i "s#(import\(['\"]\./(v5|v6)-[^'\"?]+\.mjs)(\?[^'\"]*)?(['\"]\))#\1?v=${REV}\4#g" "$f"
