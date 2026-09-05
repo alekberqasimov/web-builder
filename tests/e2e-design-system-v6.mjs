@@ -7,6 +7,7 @@ const page=await browser.newPage({viewport:{width:1440,height:1000}});
 const errors=[];page.on('pageerror',e=>errors.push(String(e?.stack||e)));
 const change=async(locator,value)=>{await locator.fill(String(value));await locator.dispatchEvent('change');await page.waitForTimeout(90)};
 const select=async(locator,value)=>{await locator.selectOption(String(value));await page.waitForTimeout(90)};
+const openGroup=async text=>{const details=page.locator('#v6DesignSystem details').filter({has:page.locator('summary',{hasText:text})}).first();if(!(await details.evaluate(el=>el.open)))await details.locator('summary').click()};
 
 try{
   await page.goto(base,{waitUntil:'domcontentloaded'});
@@ -15,8 +16,11 @@ try{
   // Global design system: real UI -> project theme/tokens.
   await page.click('#siteTab');
   await page.waitForSelector('#v6DesignSystem',{timeout:10000});
+  await openGroup('Spacing scale');
   await change(page.locator('#v6DesignSystem [data-ds-number="spacing.md"]'),22);
+  await openGroup('Typography system');
   await change(page.locator('#v6DesignSystem [data-ds-theme-number="typography.h1.weight"]'),820);
+  await openGroup('Buttons');
   await change(page.locator('#v6DesignSystem [data-ds-theme-number="button.radius"]'),18);
 
   // Create a new layout and configure its desktop grid visually.
