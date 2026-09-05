@@ -41,6 +41,7 @@ jobs:
           node --check tests/e2e-responsive-preview-v6.mjs
           node --check tests/e2e-functional-v6.mjs
           node --check tests/e2e-seo-v6.mjs
+          node --check tests/e2e-design-system-v6.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {defaultProject,addPageTranslation,addSiteLanguage,pageFile,makeForm} from './v5-model.mjs';
@@ -62,6 +63,8 @@ jobs:
           import {makeCustomSection} from './v6-custom-sections.mjs';
           import {FUNCTIONAL_READY_TYPES,makeFunctionalPreset} from './v6-functional-blocks.mjs';
           import {robotsText,sitemapXml} from './v6-seo.mjs';
+          import {designTokenCss} from './v6-design-tokens.mjs';
+          import {imagePerformanceAttrs} from './v6-media-export.mjs';
           const project=defaultProject();
           project.siteUrl='https://example.test';
           const html=exportedDocument(project,project.pages[0]);
@@ -69,6 +72,8 @@ jobs:
           if(!html.includes('rel="canonical" href="https://example.test/"')) throw new Error('SEO canonical smoke failed');
           if(!html.includes('application/ld+json')) throw new Error('SEO schema smoke failed');
           if(!robotsText(project).includes('https://example.test/sitemap.xml')||!sitemapXml(project).includes('https://example.test/')) throw new Error('SEO discovery smoke failed');
+          if(!designTokenCss(project).includes('--wb-space-md:16px')) throw new Error('Design token smoke failed');
+          if(!imagePerformanceAttrs({props:{loading:'eager',fetchPriority:'high'}}).includes('fetchpriority="high"')) throw new Error('Media export smoke failed');
           if(!buildGradientStops('linear',[{color:'#000000',pos:0},{color:'#ffffff',pos:100}],90).includes('90deg')) throw new Error('Gradient smoke failed');
           if(buildBorder([1,1,1,1],'solid','#000000',[4,4,4,4]).borderRadius!=='4px 4px 4px 4px') throw new Error('Border smoke failed');
           if(validPresetPayload({foo:'bar'})) throw new Error('Preset validation smoke failed');
@@ -128,6 +133,9 @@ jobs:
           test -f _site/v6-functional-inspector.mjs
           test -f _site/v6-functional-public.mjs
           test -f _site/v6-seo.mjs
+          test -f _site/v6-design-tokens.mjs
+          test -f _site/v6-design-system.mjs
+          test -f _site/v6-media-export.mjs
           test -f _site/v5-languages.mjs
           if grep -Eq "app\.js|builder-v4|enhancements|runtime-fixes|v5-mobile-fix|v5\.css|v5-app\.mjs" _site/index.html; then
             echo "Legacy editor shell found in production index" >&2
@@ -150,6 +158,10 @@ jobs:
           grep -q "v6-functional-blocks.mjs?v=${GITHUB_SHA}" _site/v5-library.mjs
           grep -q "v6-functional-public.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v6-seo.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
+          grep -q "v6-design-tokens.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
+          grep -q "v6-media-export.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
+          grep -q "v6-design-system.mjs?v=${GITHUB_SHA}" _site/v6-app.mjs
+          grep -q "v6-design-tokens.mjs?v=${GITHUB_SHA}" _site/v6-design-system.mjs
           grep -q "v6-custom-sections.mjs?v=${GITHUB_SHA}" _site/v5-library-extras.mjs
           grep -q "v5-export.mjs?v=${GITHUB_SHA}" _site/v6-seo.mjs
           test -f _site/v5-repeat-controls.mjs
@@ -188,6 +200,7 @@ jobs:
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-responsive-preview-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-functional-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-seo-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-design-system-v6.mjs
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
