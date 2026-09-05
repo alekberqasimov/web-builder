@@ -123,6 +123,9 @@ async function desktopSuite(){
   page.once('dialog',d=>d.accept('Template Clone'));await tpl.locator('[data-page-template-add]').click();await page.waitForFunction(()=>document.querySelector('#pageLabel')?.textContent.includes('Template Clone'));
   assert.ok(await page.locator('#canvas .v5-nav').count()>=1,'Global Header missing on template page');assert.ok(await blocks.count()>=2,'Page template content missing');
 
+  await page.click('#siteTab');
+  await page.waitForSelector('#siteInspector:not(.hidden) input[data-site="siteUrl"]');
+  await page.waitForSelector('#v6SiteSeo');
   const siteUrl=page.locator('#siteInspector input[data-site="siteUrl"]');await siteUrl.fill('https://qa.example');await siteUrl.dispatchEvent('change');await page.waitForTimeout(120);
   const [download]=await Promise.all([page.waitForEvent('download',{timeout:15000}),page.click('#downloadBtn')]);
   assert.match(download.suggestedFilename(),/\.zip$/i);const path=await download.path();assert.ok(path&&((await stat(path)).size>500),'ZIP missing or too small');
