@@ -2,7 +2,7 @@ name: V6 Preflight
 
 on:
   push:
-    branches: [rebuild-v6-production, premium-seo-site-export, fix-production-module-cache]
+    branches: [rebuild-v6-production, premium-seo-site-export, fix-production-module-cache, seo-production-hardening]
   workflow_dispatch:
 
 permissions:
