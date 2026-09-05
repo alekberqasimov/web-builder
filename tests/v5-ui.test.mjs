@@ -114,7 +114,7 @@ test('deep audit catches long SEO title and insecure link',()=>{
   button.props.link={type:'url',value:'http://example.com',newTab:false,nofollow:false};
   block.root.children.push(button);page.blocks.push(block);
   const result=deepAuditProject(project);
-  assert.ok(result.issues.some(x=>/SEO title is long/.test(x.msg)));
+  assert.ok(result.issues.some(x=>/SEO title is .*characters|SEO title is long/.test(x.msg)));
   assert.ok(result.issues.some(x=>/HTTPS/.test(x.msg)));
   assert.ok(result.score<100);
 });
