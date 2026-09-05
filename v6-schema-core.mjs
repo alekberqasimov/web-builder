@@ -70,12 +70,17 @@ export function validateVisualSchema(item){
   const issues=[];
   if(!item||!TYPE_SET.has(item.type))return{valid:false,issues:['Unsupported schema type']};
   const d=item.data||{},type=item.type;
-  if(type==='FAQPage'&&!lines(d.items).some(x=>x.includes('|')))issues.push('Add at least one question | answer line.');
-  else if(type==='BreadcrumbList'&&!lines(d.items).some(x=>x.includes('|')))issues.push('Add at least one label | URL line.');
-  else if(['Article','BlogPosting'].includes(type)&&!String(d.headline||d.name||'').trim())issues.push('Headline or name is required.');
-  else if(['VideoObject','Event'].includes(type)&&!String(d.name||'').trim())issues.push('Name is required.');
-  else if(type!=='Offer'&&!String(d.name||d.headline||'').trim())issues.push('Name is required.');
-  if(type==='Offer'&&!String(d.price??'').trim())issues.push('Price is required.');
+  if(type==='FAQPage'){
+    if(!lines(d.items).some(x=>x.includes('|')))issues.push('Add at least one question | answer line.');
+  }else if(type==='BreadcrumbList'){
+    if(!lines(d.items).some(x=>x.includes('|')))issues.push('Add at least one label | URL line.');
+  }else if(['Article','BlogPosting'].includes(type)){
+    if(!String(d.headline||d.name||'').trim())issues.push('Headline or name is required.');
+  }else if(['VideoObject','Event'].includes(type)){
+    if(!String(d.name||'').trim())issues.push('Name is required.');
+  }else if(type==='Offer'){
+    if(!String(d.price??'').trim())issues.push('Price is required.');
+  }else if(!String(d.name||d.headline||'').trim())issues.push('Name is required.');
   for(const key of ['url','image','logo','thumbnailUrl','contentUrl','embedUrl','offers.url','offers.availability']){
     const v=nestedUrl(d,key);if(v&&!httpUrl(v))issues.push(`${key} must be an absolute http(s) URL.`);
   }
