@@ -2,7 +2,7 @@ name: V6 Preflight
 
 on:
   push:
-    branches: [rebuild-v6-production, premium-seo-site-export]
+    branches: [rebuild-v6-production, premium-seo-site-export, fix-production-module-cache]
   workflow_dispatch:
 
 permissions:
@@ -18,6 +18,7 @@ jobs:
       - name: Validate syntax and model
         run: |
           set -e
+          bash -n scripts/build-pages.sh
           for f in v6-*.mjs v5-*.mjs; do node --check "$f"; done
           node --check tests/e2e.mjs
           node --check tests/e2e-layout-v6.mjs
@@ -49,12 +50,10 @@ jobs:
           console.log('V6_REPEATABLE_MODEL_OK');
           NODE
 
-      - name: Build branch artifact
+      - name: Build exact production artifact
         run: |
           set -e
-          rm -rf _site
-          mkdir -p _site
-          cp index.html v6.css v6-ux.css v6-theme.css v6-ui-kit.css v6-functional.css v6-*.mjs v5-*.mjs .nojekyll _site/
+          bash scripts/build-pages.sh "$GITHUB_SHA" _site
           test -f _site/v5-repeat-controls.mjs
           test -f _site/v5-languages.mjs
           test -f _site/v6-ux.css
@@ -69,27 +68,19 @@ jobs:
           test -f _site/v6-functional-inspector.mjs
           test -f _site/v6-functional-public.mjs
           test -f _site/v6-seo.mjs
-          node --check _site/v5-repeat-controls.mjs
-          node --check _site/v5-languages.mjs
-          node --check _site/v6-ux.mjs
-          node --check _site/v6-custom-sections.mjs
-          node --check _site/v6-site-languages.mjs
-          node --check _site/v6-responsive-preview.mjs
-          node --check _site/v6-functional-blocks.mjs
-          node --check _site/v6-functional-inspector.mjs
-          node --check _site/v6-functional-public.mjs
-          node --check _site/v6-seo.mjs
-          grep -q "v5-repeat-controls.mjs" _site/v5-library-extras.mjs
-          grep -q "v6-custom-sections.mjs" _site/v5-library.mjs
-          grep -q "v6-functional-blocks.mjs" _site/v5-library.mjs
-          grep -q "v6-functional-public.mjs" _site/v5-export.mjs
-          grep -q "v6-seo.mjs" _site/v5-export.mjs
+          for f in _site/v6-*.mjs _site/v5-*.mjs; do node --check "$f"; done
+          grep -q "v5-repeat-controls.mjs?v=${GITHUB_SHA}" _site/v5-library-extras.mjs
+          grep -q "v6-custom-sections.mjs?v=${GITHUB_SHA}" _site/v5-library.mjs
+          grep -q "v6-functional-blocks.mjs?v=${GITHUB_SHA}" _site/v5-library.mjs
+          grep -q "v6-functional-public.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
+          grep -q "v6-seo.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
+          grep -q "v5-export.mjs?v=${GITHUB_SHA}" _site/v6-seo.mjs
           grep -q 'Web Builder v6.4' _site/index.html
-          grep -q 'id="themeToggle"' _site/index.html
-          grep -q 'src="v6-ux.mjs"' _site/index.html
-          grep -q 'src="v6-site-languages.mjs"' _site/index.html
-          grep -q 'src="v6-responsive-preview.mjs"' _site/index.html
-          grep -q 'src="v6-functional-inspector.mjs"' _site/index.html
+          grep -q "v6-app.mjs?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v6-ux.mjs?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v6-site-languages.mjs?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v6-responsive-preview.mjs?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v6-functional-inspector.mjs?v=${GITHUB_SHA}" _site/index.html
           if grep -q 'src="v5-repeat-controls.mjs"' _site/index.html; then
             echo 'Duplicate direct repeat-controls bootstrap found' >&2
             exit 1
