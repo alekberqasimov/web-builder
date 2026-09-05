@@ -2,7 +2,7 @@ name: V6 Preflight
 
 on:
   push:
-    branches: [rebuild-v6-production]
+    branches: [rebuild-v6-production, premium-seo-site-export]
   workflow_dispatch:
 
 permissions:
@@ -30,6 +30,7 @@ jobs:
           node --check tests/e2e-ui-kit-v6.mjs
           node --check tests/e2e-responsive-preview-v6.mjs
           node --check tests/e2e-functional-v6.mjs
+          node --check tests/e2e-seo-v6.mjs
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {preset,makeImageTextGrid,defaultProject,addPageTranslation,pageFile,makeForm} from './v5-model.mjs';
@@ -67,6 +68,7 @@ jobs:
           test -f _site/v6-functional-blocks.mjs
           test -f _site/v6-functional-inspector.mjs
           test -f _site/v6-functional-public.mjs
+          test -f _site/v6-seo.mjs
           node --check _site/v5-repeat-controls.mjs
           node --check _site/v5-languages.mjs
           node --check _site/v6-ux.mjs
@@ -76,10 +78,12 @@ jobs:
           node --check _site/v6-functional-blocks.mjs
           node --check _site/v6-functional-inspector.mjs
           node --check _site/v6-functional-public.mjs
+          node --check _site/v6-seo.mjs
           grep -q "v5-repeat-controls.mjs" _site/v5-library-extras.mjs
           grep -q "v6-custom-sections.mjs" _site/v5-library.mjs
           grep -q "v6-functional-blocks.mjs" _site/v5-library.mjs
           grep -q "v6-functional-public.mjs" _site/v5-export.mjs
+          grep -q "v6-seo.mjs" _site/v5-export.mjs
           grep -q 'Web Builder v6.4' _site/index.html
           grep -q 'id="themeToggle"' _site/index.html
           grep -q 'src="v6-ux.mjs"' _site/index.html
@@ -116,3 +120,4 @@ jobs:
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-ui-kit-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-responsive-preview-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-functional-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-seo-v6.mjs
