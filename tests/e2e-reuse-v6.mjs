@@ -65,7 +65,7 @@ try{
   await page.click('#siteTab');
   await page.waitForSelector('#v6ReuseManager');
   assert.match(await page.textContent('#v6StyleManager'),/section-premium/);
-  assert.match(await page.textContent('#v6StyleManager'),/1/);
+  assert.match(await page.textContent('#v6StyleManager'),/2/,'linked component styling should count both synchronized instances');
 
   page.once('dialog',d=>d.accept());
   await page.click('#v6ReuseManager [data-reuse-delete-component]');
