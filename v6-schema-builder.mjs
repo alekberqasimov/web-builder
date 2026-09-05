@@ -9,7 +9,7 @@ const FIELDS={
   Service:[...COMMON_FIELDS,['serviceType','Service type','text'],['areaServed','Area served','text'],['provider','Provider name','text']],
   Article:[...COMMON_FIELDS,['headline','Headline','text'],['datePublished','Published','date'],['dateModified','Modified','date'],['author','Author','text']],
   BlogPosting:[...COMMON_FIELDS,['headline','Headline','text'],['datePublished','Published','date'],['dateModified','Modified','date'],['author','Author','text']],
-  Event:[...COMMON_FIELDS,['startDate','Start date','datetime-local'],['endDate','End date','datetime-local'],['location','Location','text'],['organizer','Organizer','text'],['offers.url','Ticket URL','url'],['offers.price','Ticket price','number'],['offers.priceCurrency','Currency','text']],
+  Event:[...COMMON_FIELDS,['startDate','Start date','datetime-local'],['endDate','End date','datetime-local'],['location','Venue name','text'],['locationAddress','Venue address','text'],['organizer','Organizer','text'],['offers.url','Ticket URL','url'],['offers.price','Ticket price','number'],['offers.priceCurrency','Currency','text']],
   Person:[...COMMON_FIELDS,['email','Email','email'],['telephone','Phone','text'],['jobTitle','Job title','text'],['sameAs','Profile URLs','textarea']],
   Organization:[...COMMON_FIELDS,['logo','Logo URL','url'],['email','Email','email'],['telephone','Phone','text'],['sameAs','Official URLs','textarea']],
   VideoObject:[['name','Name','text'],['description','Description','textarea'],['thumbnailUrl','Thumbnail URL','url'],['uploadDate','Upload date','date'],['contentUrl','Content URL','url'],['embedUrl','Embed URL','url'],['duration','Duration ISO 8601','text']],
