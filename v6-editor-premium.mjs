@@ -28,6 +28,15 @@ const click=(sel)=>document.querySelector(sel)?.click();
 const openLeft=()=>{if(document.body.classList.contains('left-collapsed'))click('#leftToggle')};
 const openRight=()=>{if(document.body.classList.contains('right-collapsed'))click('#rightToggle')};
 
+function ensureMobileGuard(){
+  let style=document.querySelector('#premiumEditorMobileGuard');
+  if(!style){
+    style=document.createElement('style');style.id='premiumEditorMobileGuard';
+    style.textContent='@media(max-width:430px){html[data-editor-premium="2"] body .sidebar{width:88vw!important;max-width:88vw!important}}';
+    document.head.append(style);
+  }
+}
+
 function replaceButtonIcon(selector,name){
   const el=document.querySelector(selector);if(!el||el.dataset.premiumIcon==='1')return;
   el.dataset.premiumIcon='1';el.innerHTML=icon(name);
@@ -128,8 +137,8 @@ function ensureCommandPalette(){
 
 function boot(){
   document.documentElement.dataset.editorPremium='2';
-  enhanceIcons();ensureContext();ensureCommandPalette();
-  window.addEventListener('pageshow',()=>setTimeout(()=>{enhanceIcons();ensureContext();ensureCommandPalette()},0));
+  ensureMobileGuard();enhanceIcons();ensureContext();ensureCommandPalette();
+  window.addEventListener('pageshow',()=>setTimeout(()=>{ensureMobileGuard();enhanceIcons();ensureContext();ensureCommandPalette()},0));
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
