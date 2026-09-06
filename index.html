@@ -86,6 +86,7 @@
   <script type="module" src="v6-responsive-preview.mjs"></script>
   <script type="module" src="v6-functional-inspector.mjs"></script>
   <script type="module" src="v6-premium-inspector.mjs"></script>
+  <script type="module" src="v6-premium-section-inspector.mjs"></script>
   <script type="module" src="v6-reuse.mjs"></script>
 </head>
 <body class="left-collapsed right-collapsed">
@@ -138,28 +139,18 @@
         <button id="pagesTab" type="button">Страницы</button>
       </div>
       <div class="panel-scroll">
-        <section id="blocksPanel">
-          <label class="search"><span>⌕</span><input id="blockSearch" placeholder="Найти блок" autocomplete="off"></label>
-          <div class="panel-tools"><select id="blockCategory"><option value="ready">Готовые</option><option value="layouts">Контейнеры</option><option value="my">Мои блоки</option></select></div>
-          <div class="library-list" id="blockList"></div>
-        </section>
-        <section id="elementsPanel" class="hidden">
-          <label class="search"><span>⌕</span><input id="elementSearch" placeholder="Найти элемент" autocomplete="off"></label>
-          <div class="library-list" id="elementList"></div>
-        </section>
-        <section id="pagesPanel" class="hidden"><div id="pageList"></div></section>
-        <div class="navigator-wrap"><div class="navigator-title"><span>Navigator</span><span>Page tree</span></div><div id="navigatorTree"></div></div>
+        <section id="blocksPanel"></section>
+        <section id="elementsPanel" class="hidden"></section>
+        <section id="pagesPanel" class="hidden"></section>
+        <section id="navigatorPanel" class="hidden"></section>
       </div>
     </aside>
 
-    <section class="stage" aria-label="Canvas">
-      <div class="stage-toolbar">
-        <div class="page-label" id="pageLabel">Page</div>
-        <div class="breadcrumb" id="breadcrumb"></div>
-        <div class="save-status" id="saveStatus" role="status" aria-live="polite">Saved locally</div>
-      </div>
-      <div class="canvas-wrap" id="canvasWrap">
-        <div class="canvas-frame desktop" id="canvasFrame"><div class="canvas" id="canvas"></div></div>
+    <section class="stage" id="stage">
+      <div class="canvas-shell" id="canvasShell">
+        <div class="canvas-frame desktop" id="canvasFrame">
+          <div id="canvas" class="canvas" data-device="desktop"></div>
+        </div>
       </div>
     </section>
 
@@ -173,7 +164,7 @@
         <button id="elementTab" type="button">Элемент</button>
         <button id="pageTab" type="button">Страница</button>
         <button id="seoTab" type="button">SEO</button>
-        <button id="siteTab" type="button">Site</button>
+        <button id="siteTab" type="button">Сайт</button>
       </div>
       <div class="panel-scroll">
         <section id="blockInspector"></section>
