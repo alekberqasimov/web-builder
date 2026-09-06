@@ -83,6 +83,16 @@ function enhanceUi(){enhanceLibraries();enhanceNavigatorControls();renderVisualE
 
 function renderAll(){if(!state.project)return;applyTranslations();if($('#pageLabel'))$('#pageLabel').textContent=`${currentPage().name} · ${(currentPage().lang||'').toUpperCase()}`;if($('#breadcrumb'))$('#breadcrumb').textContent=breadcrumbText(elementLabels);renderLeft();renderCanvas();renderInspector();renderNavigator();enhanceUi();updateSaveStatus();if($('#undoBtn'))$('#undoBtn').disabled=!state.history.length;if($('#redoBtn'))$('#redoBtn').disabled=!state.future.length;syncPanelUi()}
 
+function handleNavigatorClick(e){
+  const selects=!!e.target.closest('[data-tree-select-block],[data-tree-select-node]');
+  navigatorClick(e);
+  if(!selects)return;
+  renderInspector();
+  enhanceUi();
+  applyTranslations();
+  if($('#breadcrumb'))$('#breadcrumb').textContent=breadcrumbText(elementLabels);
+}
+
 function bind(){
   $('#uiLanguage').onchange=e=>mutate('Language',()=>state.project.uiLang=e.target.value);
   $('#undoBtn').onclick=undo;$('#redoBtn').onclick=redo;
@@ -101,7 +111,7 @@ function bind(){
   $('#canvas').addEventListener('click',e=>{const add=e.target.closest('[data-inline-add]');if(add){e.preventDefault();e.stopPropagation();const c=add.closest('[data-node-id]');if(c){state.selectedBlockId=add.closest('[data-block-id]').dataset.blockId;state.selectedNodeId=c.dataset.nodeId;state.activeLeft='elements';state.activeRight='element';renderAll();if(compact())openPanel('left')}}},true);
   $('#canvas').addEventListener('click',blockToolbarClick,true);
   $('#rightSidebar').addEventListener('change',e=>{if(e.target.id==='projectImport'){importProject(e.target.files?.[0]);return}handleMainInspectorChange(e)});$('#rightSidebar').addEventListener('click',handleMainInspectorClick);$('#rightSidebar').addEventListener('input',e=>{if(e.target.matches('[data-b="name"]'))handleMainInspectorChange(e)});bindElementInspectorEvents();
-  $('#navigatorTree').onclick=navigatorClick;$('#navigatorTree').ondblclick=navigatorRename;
+  $('#navigatorTree').onclick=handleNavigatorClick;$('#navigatorTree').ondblclick=navigatorRename;
   bindPointerBlockDnD();bindPointerElementDnD();bindDnD();bindNavigatorDnD();bindLibraryExtras();bindVisualEditors();bindDeepAudit();bindAssetManager();bindSmartGuides();bindMyBlocksManager();bindBulkActions();bindNavigatorControls();bindPageTemplates();bindResponsiveAudit();bindProKeyboard();bindFreePosition();bindAssetOrganizer();bindIconLibrary();bindAnimationPro();bindPerformanceSettings();
   $$('[data-device]').forEach(b=>b.onclick=()=>{state.device=b.dataset.device;$$('[data-device]').forEach(x=>x.classList.toggle('active',x===b));$('#customWidth').value='';$('#canvasFrame').style.width='';for(const key of ['min-width','max-width','flex'])$('#canvasFrame').style.removeProperty(key);delete $('#canvasFrame').dataset.customWidth;renderAll()});
   $('#customWidth').onchange=e=>{if(!e.target.value.trim()){const f=$('#canvasFrame');delete f.dataset.customWidth;for(const key of ['width','min-width','max-width','flex'])f.style.removeProperty(key);return}const v=Math.max(240,Math.min(1920,Number(e.target.value)||240));if(v){const frame=$('#canvasFrame');frame.style.width=v+'px';frame.dataset.customWidth='1';frame.style.setProperty('min-width',v+'px');frame.style.setProperty('max-width',v+'px');frame.style.flex='0 0 '+v+'px';state.device=v<=760?'mobile':v<=1180?'tablet':'desktop';state.render();$$('[data-device]').forEach(x=>x.classList.remove('active'));e.target.value=String(v)}};
