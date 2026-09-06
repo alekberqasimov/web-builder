@@ -36,7 +36,7 @@ async function desktop(){
   await page.keyboard.press('Enter');
   await page.waitForFunction(()=>document.querySelector('[data-device="mobile"]')?.classList.contains('active'));
 
-  await page.click('#leftToggle');
+  if(await page.evaluate(()=>document.body.classList.contains('left-collapsed')))await page.click('#leftToggle');
   await page.waitForFunction(()=>!document.body.classList.contains('left-collapsed'));
   await page.click('#blocksTab');
   await page.waitForSelector('[data-lib-filter="pro"]');
