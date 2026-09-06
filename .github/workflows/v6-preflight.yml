@@ -100,19 +100,11 @@ jobs:
             sleep 1
           done
           test "$READY" -eq 1
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-layout-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-deep.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-repeatable-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-ux-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-custom-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-site-languages-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-theme-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-ui-kit-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-responsive-preview-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-functional-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-seo-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-quality-v6.mjs
+          FAILED=0
+          for SPEC in tests/e2e.mjs tests/e2e-layout-v6.mjs tests/e2e-deep.mjs tests/e2e-repeatable-v6.mjs tests/e2e-ux-v6.mjs tests/e2e-custom-v6.mjs tests/e2e-site-languages-v6.mjs tests/e2e-theme-v6.mjs tests/e2e-ui-kit-v6.mjs tests/e2e-responsive-preview-v6.mjs tests/e2e-functional-v6.mjs tests/e2e-seo-v6.mjs tests/e2e-quality-v6.mjs; do
+            E2E_BASE_URL=http://127.0.0.1:4173 node "$SPEC" || FAILED=1
+          done
+          exit "$FAILED"
 
       - name: Save audit screenshots
         if: always()

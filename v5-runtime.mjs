@@ -11,7 +11,7 @@ export const currentParent=()=>currentBlock()?findNodeWithParent(currentBlock().
 export const setRender=fn=>state.render=fn;
 export function clearSelection(){state.selectedBlockId='';state.selectedNodeId='';state.multi.clear();state.activeRight='block'}
 async function dbOpen(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(DB_STORE))r.result.createObjectStore(DB_STORE)};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-export async function dbGet(key){try{const db=await dbOpen();return await new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readonly'),r=tx.objectStore(DB_STORE).get(key);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})}catch{return null}}
+export async function dbGet(key){let db;try{db=await dbOpen();return await new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readonly'),r=tx.objectStore(DB_STORE).get(key);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})}catch{return null}finally{db?.close()}}
 export async function dbPut(key,value){
   let db;
   try{db=await dbOpen();return await new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(value,key);tx.oncomplete=()=>res(true);tx.onabort=()=>rej(tx.error);tx.onerror=()=>rej(tx.error)})}catch{return false}finally{db?.close()}
