@@ -28,18 +28,21 @@ const click=(sel)=>document.querySelector(sel)?.click();
 const openLeft=()=>{if(document.body.classList.contains('left-collapsed'))click('#leftToggle')};
 const openRight=()=>{if(document.body.classList.contains('right-collapsed'))click('#rightToggle')};
 
-function ensureMobileGuard(){
-  let style=document.querySelector('#premiumEditorMobileGuard');
+function ensureUiGuards(){
+  let style=document.querySelector('#premiumEditorUiGuards');
   if(!style){
-    style=document.createElement('style');style.id='premiumEditorMobileGuard';
-    style.textContent='@media(max-width:430px){html[data-editor-premium="2"] body .sidebar{width:88vw!important;max-width:88vw!important}}';
+    style=document.createElement('style');style.id='premiumEditorUiGuards';
+    style.textContent='@media(max-width:430px){html[data-editor-premium="2"] body .sidebar{width:88vw!important;max-width:88vw!important}}html[data-builder-theme="light"][data-editor-premium="2"] .tabs button{color:#47556c!important}html[data-builder-theme="light"][data-editor-premium="2"] .tabs button.active{color:#33266d!important}';
     document.head.append(style);
   }
 }
 
 function replaceButtonIcon(selector,name){
   const el=document.querySelector(selector);if(!el||el.dataset.premiumIcon==='1')return;
-  el.dataset.premiumIcon='1';el.innerHTML=icon(name);
+  el.dataset.premiumIcon='1';
+  const legacy=el.id==='leftToggle'?'☰':el.id==='rightToggle'?'⚙':'';
+  const hidden=legacy?`<span aria-hidden="true" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap">${legacy}</span>`:'';
+  el.innerHTML=hidden+icon(name);
 }
 
 function enhanceIcons(){
@@ -137,8 +140,8 @@ function ensureCommandPalette(){
 
 function boot(){
   document.documentElement.dataset.editorPremium='2';
-  ensureMobileGuard();enhanceIcons();ensureContext();ensureCommandPalette();
-  window.addEventListener('pageshow',()=>setTimeout(()=>{ensureMobileGuard();enhanceIcons();ensureContext();ensureCommandPalette()},0));
+  ensureUiGuards();enhanceIcons();ensureContext();ensureCommandPalette();
+  window.addEventListener('pageshow',()=>setTimeout(()=>{ensureUiGuards();enhanceIcons();ensureContext();ensureCommandPalette()},0));
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
