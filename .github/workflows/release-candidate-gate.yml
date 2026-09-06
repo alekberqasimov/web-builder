@@ -44,6 +44,7 @@ jobs:
       - name: Full production-equivalent browser gate
         id: browser
         continue-on-error: true
+        timeout-minutes: 15
         run: |
           set -e
           npm install --no-save --no-package-lock playwright@1.55.0 >/dev/null
@@ -58,29 +59,34 @@ jobs:
           done
           test "$READY" -eq 1
           export E2E_BASE_URL=http://127.0.0.1:4173
-          node tests/e2e-startup-resilience-v6.mjs
-          node tests/e2e.mjs
-          node tests/e2e-layout-v6.mjs
-          node tests/e2e-deep.mjs
+          run_test(){
+            echo "E2E_START $1"
+            timeout 120s node "$1"
+            echo "E2E_OK $1"
+          }
+          run_test tests/e2e-startup-resilience-v6.mjs
+          run_test tests/e2e.mjs
+          run_test tests/e2e-layout-v6.mjs
+          run_test tests/e2e-deep.mjs
           cp tests/e2e-deep.mjs tests/.e2e-deep-v6.tmp.mjs
           sed -i "s/classList.remove('left-collapsed','right-collapsed')/classList.add('left-collapsed','right-collapsed')/" tests/.e2e-deep-v6.tmp.mjs
-          node tests/.e2e-deep-v6.tmp.mjs
+          run_test tests/.e2e-deep-v6.tmp.mjs
           rm -f tests/.e2e-deep-v6.tmp.mjs
-          node tests/e2e-repeatable-v6.mjs
-          node tests/e2e-ux-v6.mjs
-          node tests/e2e-custom-v6.mjs
-          node tests/e2e-site-languages-v6.mjs
-          node tests/e2e-theme-v6.mjs
-          node tests/e2e-ui-kit-v6.mjs
-          node tests/e2e-editor-premium-v6.mjs
-          node tests/e2e-premium-v3.mjs
-          node tests/e2e-responsive-preview-v6.mjs
-          node tests/e2e-functional-v6.mjs
-          node tests/e2e-seo-v6.mjs
-          node tests/e2e-quality-v6.mjs
-          node tests/e2e-advanced-layout-v6.mjs
-          node tests/e2e-reuse-v6.mjs
-          node tests/e2e-schema-builder-v6.mjs
+          run_test tests/e2e-repeatable-v6.mjs
+          run_test tests/e2e-ux-v6.mjs
+          run_test tests/e2e-custom-v6.mjs
+          run_test tests/e2e-site-languages-v6.mjs
+          run_test tests/e2e-theme-v6.mjs
+          run_test tests/e2e-ui-kit-v6.mjs
+          run_test tests/e2e-editor-premium-v6.mjs
+          run_test tests/e2e-premium-v3.mjs
+          run_test tests/e2e-responsive-preview-v6.mjs
+          run_test tests/e2e-functional-v6.mjs
+          run_test tests/e2e-seo-v6.mjs
+          run_test tests/e2e-quality-v6.mjs
+          run_test tests/e2e-advanced-layout-v6.mjs
+          run_test tests/e2e-reuse-v6.mjs
+          run_test tests/e2e-schema-builder-v6.mjs
 
       - name: Release candidate summary
         if: always()
