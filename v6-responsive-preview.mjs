@@ -38,9 +38,10 @@ function shellIsolation(project,device){
   const container=Number(t.containerWidth)||1120;
   const scope=`#canvas[data-device="${device}"]`;
 
-  // The simulated device lives inside a desktop browser. Lock the preview frame itself so
-  // intrinsic content width cannot stretch a 390px phone preview back toward desktop width.
-  let out=`@media(min-width:761px){#canvasFrame.mobile:not([data-custom-width]){flex:0 0 390px!important;width:390px!important;min-width:390px!important;max-width:390px!important}#canvasFrame.tablet:not([data-custom-width]){flex:0 0 820px!important;width:820px!important;min-width:820px!important;max-width:820px!important}}`;
+  // The simulated device lives inside a desktop browser. Use the target width when space
+  // permits, but allow the frame to shrink on compact physical viewports instead of forcing
+  // 820px tablet geometry beyond the available stage width.
+  let out=`@media(min-width:761px){#canvasFrame.mobile:not([data-custom-width]){flex:0 1 390px!important;width:min(390px,100%)!important;min-width:0!important;max-width:390px!important}#canvasFrame.tablet:not([data-custom-width]){flex:0 1 820px!important;width:min(820px,100%)!important;min-width:0!important;max-width:820px!important}}`;
   out+=`body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;line-height:1.4;color:var(--text);background:var(--bg)}#canvas{--site-primary:${c.primary||'#705cff'};color-scheme:light;container-type:inline-size;width:100%;max-width:100%;min-width:0;font-family:${bodyFont};font-size:${device==='mobile'?16:bodySize}px;line-height:${bodyLine};color:${c.text||'#111827'};background:${c.background||'#fff'}}#canvas a:not(.v5-btn){color:inherit}#canvas .v5-btn.filled{color:#fff}#canvas .v5-block-toolbar,#canvas .v5-inline-add{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}`;
 
   out+=`${scope} .v5-section{width:100%;max-width:100%;min-width:0}${scope} .v5-section-inner{width:${device==='mobile'?'100%':`min(100%,${container}px)`};max-width:100%;min-width:0;margin:0 auto}${scope} .v5-container,${scope} .v5-node{min-width:0;max-width:100%}${scope} .v5-heading{font-family:${headingFont};overflow-wrap:break-word;word-break:normal}${scope} .v5-text{overflow-wrap:break-word;word-break:normal}${scope} .v5-img{max-width:100%}`;
