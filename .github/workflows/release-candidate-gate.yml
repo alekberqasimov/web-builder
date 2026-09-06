@@ -62,6 +62,10 @@ jobs:
           node tests/e2e.mjs
           node tests/e2e-layout-v6.mjs
           node tests/e2e-deep.mjs
+          cp tests/e2e-deep.mjs tests/.e2e-deep-v6.tmp.mjs
+          sed -i "s/classList.remove('left-collapsed','right-collapsed')/classList.add('left-collapsed','right-collapsed')/" tests/.e2e-deep-v6.tmp.mjs
+          node tests/.e2e-deep-v6.tmp.mjs
+          rm -f tests/.e2e-deep-v6.tmp.mjs
           node tests/e2e-repeatable-v6.mjs
           node tests/e2e-ux-v6.mjs
           node tests/e2e-custom-v6.mjs
@@ -89,7 +93,7 @@ jobs:
             echo '| Checkout | ${{ steps.checkout.outcome }} |'
             echo '| Syntax + model | ${{ steps.validate.outcome }} |'
             echo '| Production artifact | ${{ steps.build.outcome }} |'
-            echo '| Full browser matrix | ${{ steps.browser.outcome }} |'
+            echo '| Full browser matrix + Pages deep variant | ${{ steps.browser.outcome }} |'
             echo ''
             echo 'This workflow is intentionally non-blocking to avoid failed-run notifications. Promote only when every stage reports success.'
           } >> "$GITHUB_STEP_SUMMARY"
