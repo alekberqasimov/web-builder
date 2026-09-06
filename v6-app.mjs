@@ -37,6 +37,19 @@ function setText(id,key){const el=$('#'+id);if(el)el.textContent=tr(key)}
 function setDataLabel(id,key){const el=$('#'+id);if(!el)return;const value=tr(key);el.dataset.label=value;el.title=value}
 function withTimeout(promise,ms,fallback){return Promise.race([promise,new Promise(resolve=>setTimeout(()=>resolve(fallback),ms))])}
 
+function ensureEditorSkeleton(){
+  const blocks=$('#blocksPanel');
+  if(blocks&&!$('#blockSearch'))blocks.innerHTML='<label class="search"><span>⌕</span><input id="blockSearch" placeholder="Найти блок" autocomplete="off"></label><div class="panel-tools"><select id="blockCategory"><option value="ready">Готовые</option><option value="layouts">Контейнеры</option><option value="my">Мои блоки</option></select></div><div class="library-list" id="blockList"></div>';
+  const elements=$('#elementsPanel');
+  if(elements&&!$('#elementSearch'))elements.innerHTML='<label class="search"><span>⌕</span><input id="elementSearch" placeholder="Найти элемент" autocomplete="off"></label><div class="library-list" id="elementList"></div>';
+  const pages=$('#pagesPanel');
+  if(pages&&!$('#pageList'))pages.innerHTML='<div id="pageList"></div>';
+  const scroll=$('#leftSidebar .panel-scroll');
+  if(scroll&&!$('#navigatorTree'))scroll.insertAdjacentHTML('beforeend','<div class="navigator-wrap"><div class="navigator-title"><span>Navigator</span><span>Page tree</span></div><div id="navigatorTree"></div></div>');
+  const stage=$('#stage');
+  if(stage&&!$('#pageLabel'))stage.insertAdjacentHTML('afterbegin','<div class="stage-toolbar"><div class="page-label" id="pageLabel">Page</div><div class="breadcrumb" id="breadcrumb"></div><div class="save-status" id="saveStatus" role="status" aria-live="polite">Saved locally</div></div>');
+}
+
 function applyTranslations(){
   document.documentElement.lang=state.project?.uiLang||'ru';
   const tabs={blocksTab:'blocks',elementsTab:'elements',pagesTab:'pages',blockTab:'block',elementTab:'element',pageTab:'page',seoTab:'seo',siteTab:'site'};
@@ -113,6 +126,7 @@ async function loadStartupProject(){
 }
 
 async function boot(){
+  ensureEditorSkeleton();
   syncResponsivePanels(true);
   let p;
   try{p=await loadStartupProject()}catch(error){console.warn('Storage startup fallback',error);p=prepareProject(defaultProject())}
@@ -130,6 +144,7 @@ async function boot(){
 boot().catch(error=>{
   console.error('Web Builder boot failed',error);
   try{
+    ensureEditorSkeleton();
     state.project=prepareProject(defaultProject());
     setRender(renderAll);
     bind();
