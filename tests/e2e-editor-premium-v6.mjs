@@ -51,8 +51,8 @@ async function desktop(){
   assert.equal(pro.meta,'12','library result counter is incorrect');
 
   await page.selectOption('#uiLanguage','ru');
-  await page.waitForFunction(()=>document.querySelector('[data-lib-filter="fav"]')?.textContent.includes('Избран'));
-  assert.equal((await page.locator('[data-lib-filter="recent"]').textContent()).trim(),'Недавние','library filters are not localized');
+  await page.waitForFunction(()=>document.querySelector('#blocksPanel [data-lib-filter="fav"]')?.textContent.includes('Избран'));
+  assert.equal((await page.locator('#blocksPanel [data-lib-filter="recent"]').textContent()).trim(),'Недавние','library filters are not localized');
 
   assert.deepEqual(errors,[],`Premium editor desktop page errors:\n${errors.join('\n')}`);
   await context.close();
