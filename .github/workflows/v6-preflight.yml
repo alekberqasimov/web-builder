@@ -70,12 +70,14 @@ jobs:
           test -f _site/v6-functional-public.mjs
           test -f _site/v6-premium-v3.mjs
           test -f _site/v6-premium-section-inspector.mjs
+          test -f _site/v6-premium-type-inspector.mjs
           test -f _site/v6-seo.mjs
           for f in _site/v6-*.mjs _site/v5-*.mjs; do node --check "$f"; done
           grep -q "v5-repeat-controls.mjs?v=${GITHUB_SHA}" _site/v5-library-extras.mjs
           grep -q "v6-custom-sections.mjs?v=${GITHUB_SHA}" _site/v5-library.mjs
           grep -q "v6-functional-blocks.mjs?v=${GITHUB_SHA}" _site/v5-library.mjs
           grep -q "v6-premium-v3.mjs?v=${GITHUB_SHA}" _site/v5-library.mjs
+          grep -q "v6-premium-type-inspector.mjs?v=${GITHUB_SHA}" _site/v6-premium-section-inspector.mjs
           grep -q "v6-functional-public.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v6-seo.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v5-export.mjs?v=${GITHUB_SHA}" _site/v6-seo.mjs
@@ -110,7 +112,7 @@ jobs:
           done
           test "$READY" -eq 1
           FAILED=0
-          for SPEC in tests/e2e.mjs tests/e2e-layout-v6.mjs tests/e2e-deep.mjs tests/e2e-repeatable-v6.mjs tests/e2e-ux-v6.mjs tests/e2e-custom-v6.mjs tests/e2e-site-languages-v6.mjs tests/e2e-theme-v6.mjs tests/e2e-ui-kit-v6.mjs tests/e2e-editor-premium-v6.mjs tests/e2e-responsive-preview-v6.mjs tests/e2e-functional-v6.mjs tests/e2e-seo-v6.mjs tests/e2e-quality-v6.mjs tests/e2e-advanced-layout-v6.mjs tests/e2e-reuse-v6.mjs tests/e2e-schema-builder-v6.mjs; do
+          for SPEC in tests/e2e.mjs tests/e2e-layout-v6.mjs tests/e2e-deep.mjs tests/e2e-repeatable-v6.mjs tests/e2e-ux-v6.mjs tests/e2e-custom-v6.mjs tests/e2e-site-languages-v6.mjs tests/e2e-theme-v6.mjs tests/e2e-ui-kit-v6.mjs tests/e2e-editor-premium-v6.mjs tests/e2e-premium-v3.mjs tests/e2e-responsive-preview-v6.mjs tests/e2e-functional-v6.mjs tests/e2e-seo-v6.mjs tests/e2e-quality-v6.mjs tests/e2e-advanced-layout-v6.mjs tests/e2e-reuse-v6.mjs tests/e2e-schema-builder-v6.mjs; do
             E2E_BASE_URL=http://127.0.0.1:4173 node "$SPEC" || FAILED=1
           done
           exit "$FAILED"
