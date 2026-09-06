@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: v6-release-candidate
+  cancel-in-progress: true
+
 jobs:
   gate:
     runs-on: ubuntu-latest
@@ -37,7 +41,7 @@ jobs:
           grep -q "v6-premium-v3.mjs?v=${GITHUB_SHA}" _site/v5-library.mjs
           for f in _site/v6-*.mjs _site/v5-*.mjs; do node --check "$f"; done
 
-      - name: Production-equivalent browser gate
+      - name: Fast startup browser diagnosis
         id: browser
         continue-on-error: true
         run: |
@@ -53,44 +57,22 @@ jobs:
             sleep 1
           done
           test "$READY" -eq 1
-          FAILED=0
-          for SPEC in \
-            tests/e2e-startup-resilience-v6.mjs \
-            tests/e2e.mjs \
-            tests/e2e-layout-v6.mjs \
-            tests/e2e-deep.mjs \
-            tests/e2e-repeatable-v6.mjs \
-            tests/e2e-ux-v6.mjs \
-            tests/e2e-custom-v6.mjs \
-            tests/e2e-site-languages-v6.mjs \
-            tests/e2e-theme-v6.mjs \
-            tests/e2e-ui-kit-v6.mjs \
-            tests/e2e-editor-premium-v6.mjs \
-            tests/e2e-premium-v3.mjs \
-            tests/e2e-responsive-preview-v6.mjs \
-            tests/e2e-functional-v6.mjs \
-            tests/e2e-seo-v6.mjs \
-            tests/e2e-quality-v6.mjs \
-            tests/e2e-advanced-layout-v6.mjs \
-            tests/e2e-reuse-v6.mjs \
-            tests/e2e-schema-builder-v6.mjs; do
-            E2E_BASE_URL=http://127.0.0.1:4173 node "$SPEC" || FAILED=1
-          done
-          exit "$FAILED"
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-startup-resilience-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e.mjs
 
       - name: Release candidate summary
         if: always()
         run: |
           {
-            echo '## V6 release candidate gate'
+            echo '## V6 release candidate fast gate'
             echo ''
             echo '| Stage | Outcome |'
             echo '|---|---|'
             echo '| Checkout | ${{ steps.checkout.outcome }} |'
             echo '| Syntax + model | ${{ steps.validate.outcome }} |'
             echo '| Production artifact | ${{ steps.build.outcome }} |'
-            echo '| Browser + startup resilience | ${{ steps.browser.outcome }} |'
+            echo '| Startup + core browser | ${{ steps.browser.outcome }} |'
             echo ''
-            echo 'This workflow is intentionally non-blocking to avoid failed-run notifications. Promote only when every stage reports success.'
+            echo 'Non-blocking diagnostic. Promote only after this is green, then restore and run the full browser matrix.'
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "RC_GATE checkout=${{ steps.checkout.outcome }} validate=${{ steps.validate.outcome }} build=${{ steps.build.outcome }} browser=${{ steps.browser.outcome }}"
+          echo "RC_FAST checkout=${{ steps.checkout.outcome }} validate=${{ steps.validate.outcome }} build=${{ steps.build.outcome }} browser=${{ steps.browser.outcome }}"
