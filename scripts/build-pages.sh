@@ -5,8 +5,10 @@ REV="${1:-${GITHUB_SHA:-dev}}"
 OUT="${2:-_site}"
 
 rm -rf "$OUT"
-mkdir -p "$OUT"
+mkdir -p "$OUT/vendor"
 cp index.html v6.css v6-ux.css v6-theme.css v6-ui-kit.css v6-functional.css v6-*.mjs v5-*.mjs .nojekyll "$OUT/"
+
+cp vendor/jszip-3.10.1.min.js vendor/JSZip-LICENSE.markdown "$OUT/vendor/"
 
 sed -E -i "s#href=\"v6.css(\?[^\"]*)?\"#href=\"v6.css?v=${REV}\"#" "$OUT/index.html"
 sed -E -i "s#href=\"v6-ux.css(\?[^\"]*)?\"#href=\"v6-ux.css?v=${REV}\"#" "$OUT/index.html"

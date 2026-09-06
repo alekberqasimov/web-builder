@@ -1,3 +1,4 @@
+import {validateExportPaths} from './v6-safety.mjs';
 import {escapeAttr,escapeHtml,slugify} from './v5-core.mjs';
 import {pageFile} from './v5-ops.mjs';
 import {siteLanguages,linkedPage,defaultSiteLanguage} from './v5-languages.mjs';
@@ -64,7 +65,26 @@ function seoFieldsetHtml(){const p=currentPage(),s=p.seo||{},auto=publicPageUrl(
 function siteSeoFieldsetHtml(){const s=state.project.siteSeo||siteDefaults(),e=s.entity||{},r=s.robots||{};return`<fieldset id="v6SiteSeo"><legend>SEO, discovery & schema</legend><label>Default social image URL<input data-v6-site-seo="defaultOgImage" value="${attr(s.defaultOgImage||'')}"></label><label>X / Twitter site handle<input data-v6-site-seo="twitterSite" value="${attr(s.twitterSite||'')}" placeholder="@brand"></label><div class="field-grid"><label>Google verification<input data-v6-site-seo="verification.google" value="${attr(s.verification?.google||'')}"></label><label>Bing verification<input data-v6-site-seo="verification.bing" value="${attr(s.verification?.bing||'')}"></label></div><label>Schema entity<select data-v6-site-seo="entity.type"><option value="" ${!e.type?'selected':''}>None</option><option value="Organization" ${e.type==='Organization'?'selected':''}>Organization</option><option value="Person" ${e.type==='Person'?'selected':''}>Person</option></select></label><label>Entity name<input data-v6-site-seo="entity.name" value="${attr(e.name||'')}" placeholder="Defaults to Site name"></label><label>Entity logo / image URL<input data-v6-site-seo="entity.logo" value="${attr(e.logo||'')}"></label><div class="field-grid"><label>Entity email<input data-v6-site-seo="entity.email" value="${attr(e.email||'')}"></label><label>Entity phone<input data-v6-site-seo="entity.telephone" value="${attr(e.telephone||'')}"></label></div><label>Official social/profile URLs<textarea data-v6-site-seo="entity.sameAs" rows="3" placeholder="One URL per line">${esc(e.sameAs||'')}</textarea></label><label>robots.txt Disallow paths<textarea data-v6-site-seo="robots.disallow" rows="3" placeholder="/private/&#10;/drafts/">${esc(r.disallow||'')}</textarea></label><div class="check-grid"><label><input data-v6-site-seo-check="robots.generateSitemap" type="checkbox" ${r.generateSitemap!==false?'checked':''}> Generate sitemap.xml</label><label><input data-v6-export-check="includeProjectJson" type="checkbox" ${state.project.exportSettings?.includeProjectJson?'checked':''}> Include editable project.json in site ZIP</label></div><small>Production ZIP always includes robots.txt. sitemap.xml is included only when Published URL is a valid absolute http(s) URL.</small></fieldset>`}
 export function enhanceSeoPanels(){if(!state.project)return;ensureSeoConfig(state.project);const seo=$('#seoInspector');if(seo&&!seo.classList.contains('hidden')){seo.querySelector('input[data-seo="keywords"]')?.closest('label')?.remove();const json=seo.querySelector('textarea[data-seo="jsonLd"]');if(json?.closest('label')&&!json.closest('label').dataset.v6Relabeled){json.closest('label').dataset.v6Relabeled='1';json.closest('label').childNodes[0].textContent='Custom JSON-LD '}if(!seo.querySelector('#v6SeoAdvanced'))seo.insertAdjacentHTML('beforeend',seoFieldsetHtml())}const site=$('#siteInspector');if(site&&!site.classList.contains('hidden')&&!site.querySelector('#v6SiteSeo'))site.insertAdjacentHTML('beforeend',siteSeoFieldsetHtml())}
 
-async function downloadFullSite(){ensureSeoConfig(state.project);const {exportedDocument}=await import('./v5-export.mjs');const project=state.project;if(!window.JSZip){const p=currentPage(),blob=new Blob([exportedDocument(project,p)],{type:'text/html'});downloadBlob(blob,pageFile(p,project));return}const zip=new JSZip();for(const p of project.pages||[]){if(p.id===project.notFoundPageId)continue;zip.file(pageFile(p,project),exportedDocument(project,p))}if(project.notFoundPageId){const nf=project.pages.find(p=>p.id===project.notFoundPageId);if(nf)zip.file('404.html',exportedDocument(project,nf,{forceNoindex:true,disableCanonical:true,disableAlternates:true,disableSchema:true}))}zip.file('robots.txt',robotsText(project));const sitemap=sitemapXml(project);if(sitemap)zip.file('sitemap.xml',sitemap);if(project.exportSettings?.includeProjectJson)zip.file('project.json',JSON.stringify(project,null,2));const blob=await zip.generateAsync({type:'blob'});downloadBlob(blob,`${slugify(project.name)||'website'}.zip`)}
+export async function downloadFullSite(){
+ const button=$('#downloadBtn');if(button?.disabled)return;
+ if(!window.JSZip){alert('ZIP export is unavailable. Reload the editor and try again.');return}
+ if(button)button.disabled=true;
+ try{
+   ensureSeoConfig(state.project);const project=structuredClone(state.project);
+   const {exportedDocument}=await import('./v5-export.mjs');
+   const pages=(project.pages||[]).filter(p=>p.id!==project.notFoundPageId);
+   const nf=project.pages.find(p=>p.id===project.notFoundPageId);
+   const paths=pages.map(p=>pageFile(p,project));if(nf)paths.push('404.html');validateExportPaths(paths);
+   const zip=new window.JSZip();
+   for(const p of pages)zip.file(pageFile(p,project),exportedDocument(project,p));
+   if(nf)zip.file('404.html',exportedDocument(project,nf,{forceNoindex:true,disableCanonical:true,disableAlternates:true,disableSchema:true}));
+   zip.file('robots.txt',robotsText(project));const sitemap=sitemapXml(project);if(sitemap)zip.file('sitemap.xml',sitemap);
+   if(project.exportSettings?.includeProjectJson)zip.file('project.json',JSON.stringify(project,null,2));
+   const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+   downloadBlob(blob,`${slugify(project.name)||'website'}.zip`);
+ }catch(error){alert('Export failed: '+error.message)}finally{if(button)button.disabled=false}
+}
+
 function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 
 let installed=false;

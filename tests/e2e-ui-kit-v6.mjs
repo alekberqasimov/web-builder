@@ -6,7 +6,7 @@ const browser=await chromium.launch({headless:true});
 
 async function desktop(){
   const context=await browser.newContext({viewport:{width:1908,height:900}});
-  await context.addInitScript(()=>localStorage.setItem('wb:v6:theme','dark'));
+  await context.addInitScript(()=>{if(window===window.top)localStorage.setItem('wb:v6:theme','dark')});
   const page=await context.newPage();
   const errors=[];page.on('pageerror',e=>errors.push(String(e?.stack||e)));
   await page.goto(base,{waitUntil:'domcontentloaded'});

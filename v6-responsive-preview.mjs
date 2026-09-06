@@ -1,3 +1,4 @@
+import {cssAttributeValue} from './v6-safety.mjs';
 import {walk} from './v5-ops.mjs';
 import {state,currentPage} from './v5-runtime.mjs';
 
@@ -16,10 +17,10 @@ function modelOverrides(project,page,device){
   let out='';
   for(const b of page.blocks||[]){
     const blockCss=cssText(resolvedStyle(b.style,device));
-    if(blockCss)out+=`${scope} [data-v5-style="${b.id}"]{${blockCss}}`;
+    if(blockCss)out+=`${scope} [data-v5-style="${cssAttributeValue(b.id)}"]{${blockCss}}`;
     walk(b.root,n=>{
       const nodeCss=cssText(resolvedStyle(n.style,device));
-      if(nodeCss)out+=`${scope} [data-v5-style="${n.id}"]{${nodeCss}}`;
+      if(nodeCss)out+=`${scope} [data-v5-style="${cssAttributeValue(n.id)}"]{${nodeCss}}`;
     });
   }
   return out;
@@ -37,15 +38,16 @@ function shellIsolation(project,device){
   const container=Number(t.containerWidth)||1120;
   const scope=`#canvas[data-device="${device}"]`;
 
-  // The simulated device lives inside a desktop browser. Lock the preview frame itself so
-  // intrinsic content width cannot stretch a 390px phone preview back toward desktop width.
-  let out=`@media(min-width:761px){#canvasFrame.mobile{flex:0 0 390px!important;width:390px!important;min-width:390px!important;max-width:390px!important}#canvasFrame.tablet{flex:0 0 820px!important;width:820px!important;min-width:820px!important;max-width:820px!important}}`;
-  out+=`body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;line-height:1.4;color:var(--text);background:var(--bg)}#canvas{container-type:inline-size;width:100%;max-width:100%;min-width:0;font-family:${bodyFont};font-size:${device==='mobile'?16:bodySize}px;line-height:${bodyLine};color:${c.text||'#111827'};background:${c.background||'#fff'}}#canvas a{color:inherit}#canvas .v5-block-toolbar,#canvas .v5-inline-add{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}`;
+  // The simulated device lives inside a desktop browser. Use the target width when space
+  // permits, but allow the frame to shrink on compact physical viewports instead of forcing
+  // 820px tablet geometry beyond the available stage width.
+  let out=`@media(min-width:761px){#canvasFrame.mobile:not([data-custom-width]){flex:0 1 390px!important;width:min(390px,100%)!important;min-width:0!important;max-width:390px!important}#canvasFrame.tablet:not([data-custom-width]){flex:0 1 820px!important;width:min(820px,100%)!important;min-width:0!important;max-width:820px!important}}`;
+  out+=`body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;line-height:1.4;color:var(--text);background:var(--bg)}#canvas{--site-primary:${c.primary||'#705cff'};color-scheme:light;container-type:inline-size;width:100%;max-width:100%;min-width:0;font-family:${bodyFont};font-size:${device==='mobile'?16:bodySize}px;line-height:${bodyLine};color:${c.text||'#111827'};background:${c.background||'#fff'}}#canvas a:not(.v5-btn){color:inherit}#canvas .v5-btn.filled{color:#fff}#canvas .v5-block-toolbar,#canvas .v5-inline-add{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}`;
 
   out+=`${scope} .v5-section{width:100%;max-width:100%;min-width:0}${scope} .v5-section-inner{width:${device==='mobile'?'100%':`min(100%,${container}px)`};max-width:100%;min-width:0;margin:0 auto}${scope} .v5-container,${scope} .v5-node{min-width:0;max-width:100%}${scope} .v5-heading{font-family:${headingFont};overflow-wrap:break-word;word-break:normal}${scope} .v5-text{overflow-wrap:break-word;word-break:normal}${scope} .v5-img{max-width:100%}`;
 
   if(device==='mobile'){
-    out+=`${scope} h1.v5-heading{font-size:clamp(34px,10cqw,48px);line-height:${h1Line};font-weight:${h1Weight}}${scope} h2.v5-heading{font-size:clamp(28px,8cqw,38px);line-height:${h2Line};font-weight:${h2Weight}}${scope} h3.v5-heading{font-size:clamp(20px,5.8cqw,26px);line-height:${h3Line};font-weight:${h3Weight}}${scope} .v5-gallery{grid-template-columns:repeat(var(--gal-m,1),minmax(0,1fr))}${scope} .v5-gallery.masonry{columns:var(--gal-m,1)}${scope} .v5-nav{flex-wrap:nowrap}${scope} .v5-nav-toggle{display:inline-flex;margin-left:auto}${scope} .v5-nav-links{display:none;position:absolute;top:calc(100% + 8px);right:0;flex-direction:column;align-items:stretch;background:${c.background||'#fff'};color:${c.text||'#111827'};padding:14px;border:1px solid ${c.border||'#dfe3ec'};border-radius:14px;box-shadow:0 18px 50px rgba(15,23,42,.18);min-width:220px}${scope} .v5-nav.open .v5-nav-links{display:flex}${scope} .v5-nav[data-panel="left"] .v5-nav-links{left:0;right:auto}${scope} .v5-nav[data-panel="center"] .v5-nav-links{left:50%;right:auto;transform:translateX(-50%)}${scope} .v5-nav[data-panel="full"] .v5-nav-links{left:0;right:0;width:100%}${scope} .v5-btn{max-width:100%}`;
+    out+=`${scope} h1.v5-heading{font-size:clamp(34px,10cqw,48px);line-height:${h1Line};font-weight:${h1Weight}}${scope} h2.v5-heading{font-size:clamp(28px,8cqw,38px);line-height:${h2Line};font-weight:${h2Weight}}${scope} h3.v5-heading{font-size:clamp(20px,5.8cqw,26px);line-height:${h3Line};font-weight:${h3Weight}}${scope} .v5-gallery{grid-template-columns:repeat(var(--gal-m,1),minmax(0,1fr))}${scope} .v5-gallery.masonry{columns:var(--gal-m,1)}${scope} .v5-gallery.mosaic figure:first-child{grid-column:auto;grid-row:auto}${scope} .v5-nav{flex-wrap:nowrap}${scope} .v5-nav-toggle{display:inline-flex;margin-left:auto}${scope} .v5-nav-links{display:none;position:absolute;top:calc(100% + 8px);right:0;flex-direction:column;align-items:stretch;background:${c.background||'#fff'};color:${c.text||'#111827'};padding:14px;border:1px solid ${c.border||'#dfe3ec'};border-radius:14px;box-shadow:0 18px 50px rgba(15,23,42,.18);min-width:220px}${scope} .v5-nav.open .v5-nav-links{display:flex}${scope} .v5-nav[data-panel="left"] .v5-nav-links{left:0;right:auto}${scope} .v5-nav[data-panel="center"] .v5-nav-links{left:50%;right:auto;transform:translateX(-50%)}${scope} .v5-nav[data-panel="full"] .v5-nav-links{left:0;right:0;width:100%}${scope} .v5-btn{max-width:100%}`;
   }else{
     out+=`${scope} h1.v5-heading{font-size:${h1}px;line-height:${h1Line};font-weight:${h1Weight}}${scope} h2.v5-heading{font-size:${h2}px;line-height:${h2Line};font-weight:${h2Weight}}${scope} h3.v5-heading{font-size:${h3}px;line-height:${h3Line};font-weight:${h3Weight}}${scope} .v5-nav-toggle{display:none}${scope} .v5-nav-links{display:flex;position:static;transform:none;flex-direction:row;align-items:center;background:transparent;border:0;box-shadow:none;padding:0;min-width:0}`;
     if(device==='tablet')out+=`${scope} .v5-gallery{grid-template-columns:repeat(var(--gal-t,2),minmax(0,1fr))}${scope} .v5-gallery.masonry{columns:var(--gal-t,2)}`;
@@ -84,4 +86,4 @@ function boot(){
   document.addEventListener('click',e=>{if(e.target.closest?.('[data-device]'))setTimeout(sync,0)},true);
   window.addEventListener('pageshow',schedule);
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+if(typeof document!=='undefined')if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
