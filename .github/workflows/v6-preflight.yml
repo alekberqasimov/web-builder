@@ -2,7 +2,7 @@ name: V6 Preflight
 
 on:
   push:
-    branches: [premium-quality-audit, rebuild-v6-production, premium-seo-site-export, fix-production-module-cache, seo-production-hardening]
+    branches: [premium-editor-ux-v2, premium-quality-audit, rebuild-v6-production, premium-seo-site-export, fix-production-module-cache, seo-production-hardening]
   workflow_dispatch:
 
 permissions:
@@ -29,6 +29,7 @@ jobs:
           node --check tests/e2e-site-languages-v6.mjs
           node --check tests/e2e-theme-v6.mjs
           node --check tests/e2e-ui-kit-v6.mjs
+          node --check tests/e2e-editor-premium-v6.mjs
           node --check tests/e2e-responsive-preview-v6.mjs
           node --check tests/e2e-functional-v6.mjs
           node --check tests/e2e-seo-v6.mjs
@@ -59,8 +60,10 @@ jobs:
           test -f _site/v6-ux.css
           test -f _site/v6-theme.css
           test -f _site/v6-ui-kit.css
+          test -f _site/v6-editor-premium.css
           test -f _site/v6-functional.css
           test -f _site/v6-ux.mjs
+          test -f _site/v6-editor-premium.mjs
           test -f _site/v6-custom-sections.mjs
           test -f _site/v6-site-languages.mjs
           test -f _site/v6-responsive-preview.mjs
@@ -78,6 +81,8 @@ jobs:
           grep -q 'Web Builder v6.4' _site/index.html
           grep -q "v6-app.mjs?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-ux.mjs?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v6-editor-premium.mjs?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v6-editor-premium.css?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-site-languages.mjs?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-responsive-preview.mjs?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-functional-inspector.mjs?v=${GITHUB_SHA}" _site/index.html
@@ -101,7 +106,7 @@ jobs:
           done
           test "$READY" -eq 1
           FAILED=0
-          for SPEC in tests/e2e.mjs tests/e2e-layout-v6.mjs tests/e2e-deep.mjs tests/e2e-repeatable-v6.mjs tests/e2e-ux-v6.mjs tests/e2e-custom-v6.mjs tests/e2e-site-languages-v6.mjs tests/e2e-theme-v6.mjs tests/e2e-ui-kit-v6.mjs tests/e2e-responsive-preview-v6.mjs tests/e2e-functional-v6.mjs tests/e2e-seo-v6.mjs tests/e2e-quality-v6.mjs tests/e2e-advanced-layout-v6.mjs tests/e2e-reuse-v6.mjs tests/e2e-schema-builder-v6.mjs; do
+          for SPEC in tests/e2e.mjs tests/e2e-layout-v6.mjs tests/e2e-deep.mjs tests/e2e-repeatable-v6.mjs tests/e2e-ux-v6.mjs tests/e2e-custom-v6.mjs tests/e2e-site-languages-v6.mjs tests/e2e-theme-v6.mjs tests/e2e-ui-kit-v6.mjs tests/e2e-editor-premium-v6.mjs tests/e2e-responsive-preview-v6.mjs tests/e2e-functional-v6.mjs tests/e2e-seo-v6.mjs tests/e2e-quality-v6.mjs tests/e2e-advanced-layout-v6.mjs tests/e2e-reuse-v6.mjs tests/e2e-schema-builder-v6.mjs; do
             E2E_BASE_URL=http://127.0.0.1:4173 node "$SPEC" || FAILED=1
           done
           exit "$FAILED"
