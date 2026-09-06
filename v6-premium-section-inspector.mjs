@@ -1,3 +1,4 @@
+import './v6-premium-type-inspector.mjs';
 import {$,state,currentBlock,mutate,attr} from './v5-runtime.mjs';
 
 const COPY={
