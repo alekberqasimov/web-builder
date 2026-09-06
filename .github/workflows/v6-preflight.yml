@@ -2,7 +2,7 @@ name: V6 Preflight
 
 on:
   push:
-    branches: [rebuild-v6-production, premium-seo-site-export, fix-production-module-cache, seo-production-hardening]
+    branches: [premium-quality-audit, rebuild-v6-production, premium-seo-site-export, fix-production-module-cache, seo-production-hardening]
   workflow_dispatch:
 
 permissions:
@@ -112,3 +112,12 @@ jobs:
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-responsive-preview-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-functional-v6.mjs
           E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-seo-v6.mjs
+          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-quality-v6.mjs
+
+      - name: Save audit screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: premium-quality-screenshots
+          path: qa-screenshots/
+          if-no-files-found: ignore

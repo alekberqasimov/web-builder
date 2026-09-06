@@ -1,3 +1,4 @@
+import {validateProjectInput} from './v6-safety.mjs';
 import {uid,clone,slugify,preset,walk,findNode,findNodeWithParent,moveNode,reorderBlocks,duplicateBlock,deleteBlock,pageFile,migrateProject} from './v5-model.mjs';
 import {renderPage,collectCss,exportedDocument} from './v5-render.mjs';
 import {$,$$,state,currentPage,currentBlock,currentNode,mutate,clearSelection,snapshot,persist,upgradeLegacyContent,undo,redo,esc} from './v5-runtime.mjs';
@@ -39,8 +40,8 @@ export function keyboardShortcuts(e){if((e.ctrlKey||e.metaKey)&&e.key.toLowerCas
 
 export function openPreview(){const pg=currentPage();$('#previewPage').innerHTML=state.project.pages.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');$('#previewPage').value=pg.id;renderPreview(pg.id);$('#previewDialog').showModal()}
 export function renderPreview(id){const p=state.project.pages.find(x=>x.id===id)||currentPage();$('#previewFrame').srcdoc=exportedDocument(state.project,p)}
-export async function downloadSite(){if(!window.JSZip){downloadBlob(new Blob([exportedDocument(state.project,currentPage())],{type:'text/html'}),pageFile(currentPage()));return}const zip=new JSZip();for(const p of state.project.pages)zip.file(pageFile(p),exportedDocument(state.project,p));if(state.project.notFoundPageId){const nf=state.project.pages.find(p=>p.id===state.project.notFoundPageId);if(nf)zip.file('404.html',exportedDocument(state.project,nf))}zip.file('robots.txt',robotsText());zip.file('sitemap.xml',sitemapXml());zip.file('project.json',JSON.stringify(state.project,null,2));const blob=await zip.generateAsync({type:'blob'});downloadBlob(blob,`${slugify(state.project.name)||'website'}-v5.zip`)}
+export async function downloadSite(){const {downloadFullSite}=await import('./v6-seo.mjs');return downloadFullSite()}
 function robotsText(){const base=state.project.siteUrl?`\nSitemap: ${state.project.siteUrl.replace(/\/$/,'')}/sitemap.xml`:'';return`User-agent: *\nAllow: /${base}\n`}
 function sitemapXml(){const base=(state.project.siteUrl||'https://example.com').replace(/\/$/,'');return`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${state.project.pages.filter(p=>!p.seo.noindex).map(p=>`<url><loc>${esc(base+'/'+pageFile(p))}</loc></url>`).join('')}</urlset>`}
 function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-export function importProject(file){if(!file)return;file.text().then(text=>{try{const p=migrateProject(JSON.parse(text));mutate('Import project',()=>{state.project=p;upgradeLegacyContent(state.project);clearSelection()})}catch{alert('Invalid project')}})}
+export function importProject(file){if(!file)return;if(file.size>50*1024*1024){alert('Project exceeds 50 MB.');return;}file.text().then(text=>{try{const p=migrateProject(validateProjectInput(JSON.parse(text)));mutate('Import project',()=>{state.project=p;upgradeLegacyContent(state.project);clearSelection()})}catch(error){alert('Invalid project: '+error.message)}}).catch(()=>alert('Could not read project file.'))}

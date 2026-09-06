@@ -77,7 +77,7 @@
     }
     @media (max-width:360px){.brand-name{max-width:76px;font-size:12px}}
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
+  <script src="vendor/jszip-3.10.1.min.js" defer></script>
   <script type="module" src="v6-app.mjs"></script>
   <script type="module" src="v6-ux.mjs"></script>
   <script type="module" src="v6-site-languages.mjs"></script>
@@ -154,7 +154,7 @@
       <div class="stage-toolbar">
         <div class="page-label" id="pageLabel">Page</div>
         <div class="breadcrumb" id="breadcrumb"></div>
-        <div class="save-status" id="saveStatus">Saved locally</div>
+        <div class="save-status" id="saveStatus" role="status" aria-live="polite">Saved locally</div>
       </div>
       <div class="canvas-wrap" id="canvasWrap">
         <div class="canvas-frame desktop" id="canvasFrame"><div class="canvas" id="canvas"></div></div>
@@ -188,7 +188,7 @@
 
 <dialog id="previewDialog" class="preview-dialog">
   <div class="preview-bar"><strong>Preview</strong><select id="previewPage"></select><select id="previewDevice"><option value="desktop">Desktop</option><option value="tablet">Tablet</option><option value="mobile">Mobile</option></select><button id="closePreview" type="button">Close ×</button></div>
-  <div class="preview-stage"><iframe id="previewFrame" title="Website preview"></iframe></div>
+  <div class="preview-stage"><iframe id="previewFrame" title="Website preview" sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe></div>
 </dialog>
 
 <div class="context-menu hidden" id="contextMenu"><button data-context="duplicate">Duplicate</button><button data-context="copy">Copy</button><button data-context="copy-style">Copy Style</button><button data-context="paste-style">Paste Style</button><button data-context="delete" class="danger">Delete</button></div>

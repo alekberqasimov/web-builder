@@ -1,5 +1,5 @@
 import {defaultProject,migrateProject} from './v5-model.mjs';
-import {$,$$,state,tr,currentPage,setRender,clearSelection,dbGet,dbPut,DB_KEY,LEGACY_DB_KEY,persist,mutate,undo,redo,upgradeLegacyContent,breadcrumbText} from './v5-runtime.mjs';
+import {$,$$,state,tr,currentPage,setRender,clearSelection,dbGet,dbPut,DB_KEY,LEGACY_DB_KEY,persist,updateSaveStatus,mutate,undo,redo,upgradeLegacyContent,breadcrumbText} from './v5-runtime.mjs';
 import {elementLabels,renderLeft,renderBlocksLibrary,renderElementsLibrary,renderPagesList,addBlockFromLibrary,addElementType,createPageFlow,renderNavigator,navigatorClick,navigatorRename} from './v5-library.mjs';
 import {renderInspector,handleMainInspectorChange,handleMainInspectorClick} from './v5-inspector-main.mjs';
 import {bindElementInspectorEvents} from './v5-element-actions.mjs';
@@ -49,7 +49,6 @@ function applyTranslations(){
   if(right)right.textContent=tr('settings');
 }
 
-function updateSaveStatus(){if($('#saveStatus'))$('#saveStatus').textContent=state.saving?'Saving…':tr('saved')}
 
 function syncPanelUi(){
   const leftOpen=!document.body.classList.contains('left-collapsed');
@@ -180,16 +179,20 @@ function bind(){
     $$('[data-device]').forEach(x=>x.classList.toggle('active',x===b));
     $('#customWidth').value='';
     $('#canvasFrame').style.width='';
+    for(const key of ['min-width','max-width','flex'])$('#canvasFrame').style.removeProperty(key);
     delete $('#canvasFrame').dataset.customWidth;
     renderAll();
   });
 
   $('#customWidth').onchange=e=>{
-    const v=Math.max(240,Math.min(1920,Number(e.target.value)||0));
+    if(!e.target.value.trim()){const f=$('#canvasFrame');delete f.dataset.customWidth;for(const key of ['width','min-width','max-width','flex'])f.style.removeProperty(key);return}
+    const v=Math.max(240,Math.min(1920,Number(e.target.value)||240));
     if(v){
       const frame=$('#canvasFrame');
       frame.style.width=v+'px';
       frame.dataset.customWidth='1';
+      frame.style.setProperty('min-width',v+'px');frame.style.setProperty('max-width',v+'px');frame.style.flex='0 0 '+v+'px';
+      state.device=v<=760?'mobile':v<=1180?'tablet':'desktop';state.render();
       $$('[data-device]').forEach(x=>x.classList.remove('active'));
       e.target.value=String(v);
     }
@@ -210,6 +213,7 @@ function bind(){
   window.addEventListener('resize',()=>syncResponsivePanels());
 
   document.addEventListener('keydown',keyboardShortcuts);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCompactPanels()});
   $('#canvas').addEventListener('contextmenu',openContextMenu);
   $('#navigatorTree').addEventListener('contextmenu',openContextMenu);
   document.addEventListener('click',e=>{if(!e.target.closest('#contextMenu'))$('#contextMenu').classList.add('hidden')});

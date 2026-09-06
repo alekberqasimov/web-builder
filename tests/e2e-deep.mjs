@@ -108,7 +108,7 @@ async function desktopSuite(){
   const saved=page.locator('#v5MyBlocksManager .v5-myblock-card').filter({has:page.locator('input[value="QA Saved Block"]')}).first();await saved.waitFor({state:'visible'});
   const n0=await blocks.count();await saved.locator('[data-myblock-add]').click();assert.equal(await blocks.count(),n0+1,'My Blocks add failed');
 
-  await page.click('#blocksTab');await page.selectOption('#blockCategory','ready');await page.click('[data-add-block="faq"]');
+  await page.click('#blocksTab');await page.selectOption('#blockCategory','ready');await page.click('[data-add-block="premiumFaqSplit"]');
   const faq=page.locator('#canvas .v5-accordion[data-node-id]').last();await faq.click();await page.waitForSelector('#elementInspector:not(.hidden) [data-repeat-add="accordion"]');
   const f0=await faq.locator('details').count();await page.click('#elementInspector [data-repeat-add="accordion"]');assert.equal(await page.locator('#canvas .v5-accordion').last().locator('details').count(),f0+1,'FAQ add item failed');
 

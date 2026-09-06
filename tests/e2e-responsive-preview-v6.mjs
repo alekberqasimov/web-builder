@@ -13,7 +13,7 @@ async function featuresMetrics(){
   return page.evaluate(()=>{
     const section=document.querySelector('#canvas .v5-section.selected');
     const root=section?.querySelector('.v5-section-inner > .v5-container');
-    const grid=[...(root?.children||[])].find(el=>el.classList.contains('v5-container')&&[...el.children].filter(c=>c.classList.contains('v5-container')).length===3);
+    const grid=[...(root?.children||[])].find(el=>el.classList.contains('v5-container')&&[...el.children].filter(c=>c.classList.contains('v5-container')).length===4);
     if(!section||!root||!grid)return null;
     const cardEls=[...grid.children].filter(el=>el.classList.contains('v5-container'));
     const gr=grid.getBoundingClientRect();
@@ -37,7 +37,7 @@ try{
 
   // The default document is intentionally allowed to evolve. Add the exact preset under test through the real library UI.
   await page.click('#blocksTab');
-  await page.locator('[data-add-block="features"]').click();
+  await page.locator('[data-add-block="premiumBento"]').click();
   await page.locator('#canvas .v5-section.selected').waitFor({state:'visible'});
 
   let m=await featuresMetrics();

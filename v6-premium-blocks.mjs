@@ -24,10 +24,10 @@ export const PREMIUM_BLOCK_META={
 const style=(n,base={},tablet={},mobile={})=>{Object.assign(n.style.base,base);Object.assign(n.style.tablet,tablet);Object.assign(n.style.mobile,mobile);return n};
 const finish=(type,b)=>{b.preset=type;b.premiumVariant=true;return b};
 const muted=(text)=>style(makeText(text),{color:'#667085',fontSize:'17px',lineHeight:'1.65',maxWidth:'680px'},{fontSize:'16px'},{fontSize:'16px'});
-const eyebrow=(text,dark=false)=>style(makeText(text),{fontSize:'11px',fontWeight:'850',letterSpacing:'.14em',textTransform:'uppercase',color:dark?'#c7beff':'#6553e6'});
-const pill=(text)=>style(makeText(text),{display:'inline-flex',alignSelf:'flex-start',width:'auto',padding:'8px 11px',border:'1px solid rgba(112,92,255,.18)',borderRadius:'999px',background:'rgba(112,92,255,.08)',color:'#5947d7',fontSize:'12px',fontWeight:'760'});
+const eyebrow=(text,dark=false)=>style(makeText(text),{fontSize:'11px',fontWeight:'700',letterSpacing:'.14em',textTransform:'uppercase',color:dark?'#c7beff':'var(--site-primary,#6553e6)'});
+const pill=(text)=>style(makeText(text),{display:'inline-flex',alignSelf:'flex-start',width:'auto',padding:'8px 11px',border:'1px solid rgba(112,92,255,.18)',borderRadius:'999px',background:'rgba(112,92,255,.08)',color:'var(--site-primary,#5947d7)',fontSize:'12px',fontWeight:'650'});
 const iconTile=(value)=>style(makeIcon(value),{width:'46px',height:'46px',borderRadius:'15px',background:'linear-gradient(135deg,#6d5dfc,#9b6bff)',color:'#fff',fontWeight:'900',boxShadow:'0 12px 26px rgba(103,83,230,.24)'});
-const card=(children,featured=false)=>{const c=container(children,{gap:14});style(c,{padding:'24px',border:featured?'1px solid rgba(112,92,255,.36)':'1px solid #e5e9f1',borderRadius:'22px',background:featured?'linear-gradient(180deg,#f5f1ff 0%,#ffffff 86%)':'rgba(255,255,255,.92)',boxShadow:featured?'0 22px 56px rgba(82,64,190,.15)':'0 14px 42px rgba(15,23,42,.07)',overflow:'hidden'},{padding:'22px'},{padding:'18px',borderRadius:'18px'});Object.assign(c.style.hover,{transform:'translateY(-3px)',boxShadow:'0 24px 58px rgba(15,23,42,.12)'});return c};
+const card=(children,featured=false)=>{const c=container(children,{gap:14});style(c,{padding:'24px',border:featured?'1px solid rgba(112,92,255,.36)':'1px solid #e5e9f1',borderRadius:'16px',background:featured?'linear-gradient(180deg,#f5f1ff 0%,#ffffff 86%)':'rgba(255,255,255,.92)',boxShadow:featured?'0 12px 36px rgba(15,23,42,.08)':'0 2px 8px rgba(15,23,42,.035)',overflow:'hidden'},{padding:'22px'},{padding:'18px',borderRadius:'18px'});Object.assign(c.style.hover,{transform:'translateY(-3px)',boxShadow:'0 24px 58px rgba(15,23,42,.12)'});return c};
 const grid=(children,cols=3,tablet=2,mobile=1,gap=18)=>{const g=container(children,{gap});g.style.base.display='grid';g.style.base.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;g.style.tablet.gridTemplateColumns=`repeat(${tablet},minmax(0,1fr))`;g.style.mobile.gridTemplateColumns=`repeat(${mobile},minmax(0,1fr))`;return g};
 const dualButtons=(primary='Start now',secondary='See demo')=>{const a=makeButton(primary),b=makeButton(secondary);a.props.icon='→';b.props.variant='outline';const row=container([a,b],{direction:'row',gap:10,wrap:'wrap'});style(row,{alignItems:'center'});return row};
 const section=(name,root,bg='#ffffff')=>{const b=block(name,root);style(b,{background:bg,paddingTop:'88px',paddingBottom:'88px'},{paddingTop:'68px',paddingBottom:'68px'},{paddingTop:'48px',paddingBottom:'48px'});return b};
@@ -35,13 +35,13 @@ const section=(name,root,bg='#ffffff')=>{const b=block(name,root);style(b,{backg
 function heroSaas(){
   const copy=container([
     pill('Built for modern teams'),
-    style(makeHeading('Turn a strong idea into a premium digital experience.',1),{maxWidth:'760px',fontSize:'64px',lineHeight:'1.02',letterSpacing:'-.045em'},{fontSize:'52px'},{fontSize:'40px'}),
+    style(makeHeading('Turn a strong idea into a premium digital experience.',1),{maxWidth:'760px',fontSize:'clamp(36px,4.4vw,64px)',lineHeight:'1.02',letterSpacing:'-.045em'},{fontSize:'52px'},{fontSize:'40px'}),
     muted('Use a polished conversion-first layout with clear hierarchy, social proof and responsive defaults already in place.'),
     dualButtons('Start building','Watch preview'),
     style(makeText('No-code editing · Responsive by default · Export-ready'),{fontSize:'13px',fontWeight:'650',color:'#7a8496'})
   ],{gap:20});style(copy,{justifyContent:'center'});
-  const image=makeImage('','Product dashboard preview');style(image,{aspectRatio:'16 / 11',borderRadius:'20px'});
-  const preview=container([style(makeText('LIVE PRODUCT PREVIEW'),{fontSize:'10px',fontWeight:'850',letterSpacing:'.12em',color:'#7a6bea'}),image],{gap:12});style(preview,{padding:'14px',border:'1px solid rgba(112,92,255,.20)',borderRadius:'28px',background:'linear-gradient(145deg,rgba(255,255,255,.98),rgba(244,241,255,.94))',boxShadow:'0 34px 90px rgba(49,39,120,.18)',transform:'rotate(1deg)'},{transform:'none'},{padding:'9px',borderRadius:'20px'});
+  const image=makeImage(productPreview(),'Illustrative product workspace');style(image,{aspectRatio:'16 / 11',borderRadius:'20px'});
+  const preview=container([style(makeText('LIVE PRODUCT PREVIEW'),{fontSize:'10px',fontWeight:'700',letterSpacing:'.12em',color:'#7a6bea'}),image],{gap:12});style(preview,{alignSelf:'center',padding:'14px',border:'1px solid rgba(112,92,255,.20)',borderRadius:'28px',background:'linear-gradient(145deg,rgba(255,255,255,.98),rgba(244,241,255,.94))',boxShadow:'0 34px 90px rgba(49,39,120,.18)',transform:'rotate(1deg)'},{transform:'none'},{padding:'9px',borderRadius:'20px'});
   const root=container([copy,preview],{gap:54});root.style.base.display='grid';root.style.base.gridTemplateColumns='minmax(0,1.02fr) minmax(0,.98fr)';root.style.tablet.gridTemplateColumns='1fr 1fr';root.style.mobile.gridTemplateColumns='1fr';root.style.mobile.gap='34px';
   const b=section('Premium Hero · SaaS',root,'radial-gradient(circle at 88% 8%,rgba(112,92,255,.18),transparent 34%),radial-gradient(circle at 12% 86%,rgba(255,165,108,.13),transparent 28%),linear-gradient(135deg,#fbfbff 0%,#fffaf7 100%)');style(b,{paddingTop:'104px',paddingBottom:'104px'},{paddingTop:'78px',paddingBottom:'78px'},{paddingTop:'52px',paddingBottom:'52px'});return b;
 }
@@ -49,7 +49,7 @@ function heroSaas(){
 function heroShowcase(){
   const top=container([
     eyebrow('Creative systems · 2026'),
-    style(makeHeading('A bold editorial hero with space to breathe.',1),{maxWidth:'900px',fontSize:'72px',lineHeight:'.98',letterSpacing:'-.055em',color:'#f8fafc'},{fontSize:'58px'},{fontSize:'42px'}),
+    style(makeHeading('A bold editorial hero with space to breathe.',1),{maxWidth:'900px',fontSize:'clamp(40px,5vw,72px)',lineHeight:'.98',letterSpacing:'-.055em',color:'#f8fafc'},{fontSize:'58px'},{fontSize:'42px'}),
     style(makeText('Use it for agencies, portfolios, premium services and modern brand launches.'),{maxWidth:'620px',fontSize:'18px',lineHeight:'1.6',color:'#b9c2d3'}),
     dualButtons('Explore work','About us')
   ],{gap:22});
@@ -72,21 +72,21 @@ function mediaSplit(){
   const video=makeVideo('');style(video,{borderRadius:'24px',background:'#111827',boxShadow:'0 28px 72px rgba(15,23,42,.20)'});
   const frame=container([video],{gap:0});style(frame,{padding:'10px',border:'1px solid rgba(148,163,184,.26)',borderRadius:'30px',background:'linear-gradient(145deg,#eef0ff,#ffffff)',boxShadow:'0 28px 74px rgba(46,39,105,.14)'},{padding:'8px'},{padding:'6px',borderRadius:'21px'});
   const benefits=['Responsive aspect ratios','YouTube, Vimeo or direct MP4','Poster, autoplay, loop and controls'];
-  const list=container(benefits.map((x,i)=>{const r=container([style(makeText('✓'),{width:'28px',height:'28px',display:'grid',placeItems:'center',borderRadius:'50%',background:'#ece9ff',color:'#5a49d6',fontWeight:'900'}),style(makeText(x),{fontWeight:'700',color:'#273043'})],{direction:'row',gap:10,align:'center'});return r}),{gap:12});
+  const list=container(benefits.map((x,i)=>{const r=container([style(makeText('✓'),{width:'28px',height:'28px',display:'grid',placeItems:'center',borderRadius:'50%',background:'#ece9ff',color:'var(--site-primary,#5a49d6)',fontWeight:'900'}),style(makeText(x),{fontWeight:'700',color:'#273043'})],{direction:'row',gap:10,align:'center'});return r}),{gap:12});
   const copy=container([eyebrow('MEDIA STORY'),makeHeading('Put product motion next to a clear business message.',2),muted('This block combines an editable video element with a compact benefit stack and two conversion actions.'),list,dualButtons('Play the story','Learn more')],{gap:18});style(copy,{justifyContent:'center'});
   const root=container([copy,frame],{gap:48});root.style.base.display='grid';root.style.base.gridTemplateColumns='.9fr 1.1fr';root.style.tablet.gridTemplateColumns='1fr 1fr';root.style.mobile.gridTemplateColumns='1fr';root.style.mobile.gap='28px';
   return section('Premium Media · Video Split',root,'#ffffff');
 }
 
 function mediaMosaic(){
-  const gallery=makeGallery(5);gallery.props.columns={base:3,tablet:2,mobile:1};gallery.props.gap=14;gallery.props.ratio='4/3';gallery.props.lightbox=true;style(gallery,{borderRadius:'24px'});
-  const root=container([eyebrow('SELECTED WORK'),makeHeading('A responsive visual story, not a plain image grid.',2),muted('Ideal for portfolios, real estate, hospitality, products and editorial storytelling. Lightbox is enabled by default.'),gallery],{gap:18});
+  const gallery=makeGallery(5);gallery.props.columns={base:3,tablet:2,mobile:1};gallery.props.gap=14;gallery.props.ratio='4/3';gallery.props.lightbox=true;gallery.props.mosaic=true;style(gallery,{borderRadius:'24px'});
+  const root=container([eyebrow('SELECTED WORK'),makeHeading('Selected work. Thoughtfully composed.',2),muted('Ideal for portfolios, real estate, hospitality, products and editorial storytelling. Lightbox is enabled by default.'),gallery],{gap:18});
   return section('Premium Media · Mosaic',root,'linear-gradient(180deg,#ffffff,#f7f8fc)');
 }
 
 function logoCloud(){
   const logos=['NORTH','ARC','NOVA','MOTION','KIN','SCOPE'].map(name=>{const l=makeLogo(name);style(l,{justifyContent:'center',minHeight:'64px',padding:'14px 18px',border:'1px solid #e8ebf2',borderRadius:'16px',background:'#fff',color:'#697386',fontSize:'15px',boxShadow:'0 8px 24px rgba(15,23,42,.035)'});return l});
-  const g=grid(logos,6,3,2,10);const root=container([style(makeText('Trusted by ambitious teams'),{textAlign:'center',fontSize:'13px',fontWeight:'760',color:'#7a8496'}),g],{gap:16});
+  const g=grid(logos,6,3,2,10);const root=container([style(makeText('Trusted by ambitious teams'),{textAlign:'center',fontSize:'13px',fontWeight:'650',color:'#7a8496'}),g],{gap:16});
   const b=section('Premium Trust · Logo Cloud',root,'#ffffff');style(b,{paddingTop:'48px',paddingBottom:'48px'},{paddingTop:'42px',paddingBottom:'42px'},{paddingTop:'34px',paddingBottom:'34px'});return b;
 }
 
@@ -99,7 +99,7 @@ function statsBand(){
 
 function testimonialSpotlight(){
   const reviews=makeReviews();reviews.props.autoplay=false;reviews.props.showArrows=true;reviews.props.showRating=true;style(reviews,{padding:'8px'});
-  const aside=card([style(makeText('CUSTOMER STORY'),{fontSize:'11px',fontWeight:'850',letterSpacing:'.12em',color:'#6655df'}),makeHeading('Social proof that feels like part of the design.',2),muted('Use real names, roles and quotes. The slider remains functional after export.')],true);
+  const aside=card([style(makeText('CUSTOMER STORY'),{fontSize:'11px',fontWeight:'700',letterSpacing:'.12em',color:'var(--site-primary,#6655df)'}),makeHeading('Social proof that feels like part of the design.',2),muted('Use real names, roles and quotes. The slider remains functional after export.')],true);
   const root=container([aside,reviews],{gap:28});root.style.base.display='grid';root.style.base.gridTemplateColumns='.72fr 1.28fr';root.style.tablet.gridTemplateColumns='1fr';root.style.mobile.gridTemplateColumns='1fr';
   return section('Premium Reviews · Spotlight',root,'linear-gradient(180deg,#f8f7ff,#ffffff)');
 }
@@ -110,7 +110,7 @@ function pricing(){
     {name:'Scale',price:'99',desc:'For commercial sites and teams.',features:['Premium variants','Advanced media','Forms & interactions'],featured:true},
     {name:'Studio',price:'149',desc:'For high-volume design work.',features:['Reusable systems','Multilingual pages','Priority workflows']}
   ];
-  const cards=plans.map(p=>{const button=makeButton(p.featured?'Choose Scale':'Choose plan');if(!p.featured)button.props.variant='outline';const features=container(p.features.map(x=>style(makeText(`✓ ${x}`),{color:'#4b5565',fontSize:'14px',fontWeight:'620'})),{gap:9});const c=card([style(makeText(p.name.toUpperCase()),{fontSize:'11px',fontWeight:'850',letterSpacing:'.12em',color:p.featured?'#604edd':'#7a8496'}),style(makeHeading(`$${p.price}`,2),{fontSize:'46px',letterSpacing:'-.04em'}),muted(p.desc),features,button],p.featured);if(p.featured)style(c,{transform:'translateY(-10px)'},{transform:'none'},{transform:'none'});return c});
+  const cards=plans.map(p=>{const button=makeButton(p.featured?'Choose Scale':'Choose plan');if(!p.featured)button.props.variant='outline';const features=container(p.features.map(x=>style(makeText(`✓ ${x}`),{color:'#4b5565',fontSize:'14px',fontWeight:'620'})),{gap:9});const c=card([style(makeText(p.name.toUpperCase()),{fontSize:'11px',fontWeight:'700',letterSpacing:'.12em',color:p.featured?'var(--site-primary,#604edd)':'#7a8496'}),style(makeHeading(`$${p.price}`,2),{fontSize:'46px',letterSpacing:'-.04em'}),muted(p.desc),features,button],p.featured);if(p.featured)style(c,{transform:'translateY(-10px)'},{transform:'none'},{transform:'none'});return c});
   const g=grid(cards,3,3,1,16);const root=container([eyebrow('PRICING'),makeHeading('A commercial pricing block with a clear featured plan.',2),muted('Every card remains fully editable: typography, copy, buttons, spacing, borders and responsive layout.'),g],{gap:20});
   return section('Premium Pricing · Pro',root,'#ffffff');
 }
@@ -147,5 +147,11 @@ export function makePremiumPreset(type){
     premiumCtaBanner:ctaBanner
   };
   const b=factories[type]?.();
+  if(b&&['premiumHeroShowcase','premiumCtaBanner'].includes(type)){const nodes=[b.root];while(nodes.length){const n=nodes.pop();if(n.type==='button'&&n.props.variant==='outline')style(n,{color:'#f1efff',borderColor:'rgba(255,255,255,.5)'});nodes.push(...(n.children||[]))}}
   return b?finish(type,b):null;
+}
+
+function productPreview(){
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650"><rect width="900" height="650" rx="24" fill="#f4f5f8"/><rect x="1" y="1" width="898" height="64" rx="24" fill="#fff"/><circle cx="34" cy="32" r="6" fill="#d3d8e1"/><circle cx="56" cy="32" r="6" fill="#d3d8e1"/><circle cx="78" cy="32" r="6" fill="#d3d8e1"/><text x="450" y="38" text-anchor="middle" fill="#526078" font-family="Arial" font-size="15">STUDIO / WORKSPACE</text><rect x="24" y="90" width="172" height="536" rx="12" fill="#172238"/><text x="48" y="135" fill="#fff" font-family="Arial" font-size="20" font-weight="700">Studio.</text><rect x="38" y="176" width="144" height="38" rx="7" fill="#35415b"/><g fill="#afbdd4" font-family="Arial" font-size="15"><text x="53" y="201">Overview</text><text x="53" y="250">Projects</text><text x="53" y="299">Assets</text><text x="53" y="348">Team</text></g><g font-family="Arial"><text x="228" y="128" font-size="14" fill="#758197">YOUR NEXT CHAPTER</text><text x="228" y="170" font-size="32" font-weight="700" fill="#172238">Make room for great work.</text><rect x="228" y="202" width="644" height="177" rx="14" fill="#e4dff3"/><text x="254" y="245" fill="#554776" font-size="13">PROJECT IN FOCUS</text><text x="254" y="286" fill="#241d38" font-size="28" font-weight="700">Brand launch</text><rect x="254" y="317" width="378" height="7" rx="3" fill="#cec4e5"/><rect x="254" y="317" width="270" height="7" rx="3" fill="#7162a6"/><rect x="228" y="401" width="312" height="225" rx="14" fill="#fff"/><rect x="560" y="401" width="312" height="225" rx="14" fill="#fff"/><text x="250" y="438" fill="#172238" font-size="18" font-weight="700">Launch plan</text><text x="582" y="438" fill="#172238" font-size="18" font-weight="700">Design library</text><g fill="#627089" font-size="16"><text x="274" y="483">Define the direction</text><text x="274" y="531">Build the experience</text><text x="274" y="579">Review and publish</text></g><g fill="#dcece4"><circle cx="254" cy="478" r="8"/><circle cx="254" cy="526" r="8"/><circle cx="254" cy="574" r="8"/></g><rect x="582" y="465" width="120" height="134" rx="8" fill="#e8e3f0"/><rect x="718" y="465" width="132" height="61" rx="8" fill="#e4ebf2"/><rect x="718" y="539" width="132" height="60" rx="8" fill="#efdfd4"/></g></svg>`;
+ return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
 }
