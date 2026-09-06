@@ -1,6 +1,8 @@
-name: V6 Diagnostic (manual, non-blocking)
+name: V6 Diagnostic (non-blocking)
 
 on:
+  push:
+    branches: [premium-blocks-v3]
   workflow_dispatch:
 
 permissions:
@@ -22,24 +24,14 @@ jobs:
           set -e
           bash -n scripts/build-pages.sh
           for f in v6-*.mjs v5-*.mjs; do node --check "$f"; done
-          node --check tests/e2e.mjs
-          node --check tests/e2e-layout-v6.mjs
-          node --check tests/e2e-deep.mjs
-          node --check tests/e2e-repeatable-v6.mjs
-          node --check tests/e2e-ux-v6.mjs
-          node --check tests/e2e-custom-v6.mjs
-          node --check tests/e2e-site-languages-v6.mjs
-          node --check tests/e2e-theme-v6.mjs
-          node --check tests/e2e-ui-kit-v6.mjs
-          node --check tests/e2e-editor-premium-v6.mjs
-          node --check tests/e2e-responsive-preview-v6.mjs
-          node --check tests/e2e-functional-v6.mjs
-          node --check tests/e2e-seo-v6.mjs
+          for f in tests/e2e*.mjs; do node --check "$f"; done
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {preset,makeImageTextGrid,defaultProject,addPageTranslation,pageFile,makeForm} from './v5-model.mjs';
           import {makeCustomSection} from './v6-custom-sections.mjs';
           import {FUNCTIONAL_READY_TYPES,makeFunctionalPreset} from './v6-functional-blocks.mjs';
+          import {makePremiumPreset} from './v6-premium-blocks.mjs';
+          import {polishPremiumBlock,premiumBlockProfile} from './v6-premium-v3.mjs';
           const b=preset('imageText');
           const grid=b.root.children.at(-1);
           if(b.name!=='Image + Text') throw new Error('Image + Text block missing');
@@ -48,9 +40,11 @@ jobs:
           if(makeImageTextGrid(999).children.length!==500) throw new Error('500 item cap failed');
           if(makeCustomSection('custom-4').root.children.length!==4) throw new Error('Custom section layout failed');
           if(FUNCTIONAL_READY_TYPES.length!==9||!makeFunctionalPreset('form')||makeForm().props.fields.length<5) throw new Error('Functional block model failed');
+          const premium=polishPremiumBlock(makePremiumPreset('premiumHeroShowcase'));
+          if(!premiumBlockProfile(premium)?.v3||premium.contentWidth!=='1240') throw new Error('Premium V3 polish failed');
           const project=defaultProject(),az=addPageTranslation(project,project.pages[0],'az');
           if(pageFile(az,project)!=='az/index.html') throw new Error('Multilingual page path failed');
-          console.log('V6_REPEATABLE_MODEL_OK');
+          console.log('V6_MODEL_DIAGNOSTIC_OK');
           NODE
 
       - name: Build exact production artifact
@@ -74,11 +68,14 @@ jobs:
           test -f _site/v6-functional-blocks.mjs
           test -f _site/v6-functional-inspector.mjs
           test -f _site/v6-functional-public.mjs
+          test -f _site/v6-premium-v3.mjs
+          test -f _site/v6-premium-section-inspector.mjs
           test -f _site/v6-seo.mjs
           for f in _site/v6-*.mjs _site/v5-*.mjs; do node --check "$f"; done
           grep -q "v5-repeat-controls.mjs?v=${GITHUB_SHA}" _site/v5-library-extras.mjs
           grep -q "v6-custom-sections.mjs?v=${GITHUB_SHA}" _site/v5-library.mjs
           grep -q "v6-functional-blocks.mjs?v=${GITHUB_SHA}" _site/v5-library.mjs
+          grep -q "v6-premium-v3.mjs?v=${GITHUB_SHA}" _site/v5-library.mjs
           grep -q "v6-functional-public.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v6-seo.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v5-export.mjs?v=${GITHUB_SHA}" _site/v6-seo.mjs
@@ -90,6 +87,7 @@ jobs:
           grep -q "v6-site-languages.mjs?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-responsive-preview.mjs?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-functional-inspector.mjs?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v6-premium-section-inspector.mjs?v=${GITHUB_SHA}" _site/index.html
           if grep -q 'src="v5-repeat-controls.mjs"' _site/index.html; then
             echo 'Duplicate direct repeat-controls bootstrap found' >&2
             exit 1
@@ -130,7 +128,7 @@ jobs:
         if: always()
         run: |
           {
-            echo '## V6 manual diagnostic'
+            echo '## V6 non-blocking diagnostic'
             echo ''
             echo '| Stage | Outcome |'
             echo '|---|---|'
@@ -139,6 +137,6 @@ jobs:
             echo '| Production artifact | ${{ steps.build.outcome }} |'
             echo '| Browser regression | ${{ steps.browser.outcome }} |'
             echo ''
-            echo 'This workflow is intentionally non-blocking and manual so development diagnostics do not generate failed-run notifications. Merge to main only after every diagnostic stage reports success.'
+            echo 'The workflow itself stays successful so development diagnostics do not generate failed-run notifications. Merge to main only when every stage above reports success.'
           } >> "$GITHUB_STEP_SUMMARY"
           echo "DIAGNOSTIC checkout=${{ steps.checkout.outcome }} validate=${{ steps.validate.outcome }} build=${{ steps.build.outcome }} browser=${{ steps.browser.outcome }}"
