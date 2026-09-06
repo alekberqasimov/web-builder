@@ -60,6 +60,17 @@ async function openNavigator(page){
   const tab=page.locator('#navigatorTab');
   if(await tab.count()){await tab.click();await page.waitForSelector('#navigatorPanel:not(.hidden)')}
 }
+async function realNavigatorBlockClick(page,block){
+  const target=block.locator('[data-tree-select-block]');
+  await target.waitFor({state:'visible'});
+  await target.evaluate(el=>el.scrollIntoView({block:'center',inline:'nearest'}));
+  await wait(80);
+  const box=await target.boundingBox(),vp=await page.evaluate(()=>({w:innerWidth,h:innerHeight}));
+  assert.ok(visibleBox(box,vp),'navigator selection target is not visible');
+  const x=Math.max(8,Math.min(vp.w-8,box.x+box.width/2)),y=Math.max(8,Math.min(vp.h-8,box.y+box.height/2));
+  await page.mouse.click(x,y);
+  await wait(260);
+}
 
 async function desktopSuite(){
   const context=await browser.newContext({viewport:{width:1440,height:1000},acceptDownloads:true});
@@ -103,7 +114,7 @@ async function desktopSuite(){
   const used=page.locator('#canvas img.v5-img.v5-selected-node[src^="data:image/svg+xml"]');await used.waitFor({state:'visible'});assert.equal(await used.getAttribute('alt'),'qa-asset','Asset use did not populate ALT');
 
   await openNavigator(page);
-  const hero=page.locator('#navigatorTree [data-tree-block]').filter({hasText:'Hero'}).first();await hero.locator('[data-tree-select-block]').click();
+  const hero=page.locator('#navigatorTree [data-tree-block]').filter({hasText:'Hero'}).first();await realNavigatorBlockClick(page,hero);await page.waitForSelector('#blockInspector:not(.hidden) [data-block-cmd="preset"]');
   page.once('dialog',d=>d.accept('QA Saved Block'));await page.click('#blockInspector [data-block-cmd="preset"]');await page.click('#siteTab');
   const saved=page.locator('#v5MyBlocksManager .v5-myblock-card').filter({has:page.locator('input[value="QA Saved Block"]')}).first();await saved.waitFor({state:'visible'});
   const n0=await blocks.count();await saved.locator('[data-myblock-add]').click();assert.equal(await blocks.count(),n0+1,'My Blocks add failed');
@@ -113,7 +124,7 @@ async function desktopSuite(){
   const f0=await faq.locator('details').count();await page.click('#elementInspector [data-repeat-add="accordion"]');assert.equal(await page.locator('#canvas .v5-accordion').last().locator('details').count(),f0+1,'FAQ add item failed');
 
   await openNavigator(page);
-  const menu=page.locator('#navigatorTree [data-tree-block]').filter({hasText:'Menu'}).first();await menu.locator('[data-tree-select-block]').click();await page.click('#blockInspector [data-block-cmd="header"]');
+  const menu=page.locator('#navigatorTree [data-tree-block]').filter({hasText:'Menu'}).first();await realNavigatorBlockClick(page,menu);await page.waitForSelector('#blockInspector:not(.hidden) [data-block-cmd="header"]');await page.click('#blockInspector [data-block-cmd="header"]');
   await page.click('#pagesTab');page.once('dialog',d=>d.accept('Global Page'));await page.click('#addPageInline');await page.waitForFunction(()=>document.querySelector('#pageLabel')?.textContent.includes('Global Page'));
   assert.ok(await page.locator('#canvas .v5-nav').count()>=1,'Global Header did not propagate');
 
