@@ -35,7 +35,7 @@ const section=(name,root,bg='#ffffff')=>{const b=block(name,root);style(b,{backg
 function heroSaas(){
   const copy=container([
     pill('Built for modern teams'),
-    style(makeHeading('Turn a strong idea into a premium digital experience.',1),{maxWidth:'760px',fontSize:'clamp(36px,4.4vw,64px)',lineHeight:'1.02',letterSpacing:'-.045em'},{fontSize:'52px'},{fontSize:'40px'}),
+    style(makeHeading('Turn a strong idea into a premium digital experience.',1),{maxWidth:'760px',width:'100%',overflowWrap:'anywhere',fontSize:'clamp(36px,4.4vw,64px)',lineHeight:'1.02',letterSpacing:'-.045em'},{fontSize:'52px'},{fontSize:'40px'}),
     muted('Use a polished conversion-first layout with clear hierarchy, social proof and responsive defaults already in place.'),
     dualButtons('Start building','Watch preview'),
     style(makeText('No-code editing · Responsive by default · Export-ready'),{fontSize:'13px',fontWeight:'650',color:'#7a8496'})

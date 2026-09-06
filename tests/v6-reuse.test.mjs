@@ -85,7 +85,7 @@ test('reusable styles export before local styles so local stays highest priority
   const clsStyle=styleBag();clsStyle.base.color='rgb(255,0,0)';clsStyle.mobile.fontSize='19px';
   const def=createStyleClass(p,'hero-title',clsStyle);applyStyleClass(heading,def.id);
   heading.style.base.color='rgb(0,0,255)';
-  const css=collectCss(p,page),selector=`[data-v5-style="${heading.id}"]`;
+  const css=collectCss(p,page),selector=`[data-v5-style][data-v5-style="${heading.id}"]`;
   const sharedAt=css.indexOf(`${selector}{color:rgb(255,0,0)}`);
   const localColorAt=css.indexOf('color:rgb(0,0,255)',sharedAt+1);
   assert.ok(sharedAt>=0,'shared class rule missing');

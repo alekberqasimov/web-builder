@@ -22,7 +22,7 @@ try{
  await page.locator('[data-kind="block"][data-lib-filter="fav"]').click();
  assert.equal(await page.locator('#blockList .library-card:visible').count(),1);
  await page.locator('[data-kind="block"][data-lib-filter="all"]').click();
- await page.screenshot({path:'qa-screenshots/editor-desktop.png'});
+ await page.waitForFunction(()=>document.querySelector('#saveStatus').dataset.saveState==='saved');await page.screenshot({path:'qa-screenshots/editor-desktop.png'});
  await page.click('[data-device="mobile"]');await page.fill('#customWidth','1369');await page.locator('#customWidth').dispatchEvent('change');
  assert.equal(Math.round(await page.locator('#canvasFrame').evaluate(e=>e.getBoundingClientRect().width)),1369);
  assert.equal(await page.locator('#canvas').getAttribute('data-device'),'desktop');
@@ -36,6 +36,7 @@ try{
  const exported=await context.newPage();exported.on('pageerror',e=>errors.push(String(e)));
  for(const width of [320,390,768,1440]){
    await exported.setViewportSize({width,height:960});await exported.setContent(html);
+   assert.equal(await exported.locator('.v5-btn.outline').nth(1).evaluate(el=>getComputedStyle(el).color),'rgb(241, 239, 255)','Dark hero CTA must retain its author-selected color in export');
    const over=await exported.evaluate(()=>[...document.querySelectorAll('.v5-section')].map(el=>({name:el.querySelector('h1,h2')?.textContent,client:el.clientWidth,scroll:el.scrollWidth})).filter(x=>x.scroll>x.client+2));
    assert.deepEqual(over,[],`Export overflow at ${width}px: ${JSON.stringify(over)}`);
    await exported.screenshot({path:`qa-screenshots/premium-export-${width}.png`,fullPage:true});
@@ -45,7 +46,10 @@ try{
  await page.waitForTimeout(100);
  const simulated=await page.evaluate(()=>[...document.querySelectorAll('#canvas .v5-section')].map(el=>({client:el.clientWidth,scroll:el.scrollWidth})).filter(x=>x.scroll>x.client+2));assert.deepEqual(simulated,[]);
  const mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const phone=await mobile.newPage();
- await phone.goto(base);await phone.waitForSelector('#canvas [data-block-id]');await phone.click('#leftToggle');
+ await phone.goto(base);await phone.waitForSelector('#canvas [data-block-id]');assert.equal(await phone.locator('#canvas').getAttribute('data-device'),'mobile','Phone must start with mobile layout');
+ const phoneOverflow=await phone.evaluate(()=>[...document.querySelectorAll('#canvas .v5-section')].filter(el=>el.scrollWidth>el.clientWidth+2).length);assert.equal(phoneOverflow,0);
+ await phone.click('#leftToggle');
+ await phone.waitForFunction(()=>{const r=document.querySelector('#leftSidebar').getBoundingClientRect();return r.left>=-1&&r.right>250});
  await phone.screenshot({path:'qa-screenshots/editor-mobile.png'});
  assert.ok(await phone.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  assert.equal(await phone.locator('#blockList .library-card.is-premium').count(),12);

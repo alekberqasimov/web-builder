@@ -233,6 +233,8 @@ async function boot(){
     upgradeLegacyContent(p);
   }
   state.project=p;
+  state.device=matchMedia('(max-width:760px)').matches?'mobile':matchMedia('(max-width:1100px)').matches?'tablet':'desktop';
+  $$('[data-device]').forEach(b=>b.classList.toggle('active',b.dataset.device===state.device));
   state.project.assets||=[];
   state.project.assetFolders||=[];
   state.project.presets||=[];

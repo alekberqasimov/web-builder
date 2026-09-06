@@ -7,7 +7,7 @@ import {layoutDeviceKey,ownLayoutValue,inheritedLayoutValue,setLayoutValue,reset
 function firstNode(block,type){let hit=null;walk(block.root,n=>{if(!hit&&n.type===type)hit=n});return hit}
 function escapeRe(v=''){return String(v).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
 function assertResponsiveRule(css,width,id,declaration){
-  const re=new RegExp(`@media\\(max-width:${width}px\\)\\{\\[data-v5-style="${escapeRe(id)}"\\]\\{[^}]*${escapeRe(declaration)}[^}]*\\}\\}`);
+  const re=new RegExp(`@media\\(max-width:${width}px\\)\\{\\[data-v5-style\\]\\[data-v5-style="${escapeRe(id)}"\\]\\{[^}]*${escapeRe(declaration)}[^}]*\\}\\}`);
   assert.match(css,re,`missing ${width}px rule for ${id}: ${declaration}`);
 }
 
