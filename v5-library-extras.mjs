@@ -3,13 +3,62 @@ import {$,state,persist} from './v5-runtime.mjs';
 import {bindRepeatControls} from './v5-repeat-controls.mjs';
 import {installCustomSectionStyles} from './v6-custom-sections.mjs';
 
+const filterCopy={
+  ru:{all:'Все',pro:'PRO',fav:'Избранное',recent:'Недавние',shown:'Показано'},
+  az:{all:'Hamısı',pro:'PRO',fav:'Seçilmişlər',recent:'Son istifadə',shown:'Göstərilir'},
+  en:{all:'All',pro:'PRO',fav:'Favorites',recent:'Recent',shown:'Showing'}
+};
+const lang=()=>String(state.project?.uiLang||'en').slice(0,2);
+const ft=(key)=>filterCopy[lang()]?.[key]||filterCopy.en[key]||key;
 function prefs(){return state.project.libraryPrefs||={blockFav:[],elementFav:[],blockRecent:[],elementRecent:[],blockFilter:'all',elementFilter:'all'}}
 function keys(kind){return kind==='block'?{fav:'blockFav',recent:'blockRecent',filter:'blockFilter'}:{fav:'elementFav',recent:'elementRecent',filter:'elementFilter'}}
 function info(kind){return kind==='block'?{panel:$('#blocksPanel'),list:$('#blockList'),data:'addBlock'}:{panel:$('#elementsPanel'),list:$('#elementList'),data:'addElement'}}
-function ensureCustomCategory(){const s=$('#blockCategory');if(!s)return;let o=s.querySelector('option[value="custom"]');const lang=state.project?.uiLang||'en',label=lang==='ru'?'Своя секция':lang==='az'?'Xüsusi bölmə':'Custom section';if(!o){o=document.createElement('option');o.value='custom';s.insertBefore(o,s.querySelector('option[value="my"]')||null)}o.textContent=label}
-function ensureFilter(kind){const {panel}=info(kind);if(!panel||panel.querySelector(`[data-lib-filter-bar="${kind}"]`))return;const bar=document.createElement('div');bar.className='v5-lib-filter';bar.dataset.libFilterBar=kind;bar.innerHTML=`<button data-lib-filter="all" data-kind="${kind}">All</button><button data-lib-filter="fav" data-kind="${kind}">Favorites</button><button data-lib-filter="recent" data-kind="${kind}">Recent</button>`;(panel.querySelector('.panel-tools')||panel.querySelector('.search'))?.after(bar)}
-export function enhanceLibrary(kind){if(kind==='block'){ensureCustomCategory();installCustomSectionStyles()}const {list,data}=info(kind);if(!list)return;ensureFilter(kind);const p=prefs(),k=keys(kind),fav=p[k.fav],recent=p[k.recent],filter=p[k.filter]||'all',cards=[...list.querySelectorAll('.library-card')];for(const card of cards){const key=card.dataset[data];if(!key)continue;card.dataset.libKey=key;let wrapper=card.closest('.library-item');if(!wrapper){wrapper=document.createElement('div');wrapper.className='library-item';card.before(wrapper);wrapper.appendChild(card)}if(!wrapper.querySelector('.v5-fav-star')){const s=document.createElement('button');s.type='button';s.className='v5-fav-star';s.dataset.favKey=key;s.dataset.kind=kind;s.setAttribute('role','button');s.setAttribute('tabindex','0');s.setAttribute('aria-label','Favorite');wrapper.appendChild(s)}const star=wrapper.querySelector('.v5-fav-star');star.textContent=fav.includes(key)?'★':'☆';star.setAttribute('aria-label',catalogCopy(state.project.uiLang)[fav.includes(key)?'unfavorite':'favorite']);star.setAttribute('aria-pressed',String(fav.includes(key)));card.classList.toggle('is-favorite',fav.includes(key));card.hidden=filter==='fav'?!fav.includes(key):filter==='recent'?!recent.includes(key):false;wrapper.hidden=card.hidden}if(filter==='recent')cards.sort((a,b)=>recent.indexOf(a.dataset.libKey)-recent.indexOf(b.dataset.libKey)).forEach(c=>list.appendChild(c.closest('.library-item')||c));list.querySelector('[data-filter-empty]')?.remove();if(cards.length&&cards.every(c=>c.hidden)){const empty=document.createElement('p');empty.className='catalog-empty';empty.dataset.filterEmpty='1';empty.setAttribute('role','status');empty.textContent=catalogCopy(state.project.uiLang).empty;list.appendChild(empty)}document.querySelectorAll(`[data-lib-filter][data-kind="${kind}"]`).forEach(b=>b.classList.toggle('active',b.dataset.libFilter===filter))}
+function ensureCustomCategory(){const s=$('#blockCategory');if(!s)return;let o=s.querySelector('option[value="custom"]');const l=lang(),label=l==='ru'?'Своя секция':l==='az'?'Xüsusi bölmə':'Custom section';if(!o){o=document.createElement('option');o.value='custom';s.insertBefore(o,s.querySelector('option[value="my"]')||null)}o.textContent=label}
+function ensureFilter(kind){
+  const {panel}=info(kind);if(!panel)return null;
+  let bar=panel.querySelector(`[data-lib-filter-bar="${kind}"]`);
+  if(!bar){bar=document.createElement('div');bar.className='v5-lib-filter';bar.dataset.libFilterBar=kind;(panel.querySelector('.panel-tools')||panel.querySelector('.search'))?.after(bar)}
+  const buttons=kind==='block'?[['all','all'],['pro','pro'],['fav','fav'],['recent','recent']]:[['all','all'],['fav','fav'],['recent','recent']];
+  bar.innerHTML=buttons.map(([value,key])=>`<button type="button" data-lib-filter="${value}" data-kind="${kind}">${ft(key)}</button>`).join('');
+  return bar;
+}
+function ensureMeta(kind){
+  const {panel}=info(kind);if(!panel)return null;
+  let meta=panel.querySelector(`[data-library-meta="${kind}"]`);
+  if(!meta){meta=document.createElement('div');meta.className='library-result-meta';meta.dataset.libraryMeta=kind;const bar=ensureFilter(kind);bar?.after(meta)}
+  return meta;
+}
+function isPremiumCard(card){return card.classList.contains('is-premium')||card.querySelector('.v6-premium-badge')||card.dataset.addBlock?.startsWith('premium')}
+export function enhanceLibrary(kind){
+  if(kind==='block'){ensureCustomCategory();installCustomSectionStyles()}
+  const {list,data}=info(kind);if(!list)return;
+  ensureFilter(kind);const meta=ensureMeta(kind);
+  const p=prefs(),k=keys(kind),fav=p[k.fav],recent=p[k.recent],filter=p[k.filter]||'all',cards=[...list.querySelectorAll('.library-card')];
+  let visible=0;
+  for(const card of cards){
+    const key=card.dataset[data];if(!key)continue;card.dataset.libKey=key;
+    let wrapper=card.closest('.library-item');if(!wrapper){wrapper=document.createElement('div');wrapper.className='library-item';card.before(wrapper);wrapper.appendChild(card)}
+    if(!wrapper.querySelector('.v5-fav-star')){const s=document.createElement('button');s.type='button';s.className='v5-fav-star';s.dataset.favKey=key;s.dataset.kind=kind;s.setAttribute('aria-label','Favorite');wrapper.appendChild(s)}
+    const star=wrapper.querySelector('.v5-fav-star');star.textContent=fav.includes(key)?'★':'☆';star.setAttribute('aria-label',catalogCopy(state.project.uiLang)[fav.includes(key)?'unfavorite':'favorite']);star.setAttribute('aria-pressed',String(fav.includes(key)));card.classList.toggle('is-favorite',fav.includes(key));
+    const hidden=filter==='fav'?!fav.includes(key):filter==='recent'?!recent.includes(key):filter==='pro'?!isPremiumCard(card):false;
+    card.hidden=hidden;wrapper.hidden=hidden;if(!hidden)visible++;
+  }
+  if(filter==='recent')cards.sort((a,b)=>recent.indexOf(a.dataset.libKey)-recent.indexOf(b.dataset.libKey)).forEach(c=>list.appendChild(c.closest('.library-item')||c));
+  list.querySelector('[data-filter-empty]')?.remove();
+  if(cards.length&&cards.every(c=>c.hidden)){const empty=document.createElement('p');empty.className='catalog-empty';empty.dataset.filterEmpty='1';empty.setAttribute('role','status');empty.textContent=catalogCopy(state.project.uiLang).empty;list.appendChild(empty)}
+  if(meta)meta.innerHTML=`<span>${ft('shown')}</span><strong>${visible}</strong>`;
+  document.querySelectorAll(`[data-lib-filter][data-kind="${kind}"]`).forEach(b=>b.classList.toggle('active',b.dataset.libFilter===filter));
+}
 export function enhanceLibraries(){enhanceLibrary('block');enhanceLibrary('element')}
 function remember(kind,key){if(!key)return;const p=prefs(),k=keys(kind),arr=p[k.recent];p[k.recent]=[key,...arr.filter(x=>x!==key)].slice(0,12);persist()}
 function toggle(kind,key){const p=prefs(),k=keys(kind),arr=p[k.fav];p[k.fav]=arr.includes(key)?arr.filter(x=>x!==key):[key,...arr];persist();enhanceLibrary(kind)}
-export function bindLibraryExtras(){if(document.body.dataset.v5LibExtras==='1')return;document.body.dataset.v5LibExtras='1';bindRepeatControls();document.addEventListener('click',e=>{const star=e.target.closest('[data-fav-key]');if(star){e.preventDefault();e.stopPropagation();toggle(star.dataset.kind,star.dataset.favKey);return}const filter=e.target.closest('[data-lib-filter]');if(filter){e.preventDefault();const p=prefs(),k=keys(filter.dataset.kind);p[k.filter]=filter.dataset.libFilter;persist();enhanceLibrary(filter.dataset.kind);return}const card=e.target.closest('.library-card');if(card){if(card.dataset.addBlock)remember('block',card.dataset.addBlock);if(card.dataset.addElement)remember('element',card.dataset.addElement)}},true);document.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const star=e.target.closest?.('[data-fav-key]');if(!star)return;e.preventDefault();toggle(star.dataset.kind,star.dataset.favKey)},true)}
+export function bindLibraryExtras(){
+  if(document.body.dataset.v5LibExtras==='1')return;document.body.dataset.v5LibExtras='1';bindRepeatControls();
+  document.addEventListener('click',e=>{
+    const star=e.target.closest('[data-fav-key]');if(star){e.preventDefault();e.stopPropagation();toggle(star.dataset.kind,star.dataset.favKey);return}
+    const filter=e.target.closest('[data-lib-filter]');if(filter){e.preventDefault();const p=prefs(),k=keys(filter.dataset.kind);p[k.filter]=filter.dataset.libFilter;persist();enhanceLibrary(filter.dataset.kind);return}
+    const card=e.target.closest('.library-card');if(card){if(card.dataset.addBlock)remember('block',card.dataset.addBlock);if(card.dataset.addElement)remember('element',card.dataset.addElement)}
+  },true);
+  document.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const star=e.target.closest?.('[data-fav-key]');if(!star)return;e.preventDefault();toggle(star.dataset.kind,star.dataset.favKey)},true);
+  document.querySelector('#uiLanguage')?.addEventListener('change',()=>setTimeout(enhanceLibraries,0));
+}
