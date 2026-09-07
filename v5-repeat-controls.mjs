@@ -20,18 +20,20 @@ function currentBlockRepeatNode(){
   try{return findImageTextGrid(currentBlock()?.root)}catch{return null}
 }
 
+function presetButtons(count,scope){return[1,3,6,9].map(n=>`<button type="button" data-repeat-image-text-preset="${n}" data-repeat-scope="${scope}" class="${Number(count)===n?'active':''}">${n}</button>`).join('')}
 function injectCountControl(panel,node,scope){
   if(!panel||!node)return;
   const selector=`[data-repeat-image-text-wrap="${scope}"]`;
   const existing=panel.querySelector(selector);
   if(existing){
-    const input=existing.querySelector('[data-repeat-image-text-count]');
-    if(input&&document.activeElement!==input)input.value=String(node.children?.length||1);
+    const count=node.children?.length||1,input=existing.querySelector('[data-repeat-image-text-count]');
+    if(input&&document.activeElement!==input)input.value=String(count);
+    existing.querySelectorAll('[data-repeat-image-text-preset]').forEach(b=>b.classList.toggle('active',Number(b.dataset.repeatImageTextPreset)===count));
     return;
   }
-  const box=document.createElement('fieldset');
+  const count=node.children?.length||1,box=document.createElement('fieldset');
   box.dataset.repeatImageTextWrap=scope;
-  box.innerHTML=`<legend>Image + Text items</legend><label>Item count (1–500)<input data-repeat-image-text-count data-repeat-scope="${scope}" type="number" min="1" max="500" inputmode="numeric" value="${node.children?.length||1}"></label><small>Enter any number, for example 254. Existing items are preserved; new items are appended.</small>`;
+  box.innerHTML=`<legend>Image + Text items</legend><div class="segmented repeat-count-presets" aria-label="Quick item count">${presetButtons(count,scope)}</div><label>Manual count (1–500)<input data-repeat-image-text-count data-repeat-scope="${scope}" type="number" min="1" max="500" inputmode="numeric" value="${count}"></label><small>Quick presets: 1 / 3 / 6 / 9. Or enter any number manually, for example 254. Existing items are preserved; new items are appended.</small>`;
   panel.querySelector('.inspector-head')?.after(box);
 }
 
@@ -46,8 +48,16 @@ export function renderRepeatControls(){
   }
 }
 
-function nodeForInput(input){
-  return input.dataset.repeatScope==='block'?currentBlockRepeatNode():selectedRepeatNode();
+function nodeForControl(control){return control.dataset.repeatScope==='block'?currentBlockRepeatNode():selectedRepeatNode()}
+function applyCount(node,target,label='Image + Text item count'){
+  if(node?.type!=='container'||node.props?.repeatTemplate!=='imageText')return;
+  target=clampCount(target);
+  mutate(label,()=>{
+    node.children||=[];
+    while(node.children.length<target)node.children.push(makeImageTextItem(node.children.length+1));
+    if(node.children.length>target)node.children.length=target;
+    node.props.itemCount=target;
+  });
 }
 
 export function bindRepeatControls(){
@@ -60,18 +70,14 @@ export function bindRepeatControls(){
   document.addEventListener('change',e=>{
     const input=e.target.closest?.('[data-repeat-image-text-count]');
     if(!input||!state.project)return;
-    const node=nodeForInput(input);
-    if(node?.type!=='container'||node.props?.repeatTemplate!=='imageText')return;
-    const target=clampCount(input.value);
-    input.value=String(target);
-    mutate('Image + Text item count',()=>{
-      node.children||=[];
-      while(node.children.length<target)node.children.push(makeImageTextItem(node.children.length+1));
-      if(node.children.length>target)node.children.length=target;
-      node.props.itemCount=target;
-    });
+    const target=clampCount(input.value);input.value=String(target);
+    applyCount(nodeForControl(input),target);
   });
-  document.addEventListener('click',()=>queueMicrotask(renderRepeatControls),true);
+  document.addEventListener('click',e=>{
+    const preset=e.target.closest?.('[data-repeat-image-text-preset]');
+    if(preset&&state.project){e.preventDefault();applyCount(nodeForControl(preset),Number(preset.dataset.repeatImageTextPreset),'Image + Text preset count');return}
+    queueMicrotask(renderRepeatControls);
+  },true);
   queueMicrotask(renderRepeatControls);
 }
 
