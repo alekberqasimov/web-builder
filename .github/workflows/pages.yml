@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   deploy:
+    timeout-minutes: 30
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -28,19 +29,7 @@ jobs:
         run: |
           set -e
           bash -n scripts/build-pages.sh
-          for f in v6-*.mjs v5-*.mjs; do node --check "$f"; done
-          node --check tests/e2e.mjs
-          node --check tests/e2e-layout-v6.mjs
-          node --check tests/e2e-deep.mjs
-          node --check tests/e2e-repeatable-v6.mjs
-          node --check tests/e2e-ux-v6.mjs
-          node --check tests/e2e-custom-v6.mjs
-          node --check tests/e2e-site-languages-v6.mjs
-          node --check tests/e2e-theme-v6.mjs
-          node --check tests/e2e-ui-kit-v6.mjs
-          node --check tests/e2e-responsive-preview-v6.mjs
-          node --check tests/e2e-functional-v6.mjs
-          node --check tests/e2e-seo-v6.mjs
+          for f in v6-*.mjs v5-*.mjs tests/e2e*.mjs; do node --check "$f"; done
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
           import {defaultProject,addPageTranslation,addSiteLanguage,pageFile,makeForm} from './v5-model.mjs';
@@ -62,6 +51,8 @@ jobs:
           import {makeCustomSection} from './v6-custom-sections.mjs';
           import {FUNCTIONAL_READY_TYPES,makeFunctionalPreset} from './v6-functional-blocks.mjs';
           import {robotsText,sitemapXml} from './v6-seo.mjs';
+          import {precisionBlockDropIndex} from './v6-dnd-precision.mjs';
+          import {modeOf} from './v6-nav-config.mjs';
           const project=defaultProject();
           project.siteUrl='https://example.test';
           const html=exportedDocument(project,project.pages[0]);
@@ -83,6 +74,8 @@ jobs:
           if(minifyHtmlDocument('<div>\n <span>A</span>\n </div>')!=='<div><span>A</span></div>') throw new Error('Minify smoke failed');
           if(!linkTargetUsesTextInput('url')||!linkTargetUsesTextInput('email')||linkTargetUsesTextInput('page')) throw new Error('Link target input smoke failed');
           if(pointerBlockDropIndex(160,[{top:0,height:100},{top:100,height:100},{top:200,height:100}])!==2) throw new Error('Pointer block drop-index smoke failed');
+          if(precisionBlockDropIndex(160,[{top:0,height:100},{top:100,height:100},{top:200,height:100}])!==2) throw new Error('Precision block drop-index smoke failed');
+          if(modeOf({props:{desktopMenu:'dropdown'}})!=='dropdown') throw new Error('Desktop navigation mode smoke failed');
           if(pointerElementZone(15,0,100)!=='before'||pointerElementZone(50,0,100)!=='inside'||pointerElementZone(90,0,100)!=='after') throw new Error('Pointer element zone smoke failed');
           if(!validPageTemplatePayload({name:'Home',page:project.pages[0]})) throw new Error('Page template smoke failed');
           project.pages[0].blocks[0].style.mobile.width='500px';
@@ -128,6 +121,8 @@ jobs:
           test -f _site/v6-functional-inspector.mjs
           test -f _site/v6-functional-public.mjs
           test -f _site/v6-seo.mjs
+          test -f _site/v6-dnd-precision.mjs
+          test -f _site/v6-nav-config.mjs
           test -f _site/v5-languages.mjs
           if grep -Eq "app\.js|builder-v4|enhancements|runtime-fixes|v5-mobile-fix|v5\.css|v5-app\.mjs" _site/index.html; then
             echo "Legacy editor shell found in production index" >&2
@@ -152,6 +147,8 @@ jobs:
           grep -q "v6-seo.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v6-custom-sections.mjs?v=${GITHUB_SHA}" _site/v5-library-extras.mjs
           grep -q "v5-export.mjs?v=${GITHUB_SHA}" _site/v6-seo.mjs
+          grep -q "v6-dnd-precision.mjs?v=${GITHUB_SHA}" _site/v6-reuse.mjs
+          grep -q "v6-nav-config.mjs?v=${GITHUB_SHA}" _site/v6-reuse.mjs
           test -f _site/v5-repeat-controls.mjs
           grep -q "v5-localize-v53.mjs?v=${GITHUB_SHA}" _site/v5-localize-v54.mjs
           grep -q "v5-performance.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
@@ -160,6 +157,7 @@ jobs:
           echo "V6_WIRING_OK"
 
       - name: Browser regression and visual geometry audit
+        timeout-minutes: 20
         run: |
           set -e
           npm install --no-save --no-package-lock playwright@1.55.0 >/dev/null
@@ -173,13 +171,25 @@ jobs:
             sleep 1
           done
           test "$READY" -eq 1
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-layout-v6.mjs
+          export E2E_BASE_URL=http://127.0.0.1:4173
+          run_test(){
+            SPEC="$1"
+            LIMIT="${2:-120}"
+            echo "::group::E2E ${SPEC}"
+            timeout --signal=TERM "${LIMIT}s" node "$SPEC"
+            echo "E2E_OK ${SPEC}"
+            echo "::endgroup::"
+          }
+          run_test tests/e2e-startup-resilience-v6.mjs 90
+          run_test tests/e2e.mjs 120
+          run_test tests/e2e-layout-v6.mjs 120
+          run_test tests/e2e-deep.mjs 150
           cp tests/e2e-deep.mjs tests/.e2e-deep-v6.tmp.mjs
           sed -i "s/classList.remove('left-collapsed','right-collapsed')/classList.add('left-collapsed','right-collapsed')/" tests/.e2e-deep-v6.tmp.mjs
           DEEP_OK=0
           for attempt in 1 2; do
-            if E2E_BASE_URL=http://127.0.0.1:4173 node tests/.e2e-deep-v6.tmp.mjs; then
+            echo "E2E_DEEP_COLLAPSED_ATTEMPT ${attempt}"
+            if timeout --signal=TERM 150s node tests/.e2e-deep-v6.tmp.mjs; then
               DEEP_OK=1
               break
             fi
@@ -188,19 +198,22 @@ jobs:
           done
           rm -f tests/.e2e-deep-v6.tmp.mjs
           test "$DEEP_OK" -eq 1
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-repeatable-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-ux-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-custom-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-site-languages-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-theme-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-ui-kit-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-responsive-preview-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-functional-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-seo-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-quality-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-advanced-layout-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-reuse-v6.mjs
-          E2E_BASE_URL=http://127.0.0.1:4173 node tests/e2e-schema-builder-v6.mjs
+          run_test tests/e2e-repeatable-v6.mjs 120
+          run_test tests/e2e-navigation-dnd-v6.mjs 120
+          run_test tests/e2e-ux-v6.mjs 120
+          run_test tests/e2e-custom-v6.mjs 120
+          run_test tests/e2e-site-languages-v6.mjs 120
+          run_test tests/e2e-theme-v6.mjs 120
+          run_test tests/e2e-ui-kit-v6.mjs 150
+          run_test tests/e2e-editor-premium-v6.mjs 120
+          run_test tests/e2e-premium-v3.mjs 120
+          run_test tests/e2e-responsive-preview-v6.mjs 120
+          run_test tests/e2e-functional-v6.mjs 150
+          run_test tests/e2e-seo-v6.mjs 120
+          run_test tests/e2e-quality-v6.mjs 120
+          run_test tests/e2e-advanced-layout-v6.mjs 120
+          run_test tests/e2e-reuse-v6.mjs 120
+          run_test tests/e2e-schema-builder-v6.mjs 120
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
