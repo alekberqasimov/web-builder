@@ -2,6 +2,8 @@ import './v6-reuse-core.mjs';
 import './v6-reuse-guard.mjs';
 import './v6-advanced-layout.mjs';
 import './v6-schema-builder.mjs';
+import './v6-dnd-precision.mjs';
+import './v6-nav-config.mjs';
 export * from './v6-reuse-core.mjs';
 
 // Final editor-shell accessibility guard. This entry point loads after the visual layers,
