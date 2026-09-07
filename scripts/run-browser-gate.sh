@@ -42,8 +42,8 @@ run_test tests/e2e-inspector-stability-v6.mjs 90
 run_test tests/e2e-selection-inspector-v6.mjs 90
 
 # Keep the broad deep suite, but avoid re-running the same FAQ inspector path in
-# the middle of a long stateful scenario. That path is covered immediately above
-# by the focused deterministic navigator -> inspector -> add-item E2E.
+# the middle of a long stateful scenario. The focused E2E above owns that path.
+# Preserve the library tab/category transition that the following deep steps rely on.
 cp tests/e2e-deep.mjs tests/.e2e-deep-v6.tmp.mjs
 python3 - <<'PY'
 from pathlib import Path
@@ -52,6 +52,7 @@ lines=p.read_text().splitlines()
 filtered=[]
 for line in lines:
     if "premiumFaqSplit" in line and "page.click('#blocksTab')" in line:
+        filtered.append("  await page.click('#blocksTab');await page.selectOption('#blockCategory','ready');")
         continue
     if "const faq=page.locator('#canvas .v5-accordion" in line:
         continue
