@@ -24,6 +24,10 @@ function premium(){const b=currentBlock();return !!(b?.premiumVariant||String(b?
 function bucket(n){n.style||={};const key=dev()==='desktop'?'base':dev();n.style[key]||={};return n.style[key]}
 function detectMeasure(n){const v=String(bucket(n).maxWidth||'');return Object.entries(MEASURE).find(([,x])=>x===v)?.[0]||''}
 function buttonWidth(n){return bucket(n).width==='100%'?'full':'auto'}
+function signature(n){
+  const s=bucket(n);
+  return [currentBlock()?.id||'',n.id,n.type,dev(),lang(),s.fontSize||'',s.lineHeight||'',s.letterSpacing||'',s.maxWidth||'',s.textAlign||'',s.marginInline||'',s.width||'',s.padding||'',s.minHeight||''].join('|');
+}
 function panel(n){
   if(!premium())return'';
   if(n.type==='heading'||n.type==='text'){
@@ -36,7 +40,16 @@ function panel(n){
   }
   return'';
 }
-export function enhancePremiumTypeInspector(){const root=$('#elementInspector'),n=currentNode();if(!root||!n)return;root.querySelector('.v6-premium-type-editor')?.remove();const html=panel(n);if(!html)return;const box=document.createElement('div');box.innerHTML=html;root.querySelector('.inspector-head')?.after(box.firstElementChild)}
+export function enhancePremiumTypeInspector(){
+  const root=$('#elementInspector'),n=currentNode(),existing=root?.querySelector('.v6-premium-type-editor');
+  if(!root||!n){existing?.remove();return}
+  const html=panel(n);
+  if(!html){existing?.remove();return}
+  const sig=signature(n);
+  if(existing?.dataset.v6PremiumTypeSignature===sig)return;
+  const box=document.createElement('div');box.innerHTML=html;const next=box.firstElementChild;next.dataset.v6PremiumTypeSignature=sig;
+  if(existing)existing.replaceWith(next);else root.querySelector('.inspector-head')?.after(next);
+}
 function onClick(e){const b=e.target.closest?.('button'),n=currentNode();if(!b||!n||!premium())return;
   if(b.dataset.v6TypeScale){const set=n.type==='heading'?HEADING:TEXT,row=set[b.dataset.v6TypeScale]?.[dev()];if(!row)return;mutate('Premium typography scale',()=>{const s=bucket(n);s.fontSize=row[0];s.lineHeight=row[1];if(n.type==='heading')s.letterSpacing=row[2]});return}
   if(b.dataset.v6TypeMeasure){const v=MEASURE[b.dataset.v6TypeMeasure];if(!v)return;mutate('Premium text measure',()=>bucket(n).maxWidth=v);return}
