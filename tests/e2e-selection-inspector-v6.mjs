@@ -20,10 +20,16 @@ try{
   await faq.waitFor({state:'visible'});
   const faqId=await faq.getAttribute('data-node-id');
   assert.ok(faqId,'FAQ node id missing');
-  await faq.click({position:{x:8,y:8}});
+
+  // Selection/inspector contract is tested deterministically here. Physical pointer
+  // clicks remain covered by e2e-deep and the dedicated DnD suites.
+  await faq.dispatchEvent('click',{bubbles:true,cancelable:true});
   await page.waitForFunction(id=>{
     const panel=document.querySelector('#elementInspector');
-    return !panel?.classList.contains('hidden')&&panel?.querySelector('[data-repeat-add="accordion"]')&&document.querySelector(`#canvas [data-node-id="${id}"]`)?.classList.contains('v5-selected-node');
+    const selected=document.querySelector(`#canvas [data-node-id="${id}"]`);
+    return !panel?.classList.contains('hidden')&&
+      !!panel?.querySelector('[data-repeat-add="accordion"]')&&
+      selected?.classList.contains('v5-selected-node');
   },faqId);
   assert.equal(await page.locator('#elementInspector [data-repeat-add="accordion"]').count(),1,'Accordion base editor missing');
   assert.equal(await page.locator('#elementInspector [data-fx-accordion-add]').count(),1,'Accordion premium editor missing');
