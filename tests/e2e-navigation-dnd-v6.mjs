@@ -8,13 +8,25 @@ const page=await context.newPage();
 const errors=[];
 page.on('pageerror',e=>errors.push(String(e?.stack||e)));
 
+async function selectNodeThroughNavigator(node){
+  const nodeId=await node.getAttribute('data-node-id');
+  const blockId=await node.evaluate(el=>el.closest('[data-block-id]')?.dataset.blockId||'');
+  assert.ok(nodeId&&blockId,'Navigation selection ids missing');
+  const target=page.locator(`#navigatorTree [data-tree-node="${nodeId}"][data-block="${blockId}"] [data-tree-select-node="${nodeId}"]`);
+  await target.waitFor({state:'attached'});
+  await target.dispatchEvent('click',{bubbles:true,cancelable:true});
+  await page.waitForFunction(id=>document.querySelector(`#canvas [data-node-id="${id}"]`)?.classList.contains('v5-selected-node'),nodeId);
+}
+
 try{
   await page.goto(base,{waitUntil:'domcontentloaded'});
-  await page.waitForSelector('#canvas .v5-nav',{timeout:15000});
+  const nav=page.locator('#canvas .v5-nav[data-node-id]').first();
+  await nav.waitFor({state:'visible',timeout:15000});
   await page.evaluate(()=>document.body.classList.remove('left-collapsed','right-collapsed'));
 
-  // Select the actual navigation element without following one of its links.
-  await page.locator('#canvas .v5-nav').dispatchEvent('click');
+  // Select navigation through the editor's delegated Navigator contract. This avoids
+  // link/content hit-testing and verifies the same selection state used by the UI.
+  await selectNodeThroughNavigator(nav);
   await page.waitForSelector('#elementInspector:not(.hidden) [data-v6-nav-desktop]');
 
   // Desktop navigation can explicitly switch between inline and dropdown modes.
