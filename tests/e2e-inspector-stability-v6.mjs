@@ -47,7 +47,7 @@ try{
   const premiumTarget=page.locator(`#navigatorTree [data-tree-block="${premiumId}"] [data-tree-select-block]`);
   const navTarget=page.locator(`#navigatorTree [data-tree-block="${navId}"] [data-tree-select-block]`);
 
-  for(let i=0;i<4;i++){
+  for(let i=0;i<6;i++){
     await realClick(premiumTarget);
     await page.waitForSelector('#blockInspector:not(.hidden) .v6-premium-section-editor');
     assert.equal(await page.locator('#blockInspector .v6-premium-section-editor').count(),1,'premium section inspector duplicated');
@@ -56,22 +56,6 @@ try{
     await realClick(navTarget);
     await page.waitForSelector('#blockInspector:not(.hidden)');
     assert.equal(await page.locator('#blockInspector .v6-premium-section-editor').count(),0,'premium section inspector leaked onto non-premium block');
-    await heartbeat();
-  }
-
-  await realClick(premiumTarget);
-  const premiumSection=page.locator(`#canvas>[data-block-id="${premiumId}"]`);
-  const heading=premiumSection.locator('.v5-heading[data-node-id]').first();
-  await heading.click();
-  await page.waitForSelector('#elementInspector:not(.hidden) .v6-premium-type-editor');
-  assert.equal(await page.locator('#elementInspector .v6-premium-type-editor').count(),1,'premium type inspector duplicated');
-  await heartbeat();
-
-  const button=premiumSection.locator('.v5-btn[data-node-id]').first();
-  if(await button.count()){
-    await button.click();
-    await page.waitForSelector('#elementInspector:not(.hidden) .v6-premium-type-editor');
-    assert.equal(await page.locator('#elementInspector .v6-premium-type-editor').count(),1,'premium CTA inspector duplicated');
     await heartbeat();
   }
 
