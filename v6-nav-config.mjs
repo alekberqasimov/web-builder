@@ -39,9 +39,12 @@ function enhance(){
   if(!panel||n?.type!=='nav')return;
   const navFieldset=panel.querySelector('[data-p="logoText"]')?.closest('fieldset');
   if(!navFieldset)return;
-  navFieldset.querySelector('[data-v6-nav-behavior]')?.remove();
+  const signature=`${lang()}|${modeOf(n)}|${n.props?.mobileIcon||'☰'}`;
+  const existing=navFieldset.querySelector('[data-v6-nav-behavior]');
+  if(existing?.dataset.v6NavSignature===signature)return;
   const wrap=document.createElement('div');wrap.innerHTML=behaviorHtml(n);
-  navFieldset.querySelector(':scope>legend')?.after(wrap.firstElementChild);
+  const next=wrap.firstElementChild;next.dataset.v6NavSignature=signature;
+  if(existing)existing.replaceWith(next);else navFieldset.querySelector(':scope>legend')?.after(next);
 }
 function enhanceWhenReady(attempt=0){
   if(state.project){enhance();return}
