@@ -22,11 +22,11 @@ try{
   const blockId=await faq.evaluate(el=>el.closest('[data-block-id]')?.dataset.blockId||'');
   assert.ok(faqId&&blockId,'FAQ selection ids missing');
 
-  // Select the FAQ through the navigator. This keeps the test deterministic while
-  // still exercising the real editor selection -> inspector contract.
+  // Navigator can be visually collapsed by the editor shell. We need the actual
+  // delegated navigator selection event, not viewport geometry, for this contract.
   const treeTarget=page.locator(`#navigatorTree [data-tree-node="${faqId}"][data-block="${blockId}"] [data-tree-select-node="${faqId}"]`);
-  await treeTarget.waitFor({state:'visible'});
-  await treeTarget.click();
+  await treeTarget.waitFor({state:'attached'});
+  await treeTarget.dispatchEvent('click',{bubbles:true,cancelable:true});
   await page.waitForFunction(id=>{
     const panel=document.querySelector('#elementInspector');
     const selected=document.querySelector(`#canvas [data-node-id="${id}"]`);
