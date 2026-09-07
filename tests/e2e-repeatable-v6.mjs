@@ -14,6 +14,16 @@ async function change(selector,value){
   await el.dispatchEvent('change');
 }
 
+async function selectNodeThroughNavigator(node){
+  const nodeId=await node.getAttribute('data-node-id');
+  const blockId=await node.evaluate(el=>el.closest('[data-block-id]')?.dataset.blockId||'');
+  assert.ok(nodeId&&blockId,'Navigator selection ids missing');
+  const target=page.locator(`#navigatorTree [data-tree-node="${nodeId}"][data-block="${blockId}"] [data-tree-select-node="${nodeId}"]`);
+  await target.waitFor({state:'attached'});
+  await target.dispatchEvent('click',{bubbles:true,cancelable:true});
+  await page.waitForFunction(id=>document.querySelector(`#canvas [data-node-id="${id}"]`)?.classList.contains('v5-selected-node'),nodeId);
+}
+
 try{
   await page.goto(base,{waitUntil:'domcontentloaded'});
   await page.waitForSelector('#canvas [data-block-id]',{timeout:15000});
@@ -40,8 +50,9 @@ try{
   await page.click('#blocksTab');
   await page.locator('[data-add-block="gallery"]').click();
   const gallerySection=page.locator('#canvas .v5-section.selected');
-  const gallery=gallerySection.locator('.v5-gallery');
-  await gallery.click({position:{x:8,y:8}});
+  const gallery=gallerySection.locator('.v5-gallery[data-node-id]');
+  await gallery.waitFor({state:'visible'});
+  await selectNodeThroughNavigator(gallery);
   await page.waitForSelector('#elementInspector:not(.hidden) [data-gallery-count]');
   await change('#elementInspector [data-gallery-count]',254);
   await page.waitForFunction(()=>document.querySelectorAll('#canvas .v5-section.selected .v5-gallery figure').length===254);
