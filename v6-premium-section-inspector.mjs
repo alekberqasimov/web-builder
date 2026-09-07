@@ -36,6 +36,10 @@ function detectedDensity(block){
 function detectedWidth(block){const v=String(block.contentWidth||'');for(const [k,w] of Object.entries(WIDTHS))if(String(w)===v)return k;return''}
 function detectedAlign(block){const s=rootBucket(block)||{};return s.textAlign==='center'?'center':'left'}
 function toneKey(block){const s=styleBucket(block),bg=String(s.background||'');for(const [k,v] of Object.entries(TONES))if(v.background===bg)return k;return''}
+function signature(block){
+  const s=styleBucket(block),r=rootBucket(block)||{};
+  return [block.id,device(),lang(),block.contentWidth||'',s.paddingTop||'',s.paddingBottom||'',s.background||'',s.color||'',r.textAlign||'',r.alignItems||''].join('|');
+}
 
 function markup(block){
   const d=detectedDensity(block),w=detectedWidth(block),a=detectedAlign(block),tone=toneKey(block),dev=device();
@@ -67,10 +71,13 @@ function markup(block){
 }
 
 export function enhancePremiumSectionInspector(){
-  const root=$('#blockInspector'),block=currentBlock();if(!root||!block||!isPremium(block))return;
-  root.querySelector('.v6-premium-section-editor')?.remove();
+  const root=$('#blockInspector'),block=currentBlock(),existing=root?.querySelector('.v6-premium-section-editor');
+  if(!root||!block||!isPremium(block)){existing?.remove();return}
+  const sig=signature(block);
+  if(existing?.dataset.v6PremiumSectionSignature===sig)return;
   const box=document.createElement('div');box.innerHTML=markup(block);const node=box.firstElementChild;
-  root.querySelector('.inspector-head')?.after(node);
+  node.dataset.v6PremiumSectionSignature=sig;
+  if(existing)existing.replaceWith(node);else root.querySelector('.inspector-head')?.after(node);
 }
 function renderSoon(){queueMicrotask(enhancePremiumSectionInspector)}
 
