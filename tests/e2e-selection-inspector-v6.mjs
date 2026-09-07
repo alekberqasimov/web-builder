@@ -19,11 +19,14 @@ try{
   const faq=page.locator('#canvas .v5-accordion[data-node-id]').last();
   await faq.waitFor({state:'visible'});
   const faqId=await faq.getAttribute('data-node-id');
-  assert.ok(faqId,'FAQ node id missing');
+  const blockId=await faq.evaluate(el=>el.closest('[data-block-id]')?.dataset.blockId||'');
+  assert.ok(faqId&&blockId,'FAQ selection ids missing');
 
-  // Selection/inspector contract is tested deterministically here. Physical pointer
-  // clicks remain covered by e2e-deep and the dedicated DnD suites.
-  await faq.dispatchEvent('click',{bubbles:true,cancelable:true});
+  // Select the FAQ through the navigator. This keeps the test deterministic while
+  // still exercising the real editor selection -> inspector contract.
+  const treeTarget=page.locator(`#navigatorTree [data-tree-node="${faqId}"][data-block="${blockId}"] [data-tree-select-node="${faqId}"]`);
+  await treeTarget.waitFor({state:'visible'});
+  await treeTarget.click();
   await page.waitForFunction(id=>{
     const panel=document.querySelector('#elementInspector');
     const selected=document.querySelector(`#canvas [data-node-id="${id}"]`);
