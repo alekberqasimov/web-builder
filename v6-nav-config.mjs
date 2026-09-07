@@ -11,13 +11,14 @@ const COPY={
 function lang(){return String(document.querySelector('#uiLanguage')?.value||state.project?.uiLang||'en').slice(0,2)}
 function tx(key){return COPY[lang()]?.[key]||COPY.en[key]||key}
 function tokens(value=''){return String(value).split(/\s+/).map(x=>x.trim()).filter(Boolean)}
+function selectedNode(){if(!state.project)return null;try{return currentNode()}catch{return null}}
 function modeOf(n){
   if(!n?.props)return'inline';
   if(n.props.desktopMenu==='dropdown')return'dropdown';
   return tokens(n.props.className).includes(TOKEN)?'dropdown':'inline';
 }
 function setMode(value){
-  const n=currentNode();if(n?.type!=='nav')return;
+  const n=selectedNode();if(n?.type!=='nav')return;
   mutate('Navigation desktop behavior',()=>{
     n.props.desktopMenu=value==='dropdown'?'dropdown':'inline';
     const list=tokens(n.props.className).filter(x=>x!==TOKEN);
@@ -26,7 +27,7 @@ function setMode(value){
   });
 }
 function setIcon(value){
-  const n=currentNode();if(n?.type!=='nav')return;
+  const n=selectedNode();if(n?.type!=='nav')return;
   mutate('Navigation mobile icon',()=>{n.props.mobileIcon=String(value||'☰')});
 }
 function behaviorHtml(n){
@@ -34,13 +35,17 @@ function behaviorHtml(n){
   return `<div class="v6-nav-behavior" data-v6-nav-behavior="1"><div class="field-grid"><label>${tx('desktop')}<select data-v6-nav-desktop><option value="inline" ${mode==='inline'?'selected':''}>${tx('inline')}</option><option value="dropdown" ${mode==='dropdown'?'selected':''}>${tx('dropdown')}</option></select></label><label>${tx('mobileIcon')}<input data-v6-nav-icon value="${attr(icon)}" list="v6NavIconPresets" maxlength="8"><datalist id="v6NavIconPresets">${ICONS.map(x=>`<option value="${attr(x)}"></option>`).join('')}</datalist></label></div><div class="v6-nav-icon-presets" role="group" aria-label="${attr(tx('icons'))}">${ICONS.map(x=>`<button type="button" data-v6-nav-icon-preset="${attr(x)}" class="${x===icon?'active':''}" aria-label="${attr(tx('use'))} ${attr(x)}">${x}</button>`).join('')}</div><small class="v6-nav-help">${tx('help')}</small></div>`;
 }
 function enhance(){
-  const n=currentNode(),panel=document.querySelector('#elementInspector');
+  const panel=document.querySelector('#elementInspector'),n=selectedNode();
   if(!panel||n?.type!=='nav')return;
   const navFieldset=panel.querySelector('[data-p="logoText"]')?.closest('fieldset');
   if(!navFieldset)return;
   navFieldset.querySelector('[data-v6-nav-behavior]')?.remove();
   const wrap=document.createElement('div');wrap.innerHTML=behaviorHtml(n);
   navFieldset.querySelector(':scope>legend')?.after(wrap.firstElementChild);
+}
+function enhanceWhenReady(attempt=0){
+  if(state.project){enhance();return}
+  if(attempt<80)setTimeout(()=>enhanceWhenReady(attempt+1),50);
 }
 function ensureStyle(){
   if(document.getElementById('v6NavConfigStyle'))return;
@@ -49,7 +54,7 @@ function ensureStyle(){
   document.head.append(s);
 }
 function bind(){
-  ensureStyle();enhance();
+  ensureStyle();enhanceWhenReady();
   document.addEventListener('change',e=>{
     const t=e.target;
     if(t.matches?.('[data-v6-nav-desktop]')){setMode(t.value);return}
@@ -62,7 +67,7 @@ function bind(){
   },true);
   const panel=document.querySelector('#elementInspector');
   if(panel)new MutationObserver(()=>queueMicrotask(enhance)).observe(panel,{childList:true,subtree:true});
-  window.addEventListener('pageshow',()=>setTimeout(enhance,0));
+  window.addEventListener('pageshow',()=>setTimeout(enhanceWhenReady,0));
 }
 
 if(typeof document!=='undefined'){
