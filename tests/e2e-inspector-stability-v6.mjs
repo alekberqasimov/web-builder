@@ -21,6 +21,10 @@ async function realClick(locator){
   await page.mouse.click(box.x+Math.max(4,box.width/2),box.y+Math.max(4,box.height/2));
   await heartbeat();
 }
+async function ensureRight(){
+  if(await page.evaluate(()=>document.body.classList.contains('right-collapsed')))await page.click('#rightToggle');
+  await page.waitForFunction(()=>!document.body.classList.contains('right-collapsed'));
+}
 
 try{
   await page.goto(base,{waitUntil:'domcontentloaded'});
@@ -38,6 +42,7 @@ try{
 
   await page.click('#navigatorTab');
   await page.waitForSelector('#navigatorPanel:not(.hidden)');
+  await ensureRight();
 
   const premiumTarget=page.locator(`#navigatorTree [data-tree-block="${premiumId}"] [data-tree-select-block]`);
   const navTarget=page.locator(`#navigatorTree [data-tree-block="${navId}"] [data-tree-select-block]`);
@@ -57,14 +62,14 @@ try{
   await realClick(premiumTarget);
   const premiumSection=page.locator(`#canvas>[data-block-id="${premiumId}"]`);
   const heading=premiumSection.locator('.v5-heading[data-node-id]').first();
-  await realClick(heading);
+  await heading.click();
   await page.waitForSelector('#elementInspector:not(.hidden) .v6-premium-type-editor');
   assert.equal(await page.locator('#elementInspector .v6-premium-type-editor').count(),1,'premium type inspector duplicated');
   await heartbeat();
 
   const button=premiumSection.locator('.v5-btn[data-node-id]').first();
   if(await button.count()){
-    await realClick(button);
+    await button.click();
     await page.waitForSelector('#elementInspector:not(.hidden) .v6-premium-type-editor');
     assert.equal(await page.locator('#elementInspector .v6-premium-type-editor').count(),1,'premium CTA inspector duplicated');
     await heartbeat();
