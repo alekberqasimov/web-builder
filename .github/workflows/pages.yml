@@ -29,6 +29,7 @@ jobs:
         run: |
           set -e
           bash -n scripts/build-pages.sh
+          bash -n scripts/run-browser-gate.sh
           for f in v6-*.mjs v5-*.mjs tests/e2e*.mjs; do node --check "$f"; done
           node --test tests/*.test.mjs
           node --input-type=module <<'NODE'
@@ -106,24 +107,9 @@ jobs:
           grep -q "v6-site-languages.mjs?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-responsive-preview.mjs?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-functional-inspector.mjs?v=${GITHUB_SHA}" _site/index.html
+          grep -q "v6-premium-section-inspector.mjs?v=${GITHUB_SHA}" _site/index.html
           grep -q 'id="themeToggle"' _site/index.html
-          test -f _site/v6.css
-          test -f _site/v6-ux.css
-          test -f _site/v6-theme.css
-          test -f _site/v6-ui-kit.css
-          test -f _site/v6-functional.css
-          test -f _site/v6-app.mjs
-          test -f _site/v6-ux.mjs
-          test -f _site/v6-custom-sections.mjs
-          test -f _site/v6-site-languages.mjs
-          test -f _site/v6-responsive-preview.mjs
-          test -f _site/v6-functional-blocks.mjs
-          test -f _site/v6-functional-inspector.mjs
-          test -f _site/v6-functional-public.mjs
-          test -f _site/v6-seo.mjs
-          test -f _site/v6-dnd-precision.mjs
-          test -f _site/v6-nav-config.mjs
-          test -f _site/v5-languages.mjs
+          for f in v6.css v6-ux.css v6-theme.css v6-ui-kit.css v6-functional.css v6-app.mjs v6-ux.mjs v6-custom-sections.mjs v6-site-languages.mjs v6-responsive-preview.mjs v6-functional-blocks.mjs v6-functional-inspector.mjs v6-functional-public.mjs v6-seo.mjs v6-dnd-precision.mjs v6-nav-config.mjs v6-premium-section-inspector.mjs v6-premium-type-inspector.mjs v5-languages.mjs v5-repeat-controls.mjs; do test -f "_site/$f"; done
           if grep -Eq "app\.js|builder-v4|enhancements|runtime-fixes|v5-mobile-fix|v5\.css|v5-app\.mjs" _site/index.html; then
             echo "Legacy editor shell found in production index" >&2
             exit 1
@@ -149,11 +135,13 @@ jobs:
           grep -q "v5-export.mjs?v=${GITHUB_SHA}" _site/v6-seo.mjs
           grep -q "v6-dnd-precision.mjs?v=${GITHUB_SHA}" _site/v6-reuse.mjs
           grep -q "v6-nav-config.mjs?v=${GITHUB_SHA}" _site/v6-reuse.mjs
-          test -f _site/v5-repeat-controls.mjs
+          grep -q "v6-premium-type-inspector.mjs?v=${GITHUB_SHA}" _site/v6-premium-section-inspector.mjs
           grep -q "v5-localize-v53.mjs?v=${GITHUB_SHA}" _site/v5-localize-v54.mjs
           grep -q "v5-performance.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v5-animation-pro.mjs?v=${GITHUB_SHA}" _site/v5-export.mjs
           grep -q "v5-core.mjs?v=${GITHUB_SHA}" _site/v5-model.mjs
+          test -f tests/e2e-inspector-stability-v6.mjs
+          test -f tests/e2e-selection-inspector-v6.mjs
           echo "V6_WIRING_OK"
 
       - name: Browser regression and visual geometry audit
@@ -162,58 +150,7 @@ jobs:
           set -e
           npm install --no-save --no-package-lock playwright@1.55.0 >/dev/null
           npx playwright install --with-deps chromium >/dev/null
-          python3 -m http.server 4173 --directory _site >/tmp/web-builder-e2e-http.log 2>&1 &
-          SERVER_PID=$!
-          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
-          READY=0
-          for i in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then READY=1; break; fi
-            sleep 1
-          done
-          test "$READY" -eq 1
-          export E2E_BASE_URL=http://127.0.0.1:4173
-          run_test(){
-            SPEC="$1"
-            LIMIT="${2:-120}"
-            echo "::group::E2E ${SPEC}"
-            timeout --signal=TERM "${LIMIT}s" node "$SPEC"
-            echo "E2E_OK ${SPEC}"
-            echo "::endgroup::"
-          }
-          run_test tests/e2e-startup-resilience-v6.mjs 90
-          run_test tests/e2e.mjs 120
-          run_test tests/e2e-layout-v6.mjs 120
-          run_test tests/e2e-deep.mjs 150
-          cp tests/e2e-deep.mjs tests/.e2e-deep-v6.tmp.mjs
-          sed -i "s/classList.remove('left-collapsed','right-collapsed')/classList.add('left-collapsed','right-collapsed')/" tests/.e2e-deep-v6.tmp.mjs
-          DEEP_OK=0
-          for attempt in 1 2; do
-            echo "E2E_DEEP_COLLAPSED_ATTEMPT ${attempt}"
-            if timeout --signal=TERM 150s node tests/.e2e-deep-v6.tmp.mjs; then
-              DEEP_OK=1
-              break
-            fi
-            echo "Deep browser gate attempt ${attempt} failed; retrying once..." >&2
-            sleep 2
-          done
-          rm -f tests/.e2e-deep-v6.tmp.mjs
-          test "$DEEP_OK" -eq 1
-          run_test tests/e2e-repeatable-v6.mjs 120
-          run_test tests/e2e-navigation-dnd-v6.mjs 120
-          run_test tests/e2e-ux-v6.mjs 120
-          run_test tests/e2e-custom-v6.mjs 120
-          run_test tests/e2e-site-languages-v6.mjs 120
-          run_test tests/e2e-theme-v6.mjs 120
-          run_test tests/e2e-ui-kit-v6.mjs 150
-          run_test tests/e2e-editor-premium-v6.mjs 120
-          run_test tests/e2e-premium-v3.mjs 120
-          run_test tests/e2e-responsive-preview-v6.mjs 120
-          run_test tests/e2e-functional-v6.mjs 150
-          run_test tests/e2e-seo-v6.mjs 120
-          run_test tests/e2e-quality-v6.mjs 120
-          run_test tests/e2e-advanced-layout-v6.mjs 120
-          run_test tests/e2e-reuse-v6.mjs 120
-          run_test tests/e2e-schema-builder-v6.mjs 120
+          E2E_HTTP_LOG=/tmp/web-builder-pages-http.log bash scripts/run-browser-gate.sh _site
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
