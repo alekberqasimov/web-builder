@@ -39,6 +39,7 @@ run_test tests/e2e-startup-resilience-v6.mjs 90
 run_test tests/e2e.mjs 120
 run_test tests/e2e-layout-v6.mjs 120
 run_test tests/e2e-inspector-stability-v6.mjs 90
+run_test tests/e2e-selection-inspector-v6.mjs 90
 run_test tests/e2e-deep.mjs 180
 
 cp tests/e2e-deep.mjs tests/.e2e-deep-v6.tmp.mjs
