@@ -2,7 +2,7 @@ name: V6 Release Candidate Gate (non-blocking)
 
 on:
   push:
-    branches: [release-candidate-v6-final]
+    branches: [release-candidate-v6-final, stabilization-v6-final]
   workflow_dispatch:
 
 permissions:
@@ -27,6 +27,7 @@ jobs:
         run: |
           set -e
           bash -n scripts/build-pages.sh
+          bash -n scripts/run-browser-gate.sh
           for f in v6-*.mjs v5-*.mjs tests/e2e*.mjs; do node --check "$f"; done
           node --test tests/*.test.mjs
 
@@ -41,55 +42,18 @@ jobs:
           grep -q "v6-premium-v3.mjs?v=${GITHUB_SHA}" _site/v5-library.mjs
           grep -q "v6-dnd-precision.mjs?v=${GITHUB_SHA}" _site/v6-reuse.mjs
           grep -q "v6-nav-config.mjs?v=${GITHUB_SHA}" _site/v6-reuse.mjs
+          test -f tests/e2e-inspector-stability-v6.mjs
           for f in _site/v6-*.mjs _site/v5-*.mjs; do node --check "$f"; done
 
       - name: Full production-equivalent browser gate
         id: browser
         continue-on-error: true
-        timeout-minutes: 15
+        timeout-minutes: 20
         run: |
           set -e
           npm install --no-save --no-package-lock playwright@1.55.0 >/dev/null
           npx playwright install --with-deps chromium >/dev/null
-          python3 -m http.server 4173 --directory _site >/tmp/web-builder-rc-http.log 2>&1 &
-          SERVER_PID=$!
-          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
-          READY=0
-          for i in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then READY=1; break; fi
-            sleep 1
-          done
-          test "$READY" -eq 1
-          export E2E_BASE_URL=http://127.0.0.1:4173
-          run_test(){
-            echo "E2E_START $1"
-            timeout 120s node "$1"
-            echo "E2E_OK $1"
-          }
-          run_test tests/e2e-startup-resilience-v6.mjs
-          run_test tests/e2e.mjs
-          run_test tests/e2e-layout-v6.mjs
-          run_test tests/e2e-deep.mjs
-          cp tests/e2e-deep.mjs tests/.e2e-deep-v6.tmp.mjs
-          sed -i "s/classList.remove('left-collapsed','right-collapsed')/classList.add('left-collapsed','right-collapsed')/" tests/.e2e-deep-v6.tmp.mjs
-          run_test tests/.e2e-deep-v6.tmp.mjs
-          rm -f tests/.e2e-deep-v6.tmp.mjs
-          run_test tests/e2e-repeatable-v6.mjs
-          run_test tests/e2e-navigation-dnd-v6.mjs
-          run_test tests/e2e-ux-v6.mjs
-          run_test tests/e2e-custom-v6.mjs
-          run_test tests/e2e-site-languages-v6.mjs
-          run_test tests/e2e-theme-v6.mjs
-          run_test tests/e2e-ui-kit-v6.mjs
-          run_test tests/e2e-editor-premium-v6.mjs
-          run_test tests/e2e-premium-v3.mjs
-          run_test tests/e2e-responsive-preview-v6.mjs
-          run_test tests/e2e-functional-v6.mjs
-          run_test tests/e2e-seo-v6.mjs
-          run_test tests/e2e-quality-v6.mjs
-          run_test tests/e2e-advanced-layout-v6.mjs
-          run_test tests/e2e-reuse-v6.mjs
-          run_test tests/e2e-schema-builder-v6.mjs
+          E2E_HTTP_LOG=/tmp/web-builder-rc-http.log bash scripts/run-browser-gate.sh _site
 
       - name: Release candidate summary
         if: always()
@@ -102,7 +66,7 @@ jobs:
             echo '| Checkout | ${{ steps.checkout.outcome }} |'
             echo '| Syntax + model | ${{ steps.validate.outcome }} |'
             echo '| Production artifact | ${{ steps.build.outcome }} |'
-            echo '| Full browser matrix + Pages deep variant | ${{ steps.browser.outcome }} |'
+            echo '| Exact shared browser gate | ${{ steps.browser.outcome }} |'
             echo ''
             echo 'This workflow is intentionally non-blocking to avoid failed-run notifications. Promote only when every stage reports success.'
           } >> "$GITHUB_STEP_SUMMARY"
