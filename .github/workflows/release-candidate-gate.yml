@@ -39,6 +39,8 @@ jobs:
           grep -q "v6-app.mjs?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-premium-section-inspector.mjs?v=${GITHUB_SHA}" _site/index.html
           grep -q "v6-premium-v3.mjs?v=${GITHUB_SHA}" _site/v5-library.mjs
+          grep -q "v6-dnd-precision.mjs?v=${GITHUB_SHA}" _site/v6-reuse.mjs
+          grep -q "v6-nav-config.mjs?v=${GITHUB_SHA}" _site/v6-reuse.mjs
           for f in _site/v6-*.mjs _site/v5-*.mjs; do node --check "$f"; done
 
       - name: Full production-equivalent browser gate
@@ -73,6 +75,7 @@ jobs:
           run_test tests/.e2e-deep-v6.tmp.mjs
           rm -f tests/.e2e-deep-v6.tmp.mjs
           run_test tests/e2e-repeatable-v6.mjs
+          run_test tests/e2e-navigation-dnd-v6.mjs
           run_test tests/e2e-ux-v6.mjs
           run_test tests/e2e-custom-v6.mjs
           run_test tests/e2e-site-languages-v6.mjs
