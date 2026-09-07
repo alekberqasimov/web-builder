@@ -1,8 +1,15 @@
-import {currentNode,mutate,attr} from './v5-runtime.mjs';
+import {state,currentNode,mutate,attr} from './v5-runtime.mjs';
 
 const TOKEN='v5-nav-desktop-dropdown';
 const ICONS=['☰','⋮','•••','＋','⌄'];
+const COPY={
+  ru:{desktop:'Меню Desktop',inline:'В строку',dropdown:'Dropdown',mobileIcon:'Иконка Mobile',help:'Desktop: «В строку» показывает ссылки постоянно; Dropdown прячет их за кнопкой меню. На Mobile всегда используется выбранная иконка и настройки панели ниже.',icons:'Пресеты иконки Mobile',use:'Использовать'},
+  az:{desktop:'Desktop menyu',inline:'Ardıcıl',dropdown:'Dropdown',mobileIcon:'Mobile ikon',help:'Desktop: Ardıcıl linkləri daim göstərir; Dropdown onları menyu düyməsinin arxasında açır. Mobile-da seçilmiş ikon və aşağıdakı panel ayarları istifadə olunur.',icons:'Mobile ikon presetləri',use:'İstifadə et'},
+  en:{desktop:'Desktop menu',inline:'Inline',dropdown:'Dropdown',mobileIcon:'Mobile icon',help:'Desktop: Inline keeps links visible; Dropdown collapses them behind the menu button. Mobile always uses the selected icon and panel settings below.',icons:'Mobile menu icon presets',use:'Use'}
+};
 
+function lang(){return String(document.querySelector('#uiLanguage')?.value||state.project?.uiLang||'en').slice(0,2)}
+function tx(key){return COPY[lang()]?.[key]||COPY.en[key]||key}
 function tokens(value=''){return String(value).split(/\s+/).map(x=>x.trim()).filter(Boolean)}
 function modeOf(n){
   if(!n?.props)return'inline';
@@ -24,13 +31,14 @@ function setIcon(value){
 }
 function behaviorHtml(n){
   const mode=modeOf(n),icon=n.props?.mobileIcon||'☰';
-  return `<div class="v6-nav-behavior" data-v6-nav-behavior="1"><div class="field-grid"><label>Desktop menu<select data-v6-nav-desktop><option value="inline" ${mode==='inline'?'selected':''}>Inline</option><option value="dropdown" ${mode==='dropdown'?'selected':''}>Dropdown</option></select></label><label>Mobile icon<input data-v6-nav-icon value="${attr(icon)}" list="v6NavIconPresets" maxlength="8"><datalist id="v6NavIconPresets">${ICONS.map(x=>`<option value="${attr(x)}"></option>`).join('')}</datalist></label></div><div class="v6-nav-icon-presets" role="group" aria-label="Mobile menu icon presets">${ICONS.map(x=>`<button type="button" data-v6-nav-icon-preset="${attr(x)}" class="${x===icon?'active':''}" aria-label="Use ${attr(x)} icon">${x}</button>`).join('')}</div><small class="v6-nav-help">Desktop: Inline keeps links visible; Dropdown collapses them behind the menu button. Mobile always uses the selected icon and panel settings below.</small></div>`;
+  return `<div class="v6-nav-behavior" data-v6-nav-behavior="1"><div class="field-grid"><label>${tx('desktop')}<select data-v6-nav-desktop><option value="inline" ${mode==='inline'?'selected':''}>${tx('inline')}</option><option value="dropdown" ${mode==='dropdown'?'selected':''}>${tx('dropdown')}</option></select></label><label>${tx('mobileIcon')}<input data-v6-nav-icon value="${attr(icon)}" list="v6NavIconPresets" maxlength="8"><datalist id="v6NavIconPresets">${ICONS.map(x=>`<option value="${attr(x)}"></option>`).join('')}</datalist></label></div><div class="v6-nav-icon-presets" role="group" aria-label="${attr(tx('icons'))}">${ICONS.map(x=>`<button type="button" data-v6-nav-icon-preset="${attr(x)}" class="${x===icon?'active':''}" aria-label="${attr(tx('use'))} ${attr(x)}">${x}</button>`).join('')}</div><small class="v6-nav-help">${tx('help')}</small></div>`;
 }
 function enhance(){
   const n=currentNode(),panel=document.querySelector('#elementInspector');
   if(!panel||n?.type!=='nav')return;
-  const navFieldset=[...panel.querySelectorAll('fieldset')].find(f=>f.querySelector(':scope>legend')?.textContent?.trim()==='Navigation');
-  if(!navFieldset||navFieldset.querySelector('[data-v6-nav-behavior]'))return;
+  const navFieldset=panel.querySelector('[data-p="logoText"]')?.closest('fieldset');
+  if(!navFieldset)return;
+  navFieldset.querySelector('[data-v6-nav-behavior]')?.remove();
   const wrap=document.createElement('div');wrap.innerHTML=behaviorHtml(n);
   navFieldset.querySelector(':scope>legend')?.after(wrap.firstElementChild);
 }
@@ -46,6 +54,7 @@ function bind(){
     const t=e.target;
     if(t.matches?.('[data-v6-nav-desktop]')){setMode(t.value);return}
     if(t.matches?.('[data-v6-nav-icon]')){setIcon(t.value);return}
+    if(t.matches?.('#uiLanguage'))setTimeout(enhance,0);
   },true);
   document.addEventListener('click',e=>{
     const b=e.target.closest?.('[data-v6-nav-icon-preset]');if(!b)return;
