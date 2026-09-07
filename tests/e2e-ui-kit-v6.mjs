@@ -56,8 +56,6 @@ async function desktop(){
   const heroHeading=page.locator('#canvas .v5-section.selected h1.v5-heading');
   const heroHeadingId=await heroHeading.getAttribute('data-node-id');
   assert.ok(heroHeadingId,'premium hero heading id is missing');
-  // Exercise the editor's delegated canvas-selection contract directly. This keeps
-  // the UI-kit test independent from Chromium hit-testing/contenteditable focus.
   await heroHeading.dispatchEvent('click',{bubbles:true,cancelable:true});
   await page.waitForFunction(id=>{
     const panel=document.querySelector('#elementInspector');
@@ -97,42 +95,71 @@ async function desktop(){
     const appSrc=[...document.scripts].map(s=>s.src).find(src=>src.includes('/v6-app.mjs'))||'';
     const q=appSrc?new URL(appSrc).search:'';
     const runtime=await import('./v5-runtime.mjs'+q);
-    const p=runtime.state.project.pages.find(p=>p.id===runtime.state.project.currentPageId)||runtime.state.project.pages[0];
-    return p.blocks.find(b=>b.id===runtime.state.selectedBlockId)?.root?.id||'';
+    const project=runtime.state.project,pg=project.pages.find(p=>p.id===project.currentPageId)||project.pages[0];
+    return pg.blocks.find(b=>b.id===runtime.state.selectedBlockId)?.root?.id||'';
   });
   assert.ok(rootContainerId,'premium block root container was not found');
   await page.click('#navigatorTab');
-  const rootTree=page.locator(`#navigatorTree [data-tree-node="${rootContainerId}"] [data-tree-select-node="${rootContainerId}"]`);
+  const rootTree=page.locator(`#navigatorTree [data-tree-select-node="${rootContainerId}"]`);
   await rootTree.waitFor({state:'attached'});
   await rootTree.dispatchEvent('click',{bubbles:true,cancelable:true});
-  await page.waitForSelector('#elementInspector .v6-premium-design-editor [data-v6-layout]');
-  await page.selectOption('#elementInspector [data-v6-layout]','grid');
-  await page.selectOption('#elementInspector [data-v6-columns]','2');
-  await page.waitForFunction(id=>getComputedStyle(document.querySelector(`#canvas [data-node-id="${id}"]`)).display==='grid',rootContainerId);
+  await page.waitForSelector('#elementInspector [data-v6-direction]');
+  await page.selectOption('#elementInspector [data-v6-direction]','row');
+  await page.waitForFunction(id=>getComputedStyle(document.querySelector(`#canvas [data-node-id="${id}"]`)).flexDirection==='row',rootContainerId);
+  await page.click('#elementInspector [data-v6-grid-auto="240"]');
+  await page.waitForFunction(id=>getComputedStyle(document.querySelector(`#canvas [data-node-id="${id}"]`)).gridTemplateColumns!=='none',rootContainerId);
+  const layoutState=await page.evaluate(async()=>{
+    const appSrc=[...document.scripts].map(s=>s.src).find(src=>src.includes('/v6-app.mjs'))||'';
+    const q=appSrc?new URL(appSrc).search:'';
+    const runtime=await import('./v5-runtime.mjs'+q);const n=runtime.currentNode();return{base:n.style.base,mobile:n.style.mobile};
+  });
+  assert.match(String(layoutState.base.gridTemplateColumns),/auto-fit/,'responsive auto-grid model was not written');
+  await page.click('#elementInspector [data-v6-stack-mobile]');
+  const mobileGrid=await page.evaluate(async()=>{
+    const appSrc=[...document.scripts].map(s=>s.src).find(src=>src.includes('/v6-app.mjs'))||'';
+    const q=appSrc?new URL(appSrc).search:'';const runtime=await import('./v5-runtime.mjs'+q);return runtime.currentNode().style.mobile.gridTemplateColumns;
+  });
+  assert.equal(mobileGrid,'1fr','mobile one-column stack was not written to responsive model');
 
-  assert.deepEqual(errors,[],`Desktop page errors:\n${errors.join('\n')}`);
+  // Media Studio: image composition and visual treatment must affect the actual canvas element.
+  const heroImage=page.locator('#canvas .v5-section.selected img.v5-img').first();
+  const heroImageId=await heroImage.getAttribute('data-node-id');
+  assert.ok(heroImageId,'premium hero image id is missing');
+  await heroImage.dispatchEvent('click',{bubbles:true,cancelable:true});
+  await page.waitForFunction(id=>document.querySelector(`#canvas [data-node-id="${id}"]`)?.classList.contains('v5-selected-node'),heroImageId);
+  await page.waitForSelector('#elementInspector [data-v6-image-filter]');
+  await page.selectOption('#elementInspector [data-v6-image-filter]','mono');
+  await page.selectOption('#elementInspector [data-v6-image-hover]','zoom');
+  await page.waitForFunction(()=>getComputedStyle(document.querySelector('#canvas .v5-section.selected img.v5-img')).filter.includes('grayscale'));
+  assert.match(await heroImage.evaluate(el=>getComputedStyle(el).filter),/grayscale/,'Media Studio filter did not affect rendered image');
+
+  assert.deepEqual(errors,[],`UI kit desktop page errors:\n${errors.join('\n')}`);
   await context.close();
 }
 
 async function mobile(){
   const context=await browser.newContext({viewport:{width:390,height:844}});
-  await context.addInitScript(()=>{if(window===window.top)localStorage.setItem('wb:v6:theme','dark')});
   const page=await context.newPage();
   const errors=[];page.on('pageerror',e=>errors.push(String(e?.stack||e)));
   await page.goto(base,{waitUntil:'domcontentloaded'});
   await page.waitForSelector('#canvas [data-block-id]',{timeout:15000});
-  const metrics=await page.evaluate(()=>({
-    scrollWidth:document.documentElement.scrollWidth,innerWidth,
-    topbar:document.querySelector('.topbar').getBoundingClientRect().width,
-    toolbar:document.querySelector('.editor-toolbar').getBoundingClientRect().width,
-    frame:document.querySelector('#canvasFrame').getBoundingClientRect().width,
-    brandDisplay:getComputedStyle(document.querySelector('.brand-name')).display
-  }));
-  assert.ok(metrics.scrollWidth<=metrics.innerWidth+1,'mobile shell has horizontal document overflow');
-  assert.ok(metrics.topbar<=metrics.innerWidth+1&&metrics.toolbar<=metrics.innerWidth+1,'mobile chrome exceeds viewport');
-  assert.ok(metrics.frame<=metrics.innerWidth+1,'mobile canvas frame exceeds viewport');
-  assert.notEqual(metrics.brandDisplay,'none','mobile keeps compact product identity visible');
-  assert.deepEqual(errors,[],`Mobile page errors:\n${errors.join('\n')}`);
+  await page.click('#leftToggle');
+  await page.waitForFunction(()=>!document.body.classList.contains('left-collapsed'));
+  await page.waitForFunction(()=>{const r=document.querySelector('#leftSidebar')?.getBoundingClientRect();return r&&r.left>=-1});
+  const m=await page.evaluate(()=>{
+    const s=document.querySelector('#blocksPanel .search'),i=s.querySelector('input'),r=s.getBoundingClientRect(),ir=i.getBoundingClientRect();
+    const tabs=[...document.querySelectorAll('.left-tabs button')].map(el=>({text:el.textContent.trim(),client:el.clientWidth,scroll:el.scrollWidth}));
+    const premium=[...document.querySelectorAll('#blockList .library-card.is-premium')].map(el=>({client:el.clientWidth,scroll:el.scrollWidth,height:el.getBoundingClientRect().height}));
+    return{display:getComputedStyle(s).display,search:{left:r.left,right:r.right,width:r.width,height:r.height},input:{left:ir.left,right:ir.right,width:ir.width,height:ir.height},tabs,premium,drawer:document.querySelector('#leftSidebar').getBoundingClientRect().width,viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};
+  });
+  assert.equal(m.display,'flex','mobile search must keep one-row flex layout');
+  assert.ok(m.input.left>m.search.left+20&&m.input.right<=m.search.right-6,'mobile search text is clipped or outside the field');
+  assert.ok(m.drawer<m.viewport*.92,'mobile drawer became a full-screen wall');
+  assert.ok(m.scrollWidth<=m.viewport,'mobile builder has horizontal page overflow');
+  for(const tab of m.tabs)assert.ok(tab.scroll<=tab.client+1,`mobile tab label is clipped: ${tab.text}`);
+  assert.equal(m.premium.length,12,'mobile library lost premium variants');
+  assert.ok(m.premium.every(x=>x.scroll<=x.client+1),'premium library card content creates horizontal overflow');
+  assert.deepEqual(errors,[],`UI kit mobile page errors:\n${errors.join('\n')}`);
   await context.close();
 }
 
