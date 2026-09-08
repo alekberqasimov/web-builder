@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="ru" data-builder-theme="dark">
+<html lang="ru" data-builder-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0b1020">
+  <meta name="theme-color" content="#f5f7fb">
   <title>Web Builder v6.4</title>
   <script>
     (function(){
-      var KEY='wb:v6:theme';
+      var KEY='wb:v6.5:theme';
       var root=document.documentElement;
       var labels={
         ru:{dark:'Тёмная тема',light:'Светлая тема',toDark:'Включить тёмную тему',toLight:'Включить светлую тему'},
@@ -16,7 +16,7 @@
       };
       function stored(){try{return localStorage.getItem(KEY)}catch(e){return null}}
       function save(v){try{localStorage.setItem(KEY,v)}catch(e){}}
-      function preferred(){var v=stored();if(v==='light'||v==='dark')return v;return window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}
+      function preferred(){var v=stored();if(v==='light'||v==='dark')return v;return 'light'}
       function language(){var el=document.getElementById('uiLanguage');return (el&&el.value)||root.lang||'ru'}
       function syncControl(theme){
         var btn=document.getElementById('themeToggle');if(!btn)return;
@@ -46,15 +46,15 @@
       document.addEventListener('DOMContentLoaded',function(){
         apply(root.dataset.builderTheme||preferred(),false);
         var btn=document.getElementById('themeToggle');if(btn)btn.addEventListener('click',function(){window.wbBuilderTheme.toggle()});
-        var ui=document.getElementById('uiLanguage');if(ui)ui.addEventListener('change',function(){syncControl(root.dataset.builderTheme||'dark')});
+        var ui=document.getElementById('uiLanguage');if(ui)ui.addEventListener('change',function(){syncControl(root.dataset.builderTheme||'light')});
       },{once:true});
     })();
   </script>
-  <link rel="stylesheet" href="v6.css">
-  <link rel="stylesheet" href="v6-ux.css">
-  <link rel="stylesheet" href="v6-theme.css">
-  <link rel="stylesheet" href="v6-ui-kit.css">
-  <link rel="stylesheet" href="v6-editor-premium.css">
+  <link rel="stylesheet" href="v6.css?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a">
+  <link rel="stylesheet" href="v6-ux.css?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a">
+  <link rel="stylesheet" href="v6-theme.css?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a">
+  <link rel="stylesheet" href="v6-ui-kit.css?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a">
+  <link rel="stylesheet" href="v6-editor-premium.css?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a">
   <style id="v6-critical-responsive">
     .workspace{transition:none}
     @media (max-width:1100px){
@@ -62,129 +62,88 @@
       .topbar{overflow:hidden;gap:8px;padding-left:10px;padding-right:10px}
       .brand{flex:0 0 auto;min-width:0}.brand-name{font-size:14px}.version{display:none}
       .top-actions{flex:1 1 auto;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;justify-content:flex-end;scrollbar-width:none}
-      .top-actions::-webkit-scrollbar{display:none}
-      .top-actions .desktop-only{display:none!important}
-      .top-actions .has-label::after{display:none}
-      .top-actions .icon-action{flex:0 0 40px;width:40px;min-width:40px;padding:0}
-      .top-actions select{flex:0 0 60px;width:60px;min-width:60px;padding:0 7px}
-      .left-sidebar{left:0!important;right:auto!important}
-      .right-sidebar{left:auto!important;right:0!important}
-      body:not(.left-collapsed) .left-sidebar{transform:translate3d(0,0,0)!important}
-      body:not(.right-collapsed) .right-sidebar{transform:translate3d(0,0,0)!important}
+      .top-actions::-webkit-scrollbar{display:none}.top-actions .desktop-only{display:none!important}.top-actions .has-label::after{display:none}
+      .top-actions .icon-action{flex:0 0 40px;width:40px;min-width:40px;padding:0}.top-actions select{flex:0 0 60px;width:60px;min-width:60px;padding:0 7px}
+      .left-sidebar{left:0!important;right:auto!important}.right-sidebar{left:auto!important;right:0!important}
+      body:not(.left-collapsed) .left-sidebar{transform:translate3d(0,0,0)!important}body:not(.right-collapsed) .right-sidebar{transform:translate3d(0,0,0)!important}
     }
-    @media (max-width:760px){
-      .brand-name{display:block!important;font-size:13px;max-width:92px;overflow:hidden;text-overflow:ellipsis}
-      .version{display:none!important}
-    }
+    @media (max-width:760px){.brand-name{display:block!important;font-size:13px;max-width:92px;overflow:hidden;text-overflow:ellipsis}.version{display:none!important}}
     @media (max-width:360px){.brand-name{max-width:76px;font-size:12px}}
   </style>
+  <style id="v6-design-rescue">
+    html[data-editor-premium="2"]{--r-line:#dfe5ec;--r-muted:#748095;--r-accent:#7164ec;--r-dark:#0f1620;--r-dark2:#151e2a}
+    html[data-editor-premium="2"] body{background:#eef2f6!important}
+    html[data-editor-premium="2"] .app{grid-template-rows:54px 46px minmax(0,1fr)!important}
+    html[data-editor-premium="2"] .topbar{min-height:54px!important;padding:0 10px!important;background:#fff!important;border-bottom:1px solid var(--r-line)!important;box-shadow:none!important;backdrop-filter:none!important}
+    html[data-editor-premium="2"] .brand{gap:8px!important}html[data-editor-premium="2"] .brand-mark{width:30px!important;height:30px!important;border-radius:8px!important;font-size:15px!important;background:var(--r-accent)!important;box-shadow:none!important}
+    html[data-editor-premium="2"] .brand-name{font-size:14px!important;font-weight:700!important;color:#202938!important}html[data-editor-premium="2"] .version{padding:2px 6px!important;border:1px solid #e3e8ef!important;border-radius:6px!important;background:transparent!important;color:#8a95a5!important;font-size:9px!important}
+    html[data-editor-premium="2"] .top-actions{gap:4px!important}html[data-editor-premium="2"] .icon-action{min-width:34px!important;height:34px!important;padding:0 9px!important;border-radius:8px!important;color:#657286!important}
+    html[data-editor-premium="2"] .icon-action:hover{background:#f4f6f9!important;border-color:#e1e6ed!important;color:#202938!important}html[data-editor-premium="2"] .icon-action.primary{background:var(--r-accent)!important;border-color:var(--r-accent)!important;color:#fff!important;box-shadow:none!important}
+    html[data-editor-premium="2"] .has-label::after{font-size:10px!important;font-weight:650!important}
+    html[data-editor-premium="2"] .editor-toolbar{min-height:46px!important;padding:5px 8px!important;gap:6px!important;background:#f8fafc!important;border-bottom:1px solid var(--r-line)!important;box-shadow:none!important}
+    html[data-editor-premium="2"] .panel-toggle,html[data-editor-premium="2"] .toolbar-icon,html[data-editor-premium="2"] #zoomSelect,html[data-editor-premium="2"] .custom-width input{height:34px!important;border-radius:8px!important;border-color:#dce3eb!important;background:#fff!important;color:#526073!important}
+    html[data-editor-premium="2"] .device-switch{justify-self:center!important;padding:2px!important;border-color:#dce3eb!important;background:#edf1f5!important;border-radius:9px!important;box-shadow:none!important}
+    html[data-editor-premium="2"] .device-switch button{min-width:42px!important;height:30px!important;border-radius:7px!important;color:#7f8b9c!important}html[data-editor-premium="2"] .device-switch button.active{background:#fff!important;color:#292f3a!important;box-shadow:0 1px 2px rgba(15,23,42,.06),inset 0 0 0 1px #d7deea!important}
+    html[data-editor-premium="2"] .workspace{grid-template-columns:288px minmax(0,1fr) 320px!important;background:#eef2f6!important}html[data-editor-premium="2"] body.left-collapsed .workspace{grid-template-columns:0 minmax(0,1fr) 320px!important}html[data-editor-premium="2"] body.right-collapsed .workspace{grid-template-columns:288px minmax(0,1fr) 0!important}html[data-editor-premium="2"] body.left-collapsed.right-collapsed .workspace{grid-template-columns:0 minmax(0,1fr) 0!important}
+    html[data-editor-premium="2"] .sidebar,html[data-editor-premium="2"] .sidebar-head{background:#fff!important;border-color:#e1e6ed!important}html[data-editor-premium="2"] .sidebar-head{min-height:58px!important;padding:10px 12px 8px!important}html[data-editor-premium="2"] .sidebar-head .eyebrow{margin-bottom:2px!important;color:#7f8a9b!important;font-size:8px!important}html[data-editor-premium="2"] .sidebar-head h2{font-size:15px!important;font-weight:700!important;color:#263142!important}
+    html[data-editor-premium="2"] .tabs{display:flex!important;gap:2px!important;margin:7px 8px!important;padding:3px!important;border:0!important;border-radius:8px!important;background:#f1f4f8!important;overflow-x:auto!important;scrollbar-width:none!important}html[data-editor-premium="2"] .tabs button{flex:1 0 auto!important;min-height:30px!important;padding:5px 8px!important;border-radius:6px!important;color:#788596!important;font-size:10px!important;font-weight:650!important}html[data-editor-premium="2"] .tabs button.active{background:#fff!important;color:#2b3442!important;box-shadow:0 1px 2px rgba(15,23,42,.06)!important}
+    html[data-editor-premium="2"] .panel-scroll{padding:0 9px 18px!important}html[data-editor-premium="2"] .panel-scroll label.search{height:36px!important;margin:3px 0 7px!important;padding:0 9px!important;border-radius:8px!important;background:#f8fafc!important;border-color:#dfe5ec!important}html[data-editor-premium="2"] .panel-tools select{height:34px!important;background:#f8fafc!important;border-color:#dfe5ec!important;color:#344054!important}
+    html[data-editor-premium="2"] .v5-lib-filter{flex-wrap:nowrap!important;gap:4px!important;margin-bottom:7px!important;overflow-x:auto!important;scrollbar-width:none!important}html[data-editor-premium="2"] .v5-lib-filter button{flex:0 0 auto!important;min-height:28px!important;padding:4px 8px!important;border-radius:7px!important;background:#f4f6f9!important;border-color:transparent!important;color:#6f7b8c!important;font-size:9px!important}html[data-editor-premium="2"] .v5-lib-filter button.active{background:#eeebff!important;color:#594dc7!important;border-color:#d8d1ff!important}
+    html[data-editor-premium="2"] .library-list{grid-template-columns:1fr!important;gap:6px!important}html[data-editor-premium="2"] .library-card{min-height:64px!important;display:grid!important;grid-template-columns:34px minmax(0,1fr)!important;grid-template-rows:auto auto!important;align-items:center!important;gap:2px 9px!important;padding:9px 10px!important;border-radius:9px!important;border-color:#edf0f4!important;background:#f8fafc!important}html[data-editor-premium="2"] .library-card:hover{transform:none!important;background:#f4f5ff!important;border-color:#d8d2ff!important;box-shadow:none!important}html[data-editor-premium="2"] .library-card>span:first-child{grid-row:1 / span 2!important;width:32px!important;height:32px!important;display:grid!important;place-items:center!important;border-radius:8px!important;background:#fff!important;border:1px solid #e6e9ef!important;color:#6658df!important;font-size:15px!important}html[data-editor-premium="2"] .library-card strong{font-size:11px!important;font-weight:680!important;color:#2d3748!important}html[data-editor-premium="2"] .library-card small{font-size:9px!important;color:#7b8796!important}
+    html[data-editor-premium="2"] .tree-block{background:transparent!important;border:0!important}html[data-editor-premium="2"] .tree-row{min-height:30px!important;border-radius:6px!important;font-size:10px!important;color:#556275!important}html[data-editor-premium="2"] .tree-row:hover{background:#f4f6f9!important}html[data-editor-premium="2"] .tree-row.active{background:#f0eeff!important;color:#3f348d!important;box-shadow:inset 2px 0 0 var(--r-accent)!important}
+    html[data-editor-premium="2"] .stage{grid-template-rows:36px minmax(0,1fr)!important;background-color:#eef1f5!important;background-image:linear-gradient(rgba(15,23,42,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,.05) 1px,transparent 1px)!important;background-size:24px 24px!important}html[data-editor-premium="2"] .stage-toolbar{height:36px!important;padding:0 10px!important;background:#f8fafc!important;border-bottom:1px solid #dfe4eb!important;color:#5f6b7c!important}html[data-editor-premium="2"] .page-label{font-size:10px!important;color:#303a49!important}html[data-editor-premium="2"] .breadcrumb,html[data-editor-premium="2"] .save-status{font-size:9px!important;color:#8a95a5!important}
+    html[data-editor-premium="2"] .canvas-shell,html[data-editor-premium="2"] .canvas-wrap{padding:28px 28px 80px!important}html[data-editor-premium="2"] .canvas-frame{border:1px solid rgba(15,23,42,.10)!important;border-radius:6px!important;background:#fff!important;box-shadow:0 16px 42px rgba(15,23,42,.12)!important}
+    html[data-editor-premium="2"] #rightSidebar fieldset,html[data-editor-premium="2"] .panel-scroll fieldset{margin:7px 0!important;padding:10px!important;border:0!important;border-radius:9px!important;background:#f7f9fc!important;box-shadow:none!important}html[data-editor-premium="2"] #rightSidebar legend{padding:0!important;margin:0 0 8px!important;color:#6e7a8c!important;font-size:9px!important;font-weight:700!important;text-transform:uppercase!important}html[data-editor-premium="2"] #rightSidebar input:not([type="checkbox"]):not([type="radio"]),html[data-editor-premium="2"] #rightSidebar select,html[data-editor-premium="2"] #rightSidebar textarea{min-height:34px!important;border-radius:7px!important;background:#fff!important;color:#263142!important;border-color:#dce3eb!important}
+    html[data-builder-theme="dark"][data-editor-premium="2"] body{background:#0d1117!important}html[data-builder-theme="dark"][data-editor-premium="2"] .topbar{background:#0c1118!important;border-color:#232c39!important}html[data-builder-theme="dark"][data-editor-premium="2"] .brand-name{color:#edf2f7!important}html[data-builder-theme="dark"][data-editor-premium="2"] .editor-toolbar{background:#0e141d!important;border-color:#232c39!important}html[data-builder-theme="dark"][data-editor-premium="2"] .workspace{background:#0c1118!important}html[data-builder-theme="dark"][data-editor-premium="2"] .sidebar,html[data-builder-theme="dark"][data-editor-premium="2"] .sidebar-head{background:#111821!important;border-color:#232c39!important}html[data-builder-theme="dark"][data-editor-premium="2"] .sidebar-head h2{color:#edf2f7!important}html[data-builder-theme="dark"][data-editor-premium="2"] .tabs{background:#0c121b!important}html[data-builder-theme="dark"][data-editor-premium="2"] .tabs button.active{background:#1b2430!important;color:#e8edf5!important;box-shadow:none!important}html[data-builder-theme="dark"][data-editor-premium="2"] .library-card{background:#131b26!important;border-color:transparent!important}html[data-builder-theme="dark"][data-editor-premium="2"] .library-card strong{color:#e8edf5!important}html[data-builder-theme="dark"][data-editor-premium="2"] #rightSidebar fieldset{background:#141d28!important}html[data-builder-theme="dark"][data-editor-premium="2"] #rightSidebar input:not([type="checkbox"]):not([type="radio"]),html[data-builder-theme="dark"][data-editor-premium="2"] #rightSidebar select,html[data-builder-theme="dark"][data-editor-premium="2"] #rightSidebar textarea{background:#0e151f!important;color:#e7edf6!important;border-color:#293444!important}
+    @media(max-width:1100px){html[data-editor-premium="2"] .workspace,html[data-editor-premium="2"] body.left-collapsed .workspace,html[data-editor-premium="2"] body.right-collapsed .workspace,html[data-editor-premium="2"] body.left-collapsed.right-collapsed .workspace{grid-template-columns:minmax(0,1fr)!important}html[data-editor-premium="2"] .sidebar{width:min(340px,92vw)!important;box-shadow:0 18px 60px rgba(0,0,0,.22)!important}html[data-editor-premium="2"] .canvas-shell,html[data-editor-premium="2"] .canvas-wrap{padding:20px 16px 72px!important}}
+    @media(max-width:760px){html[data-editor-premium="2"] .app{grid-template-rows:50px minmax(0,1fr) 52px!important}html[data-editor-premium="2"] .topbar{min-height:50px!important;padding:0 7px!important}html[data-editor-premium="2"] .brand-mark{width:28px!important;height:28px!important}html[data-editor-premium="2"] .editor-toolbar{position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:160!important;min-height:52px!important;height:52px!important;padding:7px 8px calc(7px + env(safe-area-inset-bottom))!important;grid-template-columns:auto minmax(0,1fr) auto!important;background:rgba(255,255,255,.96)!important;backdrop-filter:blur(14px)!important;border-top:1px solid #dde3ea!important;border-bottom:0!important}html[data-builder-theme="dark"][data-editor-premium="2"] .editor-toolbar{background:rgba(13,19,29,.96)!important;border-top-color:#232c39!important}html[data-editor-premium="2"] .editor-toolbar .custom-width,html[data-editor-premium="2"] .editor-toolbar #zoomSelect,html[data-editor-premium="2"] .editor-toolbar #guidesBtn{display:none!important}html[data-editor-premium="2"] .device-switch{justify-self:center!important}html[data-editor-premium="2"] .stage{grid-template-rows:32px minmax(0,1fr)!important}html[data-editor-premium="2"] .stage-toolbar{height:32px!important}html[data-editor-premium="2"] .breadcrumb{display:none!important}html[data-editor-premium="2"] .canvas-shell,html[data-editor-premium="2"] .canvas-wrap{padding:14px 10px 76px!important}html[data-editor-premium="2"] .sidebar{width:min(360px,94vw)!important}}
+  </style>
   <script src="vendor/jszip-3.10.1.min.js" defer></script>
-  <script type="module" src="v6-app.mjs"></script>
+  <script type="module" src="v6-app.mjs?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a"></script>
   <script type="module" src="v6-selection-guard.mjs"></script>
-  <script type="module" src="v6-ux.mjs"></script>
-  <script type="module" src="v6-editor-premium.mjs"></script>
-  <script type="module" src="v6-site-languages.mjs"></script>
-  <script type="module" src="v6-responsive-preview.mjs"></script>
-  <script type="module" src="v6-functional-inspector.mjs"></script>
-  <script type="module" src="v6-premium-inspector.mjs"></script>
-  <script type="module" src="v6-premium-section-inspector.mjs"></script>
-  <script type="module" src="v6-reuse.mjs"></script>
+  <script type="module" src="v6-ux.mjs?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a"></script>
+  <script type="module" src="v6-editor-premium.mjs?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a"></script>
+  <script type="module" src="v6-site-languages.mjs?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a"></script>
+  <script type="module" src="v6-responsive-preview.mjs?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a"></script>
+  <script type="module" src="v6-functional-inspector.mjs?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a"></script>
+  <script type="module" src="v6-premium-inspector.mjs?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a"></script>
+  <script type="module" src="v6-premium-section-inspector.mjs?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a"></script>
+  <script type="module" src="v6-reuse.mjs?v=b8ebec9a9dc24c8e4b696456bc22b8339bcf531a"></script>
 </head>
 <body class="left-collapsed right-collapsed">
 <div class="app" id="app">
   <header class="topbar">
-    <div class="brand" aria-label="Web Builder">
-      <span class="brand-mark">W</span>
-      <span class="brand-name">Web Builder</span>
-      <span class="version">v6.4</span>
-    </div>
+    <div class="brand" aria-label="Web Builder"><span class="brand-mark">W</span><span class="brand-name">Web Builder</span><span class="version">v6.4</span></div>
     <div class="top-actions" aria-label="Project actions">
-      <button class="icon-action" id="undoBtn" type="button" title="Undo" aria-label="Undo">↶</button>
-      <button class="icon-action" id="redoBtn" type="button" title="Redo" aria-label="Redo">↷</button>
+      <button class="icon-action" id="undoBtn" type="button" title="Undo" aria-label="Undo">↶</button><button class="icon-action" id="redoBtn" type="button" title="Redo" aria-label="Redo">↷</button>
       <select id="uiLanguage" aria-label="Interface language"><option value="ru">RU</option><option value="az">AZ</option><option value="en">EN</option></select>
-      <button class="icon-action" id="themeToggle" type="button" data-theme="dark" title="Включить светлую тему" aria-label="Включить светлую тему" aria-pressed="true">☾</button>
-      <button class="icon-action has-label desktop-only" id="newBtn" type="button" data-label="Новый проект" title="Новый проект">＋</button>
-      <button class="icon-action has-label" id="previewBtn" type="button" data-label="Предпросмотр" title="Предпросмотр">◉</button>
-      <button class="icon-action has-label primary" id="downloadBtn" type="button" data-label="Скачать сайт" title="Скачать сайт">⇩</button>
+      <button class="icon-action" id="themeToggle" type="button" data-theme="light" title="Включить тёмную тему" aria-label="Включить тёмную тему" aria-pressed="false">☀</button>
+      <button class="icon-action has-label desktop-only" id="newBtn" type="button" data-label="Новый проект" title="Новый проект">＋</button><button class="icon-action has-label" id="previewBtn" type="button" data-label="Предпросмотр" title="Предпросмотр">◉</button><button class="icon-action has-label primary" id="downloadBtn" type="button" data-label="Скачать сайт" title="Скачать сайт">⇩</button>
     </div>
   </header>
-
   <div class="editor-toolbar" role="toolbar" aria-label="Editor controls">
     <button class="panel-toggle has-label" id="leftToggle" type="button" data-label="Блоки" aria-label="Блоки / элементы" aria-expanded="false">☰</button>
-
-    <div class="device-switch" aria-label="Canvas device">
-      <button class="active" data-device="desktop" type="button" title="Desktop" aria-label="Desktop">▰</button>
-      <button data-device="tablet" type="button" title="Tablet" aria-label="Tablet">▯</button>
-      <button data-device="mobile" type="button" title="Mobile" aria-label="Mobile">▯</button>
-    </div>
-
-    <div class="custom-width" title="Custom canvas width">
-      <input id="customWidth" type="number" min="240" max="1920" inputmode="numeric" placeholder="px" aria-label="Custom width in pixels">
-      <small>px</small>
-    </div>
+    <div class="device-switch" aria-label="Canvas device"><button class="active" data-device="desktop" type="button" title="Desktop" aria-label="Desktop">▰</button><button data-device="tablet" type="button" title="Tablet" aria-label="Tablet">▯</button><button data-device="mobile" type="button" title="Mobile" aria-label="Mobile">▯</button></div>
+    <div class="custom-width" title="Custom canvas width"><input id="customWidth" type="number" min="240" max="1920" inputmode="numeric" placeholder="px" aria-label="Custom width in pixels"><small>px</small></div>
     <select id="zoomSelect" aria-label="Canvas zoom"><option value="fit">Fit</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option></select>
-    <button class="toolbar-icon" id="guidesBtn" type="button" title="Guides" aria-label="Guides">#</button>
-
-    <button class="panel-toggle has-label" id="rightToggle" type="button" data-label="Настройки" aria-label="Настройки" aria-expanded="false">⚙</button>
+    <button class="toolbar-icon" id="guidesBtn" type="button" title="Guides" aria-label="Guides">#</button><button class="panel-toggle has-label" id="rightToggle" type="button" data-label="Настройки" aria-label="Настройки" aria-expanded="false">⚙</button>
   </div>
-
   <main class="workspace">
     <aside class="sidebar left-sidebar" id="leftSidebar" aria-label="Library">
-      <div class="sidebar-head">
-        <div><span class="eyebrow">Web Builder</span><h2 id="leftTitle">Блоки</h2></div>
-        <button class="sidebar-close" type="button" data-close-panel="left" aria-label="Close blocks panel">×</button>
-      </div>
-      <div class="tabs left-tabs" role="tablist">
-        <button id="blocksTab" class="active" type="button">Блоки</button>
-        <button id="elementsTab" type="button">Элементы</button>
-        <button id="pagesTab" type="button">Страницы</button>
-      </div>
-      <div class="panel-scroll">
-        <section id="blocksPanel"></section>
-        <section id="elementsPanel" class="hidden"></section>
-        <section id="pagesPanel" class="hidden"></section>
-        <section id="navigatorPanel" class="hidden"></section>
-      </div>
+      <div class="sidebar-head"><div><span class="eyebrow">Web Builder</span><h2 id="leftTitle">Блоки</h2></div><button class="sidebar-close" type="button" data-close-panel="left" aria-label="Close blocks panel">×</button></div>
+      <div class="tabs left-tabs" role="tablist"><button id="blocksTab" class="active" type="button">Блоки</button><button id="elementsTab" type="button">Элементы</button><button id="pagesTab" type="button">Страницы</button></div>
+      <div class="panel-scroll"><section id="blocksPanel"></section><section id="elementsPanel" class="hidden"></section><section id="pagesPanel" class="hidden"></section><section id="navigatorPanel" class="hidden"></section></div>
     </aside>
-
-    <section class="stage" id="stage">
-      <div class="canvas-shell" id="canvasShell">
-        <div class="canvas-frame desktop" id="canvasFrame">
-          <div id="canvas" class="canvas" data-device="desktop"></div>
-        </div>
-      </div>
-    </section>
-
+    <section class="stage" id="stage"><div class="canvas-shell" id="canvasShell"><div class="canvas-frame desktop" id="canvasFrame"><div id="canvas" class="canvas" data-device="desktop"></div></div></div></section>
     <aside class="sidebar right-sidebar" id="rightSidebar" aria-label="Inspector">
-      <div class="sidebar-head">
-        <div><span class="eyebrow">Inspector</span><h2 id="rightTitle">Настройки</h2></div>
-        <button class="sidebar-close" type="button" data-close-panel="right" aria-label="Close settings panel">×</button>
-      </div>
-      <div class="tabs right-tabs" role="tablist">
-        <button id="blockTab" class="active" type="button">Блок</button>
-        <button id="elementTab" type="button">Элемент</button>
-        <button id="pageTab" type="button">Страница</button>
-        <button id="seoTab" type="button">SEO</button>
-        <button id="siteTab" type="button">Сайт</button>
-      </div>
-      <div class="panel-scroll">
-        <section id="blockInspector"></section>
-        <section id="elementInspector" class="hidden"></section>
-        <section id="pageInspector" class="hidden"></section>
-        <section id="seoInspector" class="hidden"></section>
-        <section id="siteInspector" class="hidden"></section>
-      </div>
+      <div class="sidebar-head"><div><span class="eyebrow">Inspector</span><h2 id="rightTitle">Настройки</h2></div><button class="sidebar-close" type="button" data-close-panel="right" aria-label="Close settings panel">×</button></div>
+      <div class="tabs right-tabs" role="tablist"><button id="blockTab" class="active" type="button">Блок</button><button id="elementTab" type="button">Элемент</button><button id="pageTab" type="button">Страница</button><button id="seoTab" type="button">SEO</button><button id="siteTab" type="button">Сайт</button></div>
+      <div class="panel-scroll"><section id="blockInspector"></section><section id="elementInspector" class="hidden"></section><section id="pageInspector" class="hidden"></section><section id="seoInspector" class="hidden"></section><section id="siteInspector" class="hidden"></section></div>
     </aside>
   </main>
 </div>
-
 <div class="panel-backdrop" id="panelBackdrop" aria-hidden="true"></div>
-
-<dialog id="previewDialog" class="preview-dialog">
-  <div class="preview-bar"><strong>Preview</strong><select id="previewPage"></select><select id="previewDevice"><option value="desktop">Desktop</option><option value="tablet">Tablet</option><option value="mobile">Mobile</option></select><button id="closePreview" type="button">Close ×</button></div>
-  <div class="preview-stage"><iframe id="previewFrame" title="Website preview" sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe></div>
-</dialog>
-
+<dialog id="previewDialog" class="preview-dialog"><div class="preview-bar"><strong>Preview</strong><select id="previewPage"></select><select id="previewDevice"><option value="desktop">Desktop</option><option value="tablet">Tablet</option><option value="mobile">Mobile</option></select><button id="closePreview" type="button">Close ×</button></div><div class="preview-stage"><iframe id="previewFrame" title="Website preview" sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe></div></dialog>
 <div class="context-menu hidden" id="contextMenu"><button data-context="duplicate">Duplicate</button><button data-context="copy">Copy</button><button data-context="copy-style">Copy Style</button><button data-context="paste-style">Paste Style</button><button data-context="delete" class="danger">Delete</button></div>
 <div class="toast" id="toast"></div>
 </body>
