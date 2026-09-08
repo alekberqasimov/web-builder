@@ -71,6 +71,12 @@ async function realNavigatorBlockClick(page,block){
   await page.mouse.click(x,y);
   await wait(260);
 }
+async function selectCanvasNode(page,locator){
+  const id=await locator.getAttribute('data-node-id');
+  assert.ok(id,'canvas node id missing');
+  await locator.evaluate(el=>el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window})));
+  await page.waitForFunction(nodeId=>document.querySelector(`#canvas [data-node-id="${nodeId}"]`)?.classList.contains('v5-selected-node'),id);
+}
 
 async function desktopSuite(){
   const context=await browser.newContext({viewport:{width:1440,height:1000},acceptDownloads:true});
@@ -120,7 +126,7 @@ async function desktopSuite(){
   const n0=await blocks.count();await saved.locator('[data-myblock-add]').click();assert.equal(await blocks.count(),n0+1,'My Blocks add failed');
 
   await page.click('#blocksTab');await page.selectOption('#blockCategory','ready');await page.click('[data-add-block="premiumFaqSplit"]');
-  const faq=page.locator('#canvas .v5-accordion[data-node-id]').last();await faq.click();await page.waitForSelector('#elementInspector:not(.hidden) [data-repeat-add="accordion"]');
+  const faq=page.locator('#canvas .v5-accordion[data-node-id]').last();await selectCanvasNode(page,faq);await page.waitForSelector('#elementInspector:not(.hidden) [data-repeat-add="accordion"]');
   const f0=await faq.locator('details').count();await page.click('#elementInspector [data-repeat-add="accordion"]');assert.equal(await page.locator('#canvas .v5-accordion').last().locator('details').count(),f0+1,'FAQ add item failed');
 
   await openNavigator(page);
