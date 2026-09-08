@@ -34,11 +34,20 @@ function applyFallback(blockId,nodeId,multiKey){
   state.render();
 }
 
+function ensureRescueLayoutGuards(){
+  if(document.querySelector('#v6RescueLayoutGuards'))return;
+  const style=document.createElement('style');
+  style.id='v6RescueLayoutGuards';
+  style.textContent='html[data-editor-premium="2"] .sidebar-head h2{min-height:21px!important;line-height:1.4!important;display:block!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}';
+  document.head.append(style);
+}
+
 function bind(){
   if(bound)return;
   const canvas=document.querySelector('#canvas');
   if(!canvas){setTimeout(bind,50);return}
   bound=true;
+  ensureRescueLayoutGuards();
   canvas.addEventListener('click',e=>{
     const hit=eligibleTarget(e.target);if(!hit)return;
     const blockId=hit.section.dataset.blockId||'';
