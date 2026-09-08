@@ -66,6 +66,8 @@ async function mobileAudit(){
       side:{left:side.left,right:side.right,width:side.width},
       search:{left:search.left,right:search.right,width:search.width},
       cardXs:[...new Set(cards.map(r=>Math.round(r.x)))],
+      cardWidths:cards.map(r=>r.width),
+      cardHeights:cards.map(r=>r.height),
       bodyScroll:document.documentElement.scrollWidth,
       pin
     };
@@ -75,7 +77,9 @@ async function mobileAudit(){
   assert.ok(metrics.side.width<metrics.innerWidth*.92,'mobile drawer should leave visual context instead of becoming a full-screen wall');
   assert.ok(metrics.search.left>=metrics.side.left&&metrics.search.right<=metrics.side.right+1,'search is clipped or overflows the drawer');
   assert.ok(metrics.search.width>300,'mobile search is too narrow');
-  assert.ok(metrics.cardXs.length>=2,'block cards must use an adaptive two-column layout on phone');
+  assert.equal(metrics.cardXs.length,1,'mobile block library should use one readable column');
+  assert.ok(metrics.cardWidths.every(w=>w>300),'mobile block cards are too narrow for readable labels');
+  assert.ok(metrics.cardHeights.every(h=>h>=56),'mobile block cards are too compressed for touch use');
   assert.equal(metrics.pin,'none','pin control must be hidden on compact drawer mode');
   assert.ok(metrics.bodyScroll<=390,'builder creates horizontal page overflow on mobile');
 
